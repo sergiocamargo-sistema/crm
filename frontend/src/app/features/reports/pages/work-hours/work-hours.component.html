@@ -1,0 +1,85 @@
+<div class="report-page layout-stack">
+  <header class="report-heading">
+    <a class="icon-button" routerLink="/" aria-label="Voltar ao início" title="Voltar ao início"
+      ><app-icon name="back"
+    /></a>
+    <div class="heading-copy">
+      <p class="eyebrow">Relatórios</p>
+      <h1 #pageTitle tabindex="-1">Horas trabalhadas</h1>
+    </div>
+    <a
+      class="icon-button board-link"
+      routerLink="/kanban"
+      aria-label="Abrir Kanban"
+      title="Abrir Kanban"
+      ><app-icon name="kanban"
+    /></a>
+  </header>
+
+  <div class="report-filters" role="group" aria-label="Dia e funcionário do relatório">
+    <div class="day-filter">
+      <button
+        type="button"
+        class="icon-button"
+        aria-label="Dia anterior"
+        title="Dia anterior"
+        [disabled]="invalidDay()"
+        (click)="changeDay(-1)"
+      >
+        <app-icon name="back" />
+      </button>
+      <label class="date-field">
+        <span class="sr-only">Dia do relatório</span>
+        <input type="date" class="form-input" [formField]="filters.day" [attr.max]="today()" />
+      </label>
+      <button
+        type="button"
+        class="icon-button"
+        aria-label="Próximo dia"
+        title="Próximo dia"
+        [disabled]="invalidDay() || service.query().day >= today()"
+        (click)="changeDay(1)"
+      >
+        <app-icon name="arrow" />
+      </button>
+      <button
+        type="button"
+        class="icon-button"
+        aria-label="Ir para hoje"
+        title="Hoje"
+        (click)="showToday()"
+      >
+        <app-icon name="event" />
+      </button>
+    </div>
+    <label class="employee-filter">
+      <app-icon name="users" />
+      <span class="sr-only">Funcionário</span>
+      <select class="form-select" [formField]="filters.userId">
+        <option value="">Toda a equipe</option>
+        @for (user of service.users; track user.id) {
+          <option [value]="user.id">{{ user.name }}</option>
+        }
+      </select>
+    </label>
+  </div>
+  @if (invalidDay()) {
+    <p class="form-error" role="alert">Selecione uma data válida até hoje.</p>
+  }
+
+  <p class="sr-only" role="status" aria-atomic="true">
+    {{ totals().cards }} cards encontrados para {{ totals().people }} funcionários.
+  </p>
+
+  @if (groups().length) {
+    <app-work-timeline [groups]="groups()" [day]="service.query().day" />
+  } @else {
+    @if (!invalidDay()) {
+      <div class="report-empty">
+        <app-icon name="clock" />
+        <h2>Nenhum tempo em Andamento neste dia</h2>
+        <p>Escolha outro dia ou funcionário para consultar as atividades.</p>
+      </div>
+    }
+  }
+</div>

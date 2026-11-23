@@ -1,0 +1,39 @@
+<section class="metrics" aria-label="Resumo da caixa de atendimento">
+  <article class="metric">
+    <span class="metric-icon metric-icon--waiting"><app-icon name="clock" /></span>
+    <div>
+      <span class="metric-label">Aguardando atendimento</span
+      ><strong>{{ counts().waiting }}<small>na fila</small></strong>
+    </div>
+    <span class="metric-decoration"></span>
+  </article>
+  <article class="metric">
+    <span class="metric-icon"><app-icon name="message" /></span>
+    <div>
+      <span class="metric-label">Em atendimento</span
+      ><strong>{{ counts().active }}<small>conversas ativas</small></strong>
+    </div>
+    <span class="metric-decoration"></span>
+  </article>
+  <article class="metric">
+    <span class="metric-icon metric-icon--mine"><app-icon name="user" /></span>
+    <div>
+      <span class="metric-label">Com você</span
+      ><strong>{{ counts().mine }}<small>em acompanhamento</small></strong>
+    </div>
+    <span class="metric-decoration"></span>
+  </article>
+  <article class="metric">
+    <span class="metric-icon metric-icon--done"><app-icon name="circleCheck" /></span>
+    <div>
+      <span class="metric-label">Encerradas hoje</span
+      ><strong
+        >{{ counts().closed
+        }}<small>{{
+          counts().closed === 1 ? 'conversa finalizada' : 'conversas finalizadas'
+        }}</small></strong
+      >
+    </div>
+    <span class="metric-decoration"></span>
+  </article>
+</section>

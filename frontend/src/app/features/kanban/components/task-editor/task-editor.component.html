@@ -1,0 +1,137 @@
+<dialog #editor class="dialog task-dialog" aria-labelledby="task-editor-title" (close)="onClose()">
+  <div class="dialog__header">
+    <div class="card-heading">
+      <app-icon name="kanban" />
+      <h2 id="task-editor-title">{{ taskId() ? 'Detalhes do cartão' : 'Novo cartão' }}</h2>
+    </div>
+    <div class="icon-toolbar">
+      @if (taskId()) {
+        <a
+          class="icon-button icon-button--compact"
+          [routerLink]="['/kanban']"
+          [queryParams]="{ tarefa: taskId() }"
+          aria-label="Link deste cartão"
+          title="Link deste cartão"
+          ><app-icon name="link"
+        /></a>
+      }
+      <button type="button" class="icon-button" aria-label="Fechar cartão" (click)="close()">
+        <app-icon name="close" />
+      </button>
+    </div>
+  </div>
+  <div class="dialog__body task-layout" [class.task-layout--new]="!taskId()">
+    <div class="card-main">
+      <form (submit)="save($event)" novalidate class="task-fields">
+        <label
+          ><span class="form-label">Título</span
+          ><input
+            #titleInput
+            class="form-input task-title-input"
+            [formField]="taskForm.title"
+            placeholder="O que precisa ser feito?"
+        /></label>
+        <div class="description-field">
+          @if (editingDescription() || !taskId()) {
+            <app-mention-editor
+              [formField]="taskForm.description"
+              controlId="kanban-task-description"
+              label="Descrição"
+              [rows]="5"
+            />
+          } @else {
+            <div class="description-heading">
+              <h3>Descrição</h3>
+              <button type="button" class="text-button" (click)="editDescription()">Editar</button>
+            </div>
+            <div class="description-preview">
+              <app-rich-text [text]="model().description || 'Adicionar uma descrição...'" />
+            </div>
+          }
+        </div>
+        <div class="field-pair">
+          <label
+            ><span class="form-label">Status</span
+            ><select #statusInput class="form-select" [formField]="taskForm.status">
+              @for (status of statuses; track status.value) {
+                <option [value]="status.value">{{ status.label }}</option>
+              }
+            </select></label
+          >
+          <label
+            ><span class="form-label">Prioridade</span
+            ><select class="form-select" [formField]="taskForm.priority">
+              @for (priority of priorities; track priority.value) {
+                <option [value]="priority.value">{{ priority.label }}</option>
+              }
+            </select></label
+          >
+        </div>
+        <label
+          ><span class="form-label">Coluna personalizada</span
+          ><select #columnInput class="form-select" [formField]="taskForm.customColumnId">
+            <option value="">Sem coluna</option>
+            @for (column of board.workspace().customColumns; track column.id) {
+              <option [value]="column.id">{{ column.name }}</option>
+            }
+          </select></label
+        >
+        <div class="field-pair">
+          <app-assignee-picker [formField]="taskForm.assigneeIds" />
+          <label
+            ><span class="form-label">Prazo</span
+            ><input type="datetime-local" class="form-input" [formField]="taskForm.dueAt"
+          /></label>
+        </div>
+        <app-task-label-picker
+          controlId="kanban-task-labels"
+          [formField]="taskForm.labelIds"
+          [catalog]="board.workspace().labels"
+        />
+        <label
+          ><span class="form-label">Solicitação relacionada</span
+          ><select class="form-select" [formField]="taskForm.requestId">
+            <option value="">Tarefa independente</option>
+            @for (request of board.workspace().requests; track request.id) {
+              <option [value]="request.id">#{{ request.protocol }} · {{ request.title }}</option>
+            }
+          </select></label
+        >
+        @if (taskId() && model().requestId) {
+          <a
+            class="request-link"
+            [routerLink]="['/solicitacoes', model().requestId]"
+            [fragment]="taskId() ?? undefined"
+            (click)="close()"
+            >Abrir na solicitação <app-icon name="arrow"
+          /></a>
+        }
+        @if (attempted() && taskForm().invalid()) {
+          <p class="form-error" role="alert">
+            Confira o título e selecione pelo menos um responsável. Use até 120 caracteres no título
+            e 1.500 na descrição; se informar um prazo, use uma data válida.
+          </p>
+        }
+        @if (failure()) {
+          <p class="form-error" role="alert">{{ failure() }}</p>
+        }
+        <p class="sr-only" role="status">{{ saveStatus() }}</p>
+        <div class="task-save-actions">
+          <button type="button" class="button" (click)="close()">
+            {{ taskId() ? 'Fechar' : 'Cancelar' }}
+          </button>
+          <button type="submit" class="button button--primary" [disabled]="taskForm().submitting()">
+            {{ taskId() ? 'Salvar alterações' : 'Criar cartão' }}
+          </button>
+        </div>
+      </form>
+      @if (taskId(); as id) {
+        <app-task-attachments [taskId]="id" />
+      }
+    </div>
+    @if (taskId(); as id) {
+      <aside class="card-activity"><app-task-comments [taskId]="id" /></aside>
+      <app-task-history class="card-history" [taskId]="id" />
+    }
+  </div>
+</dialog>

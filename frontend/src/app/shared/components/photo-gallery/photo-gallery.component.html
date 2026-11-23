@@ -1,0 +1,121 @@
+@if (photos().length) {
+  <div
+    class="photo-mosaic"
+    [attr.data-count]="previews().length"
+    role="group"
+    [attr.aria-label]="title()"
+  >
+    @for (photo of previews(); track $index; let index = $index) {
+      <button
+        type="button"
+        class="photo-tile"
+        (click)="openPhoto(index, $event)"
+        [attr.aria-label]="
+          'Ampliar foto ' + (index + 1) + (contextName() ? ' de ' + contextName() : '')
+        "
+      >
+        @if (brokenPhotos().has(photo.src)) {
+          <app-icon name="image" />
+        } @else if (photo.src.startsWith('blob:')) {
+          <!-- NgOptimizedImage rejects local object URLs. -->
+          <img
+            [src]="photo.src"
+            [alt]="photo.label"
+            loading="lazy"
+            (error)="imageFailed(photo.src)"
+          />
+        } @else {
+          <img
+            [ngSrc]="photo.src"
+            fill
+            [priority]="priority() && index === 0"
+            sizes="(max-width: 600px) 55vw, 35vw"
+            [alt]="photo.label"
+            (error)="imageFailed(photo.src)"
+          />
+        }
+        <span class="icon-button icon-button--overlay photo-overlay"
+          ><app-icon name="expand"
+        /></span>
+      </button>
+    }
+    <button
+      type="button"
+      class="icon-button icon-button--overlay icon-button--with-count photo-count"
+      (click)="openPhoto(0, $event)"
+      [attr.aria-label]="'Ver todas: ' + title()"
+    >
+      <app-icon name="image" /><span>{{ photos().length }}</span>
+    </button>
+  </div>
+}
+
+<dialog
+  #photoDialog
+  class="dialog photo-dialog"
+  [attr.aria-labelledby]="galleryId() + '-title'"
+  (close)="closePhoto()"
+  (click)="onPhotoBackdropClick($event)"
+  (keydown)="onPhotoKeydown($event)"
+>
+  <div class="dialog__header">
+    <h2 [id]="galleryId() + '-title'">{{ title() }}</h2>
+    <button
+      type="button"
+      autofocus
+      class="icon-button"
+      (click)="photoDialog.close()"
+      aria-label="Fechar fotos"
+    >
+      <app-icon name="close" />
+    </button>
+  </div>
+  @if (selectedPhoto(); as photo) {
+    <figure>
+      <div class="photo-view">
+        @if (brokenPhotos().has(photo.src)) {
+          <div class="photo-unavailable">
+            <p role="status">Não foi possível exibir a prévia desta foto.</p>
+            <a class="button" [href]="photo.src" target="_blank" rel="noopener noreferrer"
+              >Abrir arquivo</a
+            >
+          </div>
+        } @else if (photo.src.startsWith('blob:')) {
+          <img [src]="photo.src" [alt]="photo.label" (error)="imageFailed(photo.src)" />
+        } @else {
+          <img
+            [ngSrc]="photo.src"
+            fill
+            sizes="(max-width: 600px) 90vw, 60vw"
+            [alt]="photo.label"
+            (error)="imageFailed(photo.src)"
+          />
+        }
+      </div>
+      <figcaption aria-live="polite" aria-atomic="true">
+        @if (showLabels()) {
+          {{ photo.label }} ·
+        }
+        {{ photoPosition() + 1 }} de {{ photos().length }}
+      </figcaption>
+    </figure>
+    <div class="dialog__footer photo-navigation">
+      <button
+        type="button"
+        class="button"
+        [disabled]="photoPosition() === 0"
+        (click)="changePhoto(-1)"
+      >
+        <app-icon name="back" />Anterior
+      </button>
+      <button
+        type="button"
+        class="button"
+        [disabled]="photoPosition() === photos().length - 1"
+        (click)="changePhoto(1)"
+      >
+        Próxima<app-icon name="arrow" />
+      </button>
+    </div>
+  }
+</dialog>

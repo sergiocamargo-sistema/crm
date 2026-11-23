@@ -1,0 +1,105 @@
+<div class="composer" [class.composer--note]="mode() === 'note'">
+  @if (mode() === 'reply') {
+    <div class="suggestion">
+      <span class="suggestion-label"><app-icon name="sparkles" />Sugestão de resposta</span
+      ><button type="button" (click)="useSuggestion()">
+        Usar sugestão<app-icon name="plus" />
+      </button>
+    </div>
+  }
+  <div class="composer-card">
+    <div class="composer-mode" aria-label="Tipo da mensagem">
+      <button
+        type="button"
+        [class.active]="mode() === 'reply'"
+        [attr.aria-pressed]="mode() === 'reply'"
+        (click)="mode.set('reply')"
+      >
+        <app-icon name="whatsapp" />Responder</button
+      ><button
+        type="button"
+        [class.active]="mode() === 'note'"
+        [attr.aria-pressed]="mode() === 'note'"
+        (click)="mode.set('note')"
+      >
+        <app-icon name="lock" />Nota interna
+      </button>
+      @if (mode() === 'note') {
+        <span class="note-hint">Visível só para a equipe</span>
+      }
+    </div>
+    <textarea
+      #messageInput
+      [formField]="composerForm.message"
+      [attr.aria-label]="mode() === 'note' ? 'Escrever nota interna' : 'Escrever resposta'"
+      [placeholder]="
+        mode() === 'note'
+          ? 'Registre uma orientação para a equipe...'
+          : 'Escreva uma resposta para ' + firstName() + '...'
+      "
+      rows="2"
+      (keydown)="handleKeydown($event)"
+    ></textarea>
+    @if (attachments().length > 0) {
+      <ul class="pending-attachments">
+        @for (attachment of attachments(); track attachment.id) {
+          <li>
+            <app-icon name="file" /><span>{{ attachment.name }}</span
+            ><button
+              type="button"
+              (click)="removeAttachment(attachment.id)"
+              [attr.aria-label]="'Remover anexo ' + attachment.name"
+            >
+              <app-icon name="close" />
+            </button>
+          </li>
+        }
+      </ul>
+    }
+    @if (attachmentError()) {
+      <p class="attachment-error" role="alert">{{ attachmentError() }}</p>
+    }
+    <div class="composer-toolbar">
+      <input
+        #fileInput
+        class="sr-only"
+        type="file"
+        multiple
+        accept="image/*,application/pdf,text/plain,.doc,.docx,.xls,.xlsx"
+        aria-label="Selecionar anexos"
+        tabindex="-1"
+        (change)="selectFiles(fileInput)"
+      /><button
+        type="button"
+        class="icon-button"
+        (click)="fileInput.click()"
+        aria-label="Anexar arquivos"
+        title="Anexar arquivos"
+      >
+        <app-icon name="attachment" /></button
+      ><button
+        type="button"
+        class="icon-button emoji-button"
+        (click)="addEmoji()"
+        aria-label="Adicionar emoji de sorriso"
+        title="Adicionar sorriso"
+      >
+        <app-icon name="smile" /></button
+      ><span class="shortcut-hint">Ctrl + Enter para enviar</span
+      ><button type="button" class="send-button" [disabled]="!canSend()" (click)="send()">
+        {{ mode() === 'note' ? 'Adicionar nota' : 'Enviar'
+        }}<app-icon [name]="mode() === 'note' ? 'note' : 'send'" />
+      </button>
+    </div>
+  </div>
+  <p class="composer-footer">
+    @if (mode() === 'note') {
+      <app-icon name="lock" />Esta nota não é enviada ao munícipe.
+    } @else if (!connected()) {
+      <span class="offline-text">Canal desconectado. Reconecte para enviar uma resposta.</span>
+    } @else {
+      <app-icon name="lock" />Resposta pelo WhatsApp do gabinete<span>·</span>Prévia com dados
+      fictícios
+    }
+  </p>
+</div>

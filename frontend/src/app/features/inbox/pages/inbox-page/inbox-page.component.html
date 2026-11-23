@@ -1,0 +1,319 @@
+<a class="skip-link" href="#main-content">Ir para o atendimento</a>
+<div class="app-layout">
+  <aside class="desktop-navigation"><app-sidebar [unreadCount]="inbox.counts().unread" /></aside>
+  <main class="main-frame" id="main-content">
+    <app-header
+      [availability]="inbox.availability()"
+      (availabilityChanged)="inbox.availability.set($event)"
+      (navigationRequested)="openNavigation()"
+      (helpRequested)="openDialog('help')"
+    />
+    <div class="page-content" [class.page-content--conversation-open]="mobileConversationOpen()">
+      <div class="page-heading">
+        <div>
+          <div class="page-eyebrow"><span class="eyebrow-mark"></span>ATENDIMENTO AO MUNÍCIPE</div>
+          <h1>Caixa de atendimento<span>.</span></h1>
+          <p>Boas conversas aproximam o gabinete das pessoas.</p>
+        </div>
+        <div class="heading-actions">
+          <button
+            type="button"
+            class="channel-status"
+            [class.channel-status--offline]="!inbox.connected()"
+            (click)="openDialog('whatsapp')"
+          >
+            <app-icon name="whatsapp" /><span>{{
+              inbox.connected() ? 'WhatsApp conectado' : 'WhatsApp desconectado'
+            }}</span
+            ><span class="dot" [class.dot--amber]="!inbox.connected()"></span></button
+          ><button
+            type="button"
+            class="button button--primary new-request"
+            (click)="openDialog('new')"
+          >
+            <app-icon name="plus" />Novo atendimento
+          </button>
+        </div>
+      </div>
+      <app-inbox-summary [counts]="inbox.counts()" />
+      @if (!inbox.connected()) {
+        <div class="connection-alert" role="status">
+          <app-icon name="whatsapp" />
+          <p>
+            O WhatsApp está desconectado. Você pode consultar as conversas e registrar notas
+            internas.
+          </p>
+          <button type="button" (click)="reconnect()">Reconectar<app-icon name="refresh" /></button>
+        </div>
+      }
+      <section
+        class="workspace"
+        [class.workspace--conversation-open]="mobileConversationOpen()"
+        aria-label="Caixa de atendimento"
+      >
+        <app-conversation-list
+          [conversations]="inbox.filtered()"
+          [counts]="inbox.counts()"
+          [query]="inbox.query()"
+          [filter]="inbox.filter()"
+          [onlyUnread]="inbox.onlyUnread()"
+          [selectedId]="inbox.selectedId()"
+          [currentUserId]="inbox.user.id"
+          [connected]="inbox.connected()"
+          (queryChanged)="inbox.query.set($event)"
+          (filterChanged)="inbox.filter.set($event)"
+          (unreadChanged)="inbox.onlyUnread.set($event)"
+          (clearFilters)="clearFilters()"
+          (conversationSelected)="selectConversation($event)"
+        />
+        @if (inbox.selected(); as conversation) {
+          <app-conversation-panel
+            [conversation]="conversation"
+            [currentUserId]="inbox.user.id"
+            [connected]="inbox.connected()"
+            [initialDraft]="draftFor(conversation.id)"
+            [revision]="composerRevision()"
+            (messageSubmitted)="sendMessage($event)"
+            (assumeRequested)="assumeConversation()"
+            (transferRequested)="openDialog('transfer')"
+            (closeRequested)="openDialog('close')"
+            (citizenRequested)="openDialog('citizen')"
+            (requestRequested)="openDialog('request')"
+            (backRequested)="mobileConversationOpen.set(false)"
+            (attachmentRequested)="showAttachment($event)"
+          />
+          <app-citizen-context
+            class="desktop-context"
+            [conversation]="conversation"
+            (citizenRequested)="openDialog('citizen')"
+            (requestRequested)="openDialog('request')"
+          />
+        }
+      </section>
+      <footer class="page-footer">
+        <span><span class="footer-mark">g.</span>Feito para cuidar de cada atendimento.</span
+        ><span>Dados fictícios<span class="footer-divider">·</span>17 nov 2026</span>
+      </footer>
+    </div>
+  </main>
+</div>
+<dialog #navigationDialog class="navigation-dialog" aria-label="Navegação do gabinete">
+  <app-sidebar
+    [unreadCount]="inbox.counts().unread"
+    [showClose]="true"
+    (dismissed)="navigationDialog.close()"
+  />
+</dialog>
+<dialog
+  #detailDialog
+  class="dialog prototype-dialog"
+  aria-labelledby="dialog-title"
+  (close)="dialogType.set(null)"
+  (click)="closeOnBackdrop($event)"
+>
+  <div class="dialog__header">
+    <h2 id="dialog-title">{{ dialogTitle() }}</h2>
+    <button
+      type="button"
+      class="icon-button"
+      autofocus
+      (click)="detailDialog.close()"
+      aria-label="Fechar janela"
+    >
+      <app-icon name="close" />
+    </button>
+  </div>
+  <div class="dialog__body" [class.dialog__body--context]="dialogType() === 'citizen'">
+    @switch (dialogType()) {
+      @case ('citizen') {
+        @if (inbox.selected(); as conversation) {
+          <app-citizen-context
+            [conversation]="conversation"
+            [showAddress]="true"
+            [showRecordAction]="false"
+            (requestRequested)="dialogType.set('request')"
+          />
+        }
+      }
+      @case ('request') {
+        @if (inbox.selected()?.request; as request) {
+          <span class="badge">{{ request.status }}</span>
+          <h3 class="request-detail-title">#{{ request.protocol }} · {{ request.title }}</h3>
+          <dl class="detail-list">
+            <div>
+              <dt>Munícipe</dt>
+              <dd>{{ inbox.selected()?.citizen?.name }}</dd>
+            </div>
+            <div>
+              <dt>Categoria</dt>
+              <dd>{{ request.category }}</dd>
+            </div>
+            <div>
+              <dt>Responsável pelo pedido</dt>
+              <dd>{{ request.responsible }}</dd>
+            </div>
+            <div>
+              <dt>Data de abertura</dt>
+              <dd>{{ request.openedAt }}</dd>
+            </div>
+          </dl>
+          <div class="info-block">
+            <strong>Próximo passo · {{ request.dueAt }}</strong>
+            <p>{{ request.nextAction }}</p>
+          </div>
+          <p class="dialog__muted detail-note">
+            O pedido e a conversa têm acompanhamentos independentes.
+          </p>
+        }
+      }
+      @case ('transfer') {
+        <p>
+          Transfira a conversa com <strong>{{ inbox.selected()?.citizen?.name }}</strong>. O
+          histórico e as notas acompanham o atendimento.
+        </p>
+        <div class="transfer-field">
+          <label class="form-label" for="transfer-staff">Novo responsável</label
+          ><select
+            #staffSelect
+            id="transfer-staff"
+            class="form-select"
+            [formField]="transferForm.staffId"
+          >
+            @for (member of inbox.team; track member.id) {
+              <option [value]="member.id">{{ member.name }}</option>
+            }
+          </select>
+        </div>
+        <div class="info-block">
+          <strong>Sem perder o contexto</strong>
+          <p>Depois da transferência, o novo responsável poderá continuar a conversa.</p>
+        </div>
+      }
+      @case ('close') {
+        <p>
+          Deseja encerrar a conversa com <strong>{{ inbox.selected()?.citizen?.name }}</strong>?
+        </p>
+        <div class="info-block">
+          <strong>O histórico permanece disponível</strong>
+          <p>Encerrar a conversa não conclui automaticamente os atendimentos vinculados.</p>
+        </div>
+      }
+      @case ('whatsapp') {
+        <div class="whatsapp-demo">
+          <span class="whatsapp-large"><app-icon name="whatsapp" /></span>
+          <h3>WhatsApp do gabinete</h3>
+          <span class="badge" [class.badge--amber]="!inbox.connected()"
+            ><span class="dot" [class.dot--amber]="!inbox.connected()"></span
+            >{{ inbox.connected() ? 'Conectado' : 'Desconectado' }}</span
+          >
+          <p>
+            Canal principal de atendimento<br /><span class="dialog__muted">(11) 90000-0000</span>
+          </p>
+        </div>
+        <div class="info-block">
+          <strong>Experimente o aviso de desconexão</strong>
+          <p>Esta conexão é simulada. Nenhuma conta ou mensagem real do WhatsApp está conectada.</p>
+        </div>
+      }
+      @case ('help') {
+        <p>Esta é a prévia da home do gabinete, com pessoas e conversas fictícias.</p>
+        <ul class="help-list">
+          <li>Selecione uma conversa para ver mensagens e contexto.</li>
+          <li>Assuma uma conversa da fila para responder.</li>
+          <li>Experimente sugestões, anexos, notas e transferências.</li>
+          <li>Os outros módulos serão desenhados nas próximas etapas.</li>
+        </ul>
+        <div class="info-block">
+          <strong>Tudo fica nesta demonstração</strong>
+          <p>As ações são simuladas em memória. Recarregar a página restaura os dados iniciais.</p>
+        </div>
+        <div class="keyboard-shortcuts">
+          <span><kbd>Ctrl / ⌘ K</kbd>Buscar conversa</span
+          ><span><kbd>Ctrl / ⌘ Enter</kbd>Enviar resposta ou nota</span>
+        </div>
+      }
+      @case ('new') {
+        <p>
+          Um novo atendimento pode começar presencialmente, por telefone ou a partir de uma
+          conversa.
+        </p>
+        <div class="new-attendance-preview">
+          <span><app-icon name="users" />Presencial</span
+          ><span><app-icon name="phone" />Telefone</span
+          ><span><app-icon name="whatsapp" />WhatsApp</span>
+        </div>
+        <div class="info-block">
+          <strong>Por enquanto, vamos explorar a home</strong>
+          <p>
+            Nesta primeira prévia, você pode assumir e acompanhar as conversas existentes. O
+            formulário de novo atendimento será uma próxima tela.
+          </p>
+        </div>
+      }
+      @case ('attachment') {
+        @if (selectedAttachment(); as attachment) {
+          <div class="attachment-preview">
+            <app-icon name="file" />
+            <h3>{{ attachment.name }}</h3>
+            <span>{{ attachment.sizeLabel }}</span>
+            <p class="dialog__muted">
+              Anexo registrado na mensagem de demonstração. O arquivo não foi enviado a nenhum
+              serviço.
+            </p>
+          </div>
+        }
+      }
+    }
+  </div>
+  <div class="dialog__footer">
+    @switch (dialogType()) {
+      @case ('transfer') {
+        <button type="button" class="button" (click)="detailDialog.close()">Cancelar</button
+        ><button type="button" class="button button--primary" (click)="transferConversation()">
+          <app-icon name="transfer" />Transferir conversa
+        </button>
+      }
+      @case ('close') {
+        <button type="button" class="button" (click)="detailDialog.close()">
+          Continuar atendendo</button
+        ><button type="button" class="button button--primary" (click)="closeConversation()">
+          <app-icon name="circleCheck" />Encerrar conversa
+        </button>
+      }
+      @case ('whatsapp') {
+        @if (inbox.connected()) {
+          <button type="button" class="button" (click)="simulateDisconnection()">
+            Simular desconexão
+          </button>
+        } @else {
+          <button type="button" class="button button--primary" (click)="reconnect()">
+            <app-icon name="refresh" />Reconectar na demonstração
+          </button>
+        }
+      }
+      @case ('help') {
+        <button type="button" class="button" (click)="resetDemo()">
+          <app-icon name="refresh" />Reiniciar demonstração</button
+        ><button type="button" class="button button--primary" (click)="detailDialog.close()">
+          Entendi
+        </button>
+      }
+      @default {
+        <button type="button" class="button button--primary" (click)="detailDialog.close()">
+          Voltar para a caixa
+        </button>
+      }
+    }
+  </div>
+</dialog>
+<div class="toast-region" aria-live="polite" aria-atomic="true">
+  @if (toast()) {
+    <div class="toast" [class.toast--error]="toastTone() === 'error'">
+      <span><app-icon [name]="toastTone() === 'error' ? 'help' : 'circleCheck'" /></span>
+      <p>{{ toast() }}</p>
+      <button type="button" (click)="toast.set('')" aria-label="Fechar aviso">
+        <app-icon name="close" />
+      </button>
+    </div>
+  }
+</div>

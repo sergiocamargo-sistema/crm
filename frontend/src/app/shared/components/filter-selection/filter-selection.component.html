@@ -1,0 +1,69 @@
+<div class="category-field">
+  <label class="form-label" [for]="controlId()">{{ label() }}</label>
+  <p class="category-hint" [id]="controlId() + '-hint'">{{ hint() }}</p>
+  <ul class="selected-categories" [attr.aria-label]="'Filtros selecionados: ' + label()">
+    @for (category of selected(); track category) {
+      <li>
+        <button
+          type="button"
+          class="badge badge--category badge--category-action"
+          [class.badge--danger]="excluding()"
+          [attr.aria-label]="'Remover ' + labelFor(category) + ' de ' + label()"
+          (click)="remove(category)"
+        >
+          {{ labelFor(category) }}<app-icon name="close" />
+        </button>
+      </li>
+    }
+  </ul>
+  <form class="category-picker" (submit)="addFirst($event)">
+    <div class="category-search">
+      <input
+        #searchInput
+        type="search"
+        class="form-input"
+        [id]="controlId()"
+        autocomplete="off"
+        [placeholder]="placeholder()"
+        [formField]="queryForm.query"
+        [attr.aria-describedby]="controlId() + '-hint'"
+        [attr.aria-controls]="controlId() + '-options'"
+        (focus)="opened.set(true)"
+        (input)="opened.set(true)"
+        (keydown)="onInputKeydown($event)"
+      />
+      <button
+        type="submit"
+        class="icon-button"
+        [disabled]="!hasQuery() || !options().length"
+        [attr.aria-label]="'Adicionar ' + itemLabel() + ' a ' + label()"
+        [title]="'Adicionar ' + itemLabel()"
+      >
+        <app-icon name="plus" />
+      </button>
+    </div>
+    <ul
+      class="category-options"
+      [id]="controlId() + '-options'"
+      [hidden]="!opened()"
+      [attr.aria-label]="'Opções disponíveis para ' + label()"
+    >
+      @for (choice of options(); track choice.value; let index = $index) {
+        <li>
+          <button
+            #optionButton
+            type="button"
+            (click)="add(choice.value)"
+            (keydown)="onOptionKeydown($event, index)"
+          >
+            <app-icon [name]="icon()" /><span>{{ choice.label }}</span
+            ><app-icon name="plus" />
+          </button>
+        </li>
+      } @empty {
+        <li class="no-options">Nenhuma opção disponível.</li>
+      }
+    </ul>
+  </form>
+  <p class="sr-only" role="status">{{ status() }}</p>
+</div>

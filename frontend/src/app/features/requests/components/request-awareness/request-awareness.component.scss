@@ -1,0 +1,80 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+.awareness-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+h2 {
+  margin: 0;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+}
+h2 > span {
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-regular);
+}
+p {
+  margin: 0;
+}
+.awareness-description,
+.awareness-empty {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  line-height: 1.7;
+}
+.awareness-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+.awareness-list li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+.avatar {
+  flex: 0 0 auto;
+}
+.awareness-person {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+  text-align: left;
+  text-decoration: none;
+  font-size: var(--font-size-sm);
+}
+.awareness-person > span {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.awareness-person small {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  overflow-wrap: anywhere;
+}
+a.awareness-person:hover > span {
+  text-decoration: underline;
+}
+.awareness-dialog {
+  width: min(480px, calc(100% - 32px));
+  max-height: 90dvh;
+}
+.awareness-fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  overflow-wrap: anywhere;
+}

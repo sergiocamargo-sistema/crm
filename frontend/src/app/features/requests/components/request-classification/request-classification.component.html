@@ -1,0 +1,72 @@
+<div class="classification-fields">
+  <div class="department-picker" (focusout)="focusOut($event)">
+    <label class="form-label" for="request-department">Departamento relacionado</label>
+    <input
+      #departmentInput
+      id="request-department"
+      class="form-input"
+      type="search"
+      placeholder="Buscar departamento..."
+      autocomplete="off"
+      [formField]="fields.departmentQuery"
+      [attr.aria-controls]="open() ? 'request-department-options' : null"
+      (focus)="showSuggestions($event)"
+      (input)="open.set(true)"
+      (keydown)="keydown($event)"
+    />
+    @if (open()) {
+      <div
+        id="request-department-options"
+        class="department-options"
+        role="group"
+        aria-label="Departamentos encontrados"
+      >
+        @for (department of matches(); track department.id) {
+          <button
+            #departmentOption
+            type="button"
+            [attr.aria-pressed]="department.id === workspace().extras.departmentId"
+            (click)="chooseDepartment(department.id)"
+            (keydown)="keydown($event)"
+          >
+            <app-icon name="building" />{{ department.label }}
+          </button>
+        }
+        @if (newName(); as name) {
+          <button
+            #departmentOption
+            type="button"
+            [disabled]="fields.departmentQuery().invalid()"
+            (click)="createDepartment()"
+            (keydown)="keydown($event)"
+          >
+            <app-icon name="plus" />Cadastrar “{{ name }}”
+          </button>
+        }
+      </div>
+    }
+  </div>
+  <label
+    ><span class="form-label">Padrão de solicitação</span
+    ><select
+      #patternSelect
+      class="form-select"
+      [formField]="fields.patternId"
+      (change)="choosePattern($event)"
+    >
+      <option value="">Solicitação livre</option>
+      @for (pattern of patterns(); track pattern.id) {
+        <option [value]="pattern.id">{{ pattern.name }}</option>
+      }
+    </select></label
+  >
+  @if (suggestedDepartment(); as suggestion) {
+    <button type="button" class="text-button" (click)="chooseDepartment(suggestion.id)">
+      Usar departamento sugerido: {{ suggestion.name }}
+    </button>
+  }
+  @if (failure()) {
+    <p class="form-error" role="alert">{{ failure() }}</p>
+  }
+  <p class="classification-status" role="status">{{ status() }}</p>
+</div>

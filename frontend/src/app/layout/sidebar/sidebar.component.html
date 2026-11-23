@@ -1,0 +1,61 @@
+<div class="sidebar-inner">
+  <div class="brand-row">
+    <a href="/" class="brand" aria-label="gabinete. Gestão e relacionamento — início"
+      ><span class="brand-symbol"><app-icon name="building" /></span
+      ><span class="brand-type"
+        ><strong>gabinete<span>.</span></strong
+        ><small>Gestão e relacionamento</small></span
+      ></a
+    >
+    @if (showClose()) {
+      <button
+        class="icon-button close-nav"
+        type="button"
+        (click)="dismissed.emit()"
+        aria-label="Fechar navegação"
+      >
+        <app-icon name="close" />
+      </button>
+    }
+  </div>
+  <div class="workspace-label">
+    <span class="workspace-symbol">G</span><span>Meu gabinete<small>Espaço de trabalho</small></span
+    ><app-icon name="down" />
+  </div>
+  <nav aria-label="Menu principal">
+    @for (group of groups; track group.label) {
+      <p class="nav-group-title">{{ group.label }}</p>
+      @for (item of group.items; track item.label) {
+        <button
+          type="button"
+          class="nav-item"
+          [class.nav-item--active]="item.active"
+          [disabled]="!item.active"
+          [attr.aria-current]="item.active ? 'page' : null"
+          [attr.title]="item.active ? item.label : item.label + ' · Próxima etapa'"
+          (click)="dismissed.emit()"
+        >
+          <app-icon [name]="item.icon" /><span class="nav-label">{{ item.label }}</span>
+          @if (item.active) {
+            <span class="nav-count">{{ unreadCount() }}</span>
+          }
+        </button>
+      }
+    }
+  </nav>
+  <div class="sidebar-bottom">
+    <div class="purpose-note">
+      <span class="purpose-icon"><app-icon name="users" /></span>
+      <p>Mais perto das pessoas.<br /><strong>Um atendimento de cada vez.</strong></p>
+    </div>
+    <button class="nav-item settings" type="button" disabled title="Configurações · Próxima etapa">
+      <app-icon name="settings" /><span class="nav-label">Configurações</span>
+    </button>
+    <div class="sidebar-user">
+      <span class="avatar">{{ profile()?.actor?.initials }}</span><span class="sidebar-user-text"
+        ><strong>{{ profile()?.actor?.name }}</strong
+        ><small>Equipe de atendimento</small></span
+      ><span class="user-indicator" title="Perfil de demonstração"></span>
+    </div>
+  </div>
+</div>

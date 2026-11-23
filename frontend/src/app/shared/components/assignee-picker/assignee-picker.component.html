@@ -1,0 +1,30 @@
+<fieldset class="assignee-picker" [disabled]="disabled()" [attr.aria-invalid]="invalid()">
+  <legend class="form-label">Responsáveis</legend>
+  <div class="assignee-selection">
+    @for (user of selected(); track user.id) {
+      <span class="assignee-chip"
+        ><span class="avatar" aria-hidden="true">{{ user.initials }}</span
+        >{{ user.name }}</span
+      >
+    } @empty {
+      <span class="no-assignees">Selecione os responsáveis</span>
+    }
+  </div>
+  <details class="assignee-choices">
+    <summary #summary class="text-button">Selecionar responsáveis <app-icon name="down" /></summary>
+    <div class="assignee-options">
+      @for (user of team.users; track user.id) {
+        <label
+          ><input
+            type="checkbox"
+            [checked]="value().includes(user.id)"
+            (change)="toggle(user.id, $event)"
+          />
+          <span class="avatar" aria-hidden="true">{{ user.initials }}</span><span>{{
+            user.name
+          }}</span>
+        </label>
+      }
+    </div>
+  </details>
+</fieldset>

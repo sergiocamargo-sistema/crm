@@ -1,0 +1,218 @@
+<div class="activity-page layout-stack">
+  @if (workspace(); as detail) {
+    <nav class="record-navigation" aria-label="Navegação da solicitação">
+      <a
+        class="icon-button"
+        [routerLink]="detail.citizen ? ['/municipes', detail.citizen.id] : ['/']"
+        [attr.aria-label]="detail.citizen ? 'Voltar à ficha do munícipe' : 'Voltar ao início'"
+        [title]="detail.citizen ? 'Voltar ao munícipe' : 'Voltar ao início'"
+        ><app-icon name="back"
+      /></a>
+      <span class="request-protocol">Solicitação #{{ detail.request.protocol }}</span>
+      <div class="icon-toolbar share-link">
+        <a
+          class="icon-button"
+          [routerLink]="['/solicitacoes', detail.request.id, 'editar']"
+          aria-label="Editar solicitação"
+          title="Editar solicitação"
+        >
+          <app-icon name="filePen" />
+        </a>
+        <button
+          class="icon-button"
+          type="button"
+          title="Copiar link"
+          aria-label="Copiar link da solicitação"
+          (click)="copyLink()"
+        >
+          <app-icon name="share" />
+        </button>
+      </div>
+    </nav>
+    <header class="record-header">
+      @if (detail.citizen; as citizen) {
+        <app-citizen-brief [citizen]="citizen" />
+      } @else {
+        <span class="record-kind"><app-icon name="building" />Sem munícipe solicitante</span>
+      }
+      <div class="request-heading">
+        <div class="record-heading-row">
+          <h1 #pageTitle tabindex="-1">{{ detail.request.title }}</h1>
+          <span
+            class="badge"
+            [class.badge--danger]="detail.request.status === 'pending'"
+            [class.badge--success]="detail.request.status === 'completed'"
+            >{{ detail.request.status === 'pending' ? 'Pendente' : 'Finalizada' }}</span
+          >
+        </div>
+        <time class="record-date" [attr.datetime]="detail.request.createdAt"
+          >Aberta em {{ detail.request.createdAt | date: 'dd/MM/yyyy HH:mm' : '-0300' }}</time
+        >
+        <div class="request-tags">
+          <span class="badge badge--category"
+            ><span class="sr-only">Departamento relacionado: </span
+            >{{ detail.request.department }}</span
+          >
+          <span class="badge badge--category"
+            ><span class="sr-only">Padrão de solicitação: </span>{{ patternLabel() }}</span
+          >
+        </div>
+        <p class="record-description">{{ detail.request.description }}</p>
+        <div>
+          <button
+            #newComment
+            type="button"
+            class="text-button"
+            (click)="composer.openComment(newComment)"
+          >
+            <app-icon name="message" />Comentar na solicitação
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <div class="record-columns">
+      <div class="layout-stack">
+        <section
+          id="request-awareness"
+          tabindex="-1"
+          class="record-panel"
+          aria-labelledby="request-awareness-title"
+        >
+          <app-request-awareness [workspace]="detail" (changed)="saved()" />
+        </section>
+        <app-citizen-timeline
+          id="request-timeline"
+          tabindex="-1"
+          [interactions]="detail.timeline"
+          [contextKey]="detail.request.id"
+          [showCardFooter]="false"
+          [allowReplies]="true"
+          (contactRequested)="contactEditor.openOtherContact($event)"
+          (replyRequested)="replyFromTimeline($event)"
+        />
+
+        <section
+          id="request-attachments"
+          tabindex="-1"
+          class="record-panel"
+          aria-label="Anexos da solicitação"
+        >
+          <app-request-attachments
+            [requestId]="detail.request.id"
+            [attachments]="detail.extras.attachments"
+            (added)="saved()"
+          />
+        </section>
+
+        <section class="record-panel" aria-labelledby="request-tasks-title">
+          <div class="record-heading-row">
+            <h2 id="request-tasks-title">
+              Tarefas
+              <span class="task-count"
+                >{{ completedTasks() }}/{{ detail.extras.tasks.length }}</span
+              >
+            </h2>
+            <button
+              #addTask
+              type="button"
+              class="icon-button"
+              aria-label="Criar tarefa relacionada"
+              title="Nova tarefa"
+              (click)="composer.openTask(addTask)"
+            >
+              <app-icon name="plus" />
+            </button>
+          </div>
+          <div class="task-list">
+            @for (task of detail.extras.tasks; track task.id) {
+              <details class="request-task" [id]="task.id" tabindex="-1">
+                <summary>
+                  <app-icon name="chevron" />
+                  <span>{{ task.title }}</span><span
+                    class="badge"
+                    [class.badge--success]="!!task.completedAt"
+                    [class.badge--amber]="task.status === 'waiting'"
+                    >{{ taskStatusLabel(task.status) }}</span
+                  >
+                </summary>
+                <div class="task-body">
+                  @if (task.labelIds.length) {
+                    <app-task-labels [labelIds]="task.labelIds" [catalog]="taskLabels()" />
+                  }
+                  <p>{{ task.description }}</p>
+                  <span class="task-meta"
+                    >{{ team.assigneeNames(task.assigneeIds).join(', ') }} ·
+                    @if (task.dueAt) {
+                      Prazo {{ task.dueAt | date: 'dd/MM/yyyy HH:mm' : '-0300' }}
+                    } @else {
+                      Sem prazo definido
+                    }
+                  </span>
+                  <div class="task-actions">
+                    <button
+                      type="button"
+                      class="text-button"
+                      (click)="completeTask(task.id, !task.completedAt)"
+                    >
+                      {{ task.completedAt ? 'Reabrir tarefa' : 'Concluir tarefa' }}</button><button
+                      #taskComment
+                      type="button"
+                      class="text-button"
+                      (click)="composer.openComment(taskComment, task.id)"
+                    >
+                      Comentar
+                    </button>
+                  </div>
+                </div>
+              </details>
+            } @empty {
+              <p class="empty-description">Nenhuma tarefa relacionada.</p>
+            }
+          </div>
+        </section>
+      </div>
+
+      <aside class="layout-stack" aria-label="Informações da solicitação">
+        <section class="record-panel" aria-labelledby="request-information-title">
+          <h2 id="request-information-title">Informações</h2>
+          <dl class="record-fields">
+            <div>
+              <dt>Protocolo</dt>
+              <dd>#{{ detail.request.protocol }}</dd>
+            </div>
+            <div>
+              <dt>Prioridade</dt>
+              <dd>{{ detail.request.priority }}</dd>
+            </div>
+            <div>
+              <dt>Prazo</dt>
+              <dd>
+                {{ (detail.request.dueAt | date: 'dd/MM/yyyy HH:mm' : '-0300') || 'Sem prazo' }}
+              </dd>
+            </div>
+          </dl>
+        </section>
+      </aside>
+    </div>
+    <app-request-composer #composer [workspace]="detail" (saved)="saved()" />
+    <app-new-interaction
+      #contactEditor
+      [citizenId]="detail.citizen?.id ?? null"
+      [citizenName]="detail.citizen?.name ?? 'Solicitação #' + detail.request.protocol"
+      [requestId]="detail.request.id"
+      [showFloatingButton]="false"
+      (saved)="saved()"
+    />
+  } @else {
+    <section class="record-panel not-found">
+      <h1 #pageTitle tabindex="-1">Solicitação não encontrada</h1>
+      <p>Busque o munícipe no cabeçalho para consultar suas solicitações.</p>
+      <a class="button button--primary" routerLink="/">Voltar ao início</a>
+    </section>
+  }
+  @if (failure()) {
+    <p class="form-error" role="alert">{{ failure() }}</p>
+  }
+  <p class="share-status" role="status">{{ status() }}</p>
+</div>

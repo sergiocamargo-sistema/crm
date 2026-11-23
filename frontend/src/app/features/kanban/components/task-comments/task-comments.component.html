@@ -1,0 +1,75 @@
+<section class="comments-section" aria-labelledby="task-comments-title">
+  <div class="section-heading">
+    <app-icon name="message" />
+    <h3 id="task-comments-title">
+      Comentários <span>{{ comments().length }}</span>
+    </h3>
+  </div>
+  <form (submit)="publish($event)" novalidate class="comment-composer">
+    @if (parent(); as original) {
+      <div class="reply-context">
+        <span>Respondendo a {{ original.author }}</span>
+        <button
+          type="button"
+          class="icon-button icon-button--compact"
+          aria-label="Cancelar resposta"
+          (click)="cancelReply()"
+        >
+          <app-icon name="close" />
+        </button>
+      </div>
+    }
+    <app-mention-editor
+      [formField]="commentForm.text"
+      [controlId]="'task-comment-input-' + taskId()"
+      [label]="parentId() ? 'Sua resposta' : 'Escrever comentário'"
+      [rows]="3"
+    />
+    @if (attempted() && commentForm().invalid()) {
+      <p class="form-error" role="alert">Escreva um comentário de até 5.000 caracteres.</p>
+    }
+    @if (failure()) {
+      <p class="form-error" role="alert">{{ failure() }}</p>
+    }
+    <div class="comment-actions">
+      <button type="submit" class="button button--primary" [disabled]="commentForm().submitting()">
+        {{ parentId() ? 'Responder' : 'Comentar' }}
+      </button>
+    </div>
+  </form>
+  <ol class="comments-list">
+    @for (row of rows(); track row.comment.id) {
+      <li
+        class="comment"
+        [style.--comment-depth]="row.depth"
+        [id]="'task-comment-' + taskId() + '-' + row.comment.id"
+        tabindex="-1"
+      >
+        <span class="avatar comment-avatar" aria-hidden="true">{{
+          initials(row.comment.author)
+        }}</span>
+        <div class="comment-content">
+          <div class="comment-meta">
+            <strong>{{ row.comment.author }}</strong><time
+              [attr.datetime]="row.comment.createdAt"
+              >{{ row.comment.createdAt | date: 'dd/MM HH:mm' : '-0300' }}</time
+            >
+          </div>
+          @if (row.parent; as parent) {
+            <button
+              type="button"
+              class="text-button reply-origin"
+              (click)="focusComment(parent.id)"
+            >
+              Em resposta a {{ parent.author }}
+            </button>
+          }
+          <div class="comment-text"><app-rich-text [text]="row.comment.text" /></div>
+          <button type="button" class="text-button" (click)="reply(row.comment)">Responder</button>
+        </div>
+      </li>
+    } @empty {
+      <li class="empty-comments">Inicie a conversa sobre este cartão.</li>
+    }
+  </ol>
+</section>

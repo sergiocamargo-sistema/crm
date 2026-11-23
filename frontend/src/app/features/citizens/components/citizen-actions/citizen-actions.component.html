@@ -1,0 +1,77 @@
+<button
+  #actionsTrigger
+  type="button"
+  class="icon-button"
+  [attr.aria-label]="'Ações de ' + citizen().name"
+  title="Redes sociais e compartilhamento"
+  [attr.aria-controls]="panelId()"
+  [attr.aria-expanded]="expanded()"
+  (click)="toggle()"
+>
+  <app-icon name="menu" />
+</button>
+<div
+  #actionsPanel
+  class="citizen-actions-panel"
+  popover="auto"
+  [id]="panelId()"
+  [style.top.px]="position().top"
+  [style.left.px]="position().left"
+  (toggle)="onToggle()"
+  (keydown.escape)="close(); $event.preventDefault()"
+>
+  <p class="actions-person" [title]="citizen().name">{{ citizen().name }}</p>
+  <div
+    class="icon-toolbar"
+    role="group"
+    [attr.aria-label]="'Contato e compartilhamento de ' + citizen().name"
+  >
+    @if (citizen().whatsappUrl; as whatsapp) {
+      <a
+        class="icon-button icon-button--success"
+        [href]="whatsapp"
+        target="_blank"
+        rel="noopener noreferrer"
+        [attr.aria-label]="'Abrir WhatsApp de ' + citizen().name"
+        title="Conversar no WhatsApp"
+        (click)="close()"
+        ><app-icon name="whatsapp"
+      /></a>
+    }
+    @for (social of citizen().socialLinks; track social.label) {
+      <a
+        class="icon-button"
+        [href]="social.url"
+        target="_blank"
+        rel="noopener noreferrer"
+        [attr.aria-label]="social.label + ' de ' + citizen().name"
+        [title]="social.label"
+        (click)="close()"
+        ><app-icon [name]="social.icon"
+      /></a>
+    }
+    <button
+      type="button"
+      class="icon-button"
+      aria-label="Compartilhar link da ficha"
+      title="Copiar link da ficha"
+      (click)="copyLink()"
+    >
+      <app-icon name="share" />
+    </button>
+  </div>
+  <p class="share-status" role="status" aria-atomic="true">{{ status() }}</p>
+  @if (showLink()) {
+    <label
+      ><span class="sr-only">Link da ficha de {{ citizen().name }}</span>
+      <input
+        #fallbackLink
+        class="form-input"
+        type="text"
+        readonly
+        [value]="citizenUrl()"
+        (focus)="fallbackLink.select()"
+      />
+    </label>
+  }
+</div>

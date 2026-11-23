@@ -1,0 +1,118 @@
+<div class="queue-heading">
+  <h2>
+    Conversas <span>{{ counts().all }}</span>
+  </h2>
+  <button
+    type="button"
+    class="icon-button unread-filter"
+    [class.unread-filter--active]="onlyUnread()"
+    [attr.aria-pressed]="onlyUnread()"
+    (click)="unreadChanged.emit(!onlyUnread())"
+    aria-label="Mostrar somente conversas não lidas"
+    title="Somente não lidas"
+  >
+    <app-icon name="filter" />
+  </button>
+</div>
+<div class="search-wrap">
+  <app-icon name="search" /><input
+    #searchInput
+    type="search"
+    autocomplete="off"
+    aria-label="Buscar conversa ou protocolo"
+    placeholder="Buscar conversa ou protocolo"
+    [value]="query()"
+    (input)="queryChanged.emit(searchInput.value)"
+  /><kbd>⌘ K</kbd>
+</div>
+<div class="queue-filters" aria-label="Filtrar conversas">
+  @for (item of filters; track item.value) {
+    <button
+      type="button"
+      [class.active]="filter() === item.value"
+      [attr.aria-pressed]="filter() === item.value"
+      (click)="filterChanged.emit(item.value)"
+    >
+      {{ item.label }}<span>{{ counts()[item.value] }}</span>
+    </button>
+  }
+</div>
+<div class="queue-list" tabindex="0" role="region" aria-label="Lista de conversas">
+  @if (onlyUnread()) {
+    <div class="active-filter">
+      <span>Somente não lidas</span
+      ><button
+        type="button"
+        (click)="unreadChanged.emit(false)"
+        aria-label="Remover filtro de não lidas"
+      >
+        <app-icon name="close" />
+      </button>
+    </div>
+  }
+  <ul>
+    @for (conversation of conversations(); track conversation.id) {
+      <li>
+        <button
+          type="button"
+          class="conversation-row"
+          [class.conversation-row--selected]="selectedId() === conversation.id"
+          [attr.aria-current]="selectedId() === conversation.id ? 'true' : null"
+          (click)="conversationSelected.emit(conversation.id)"
+        >
+          <span [class]="'avatar avatar--' + conversation.citizen.color">{{
+            conversation.citizen.initials
+          }}</span>
+          <span class="conversation-info"
+            ><span class="conversation-top"
+              ><strong>{{ conversation.citizen.name }}</strong
+              ><time [class.time-unread]="conversation.unread > 0">{{
+                conversation.time
+              }}</time></span
+            ><span class="message-preview">{{ conversation.preview }}</span
+            ><span class="conversation-meta">
+              @if (conversation.status === 'waiting') {
+                <span class="queue-status queue-status--waiting"
+                  ><span class="dot dot--amber"></span>Aguardando</span
+                >
+              } @else if (conversation.status === 'closed') {
+                <span class="queue-status"><app-icon name="circleCheck" />Encerrada</span>
+              } @else {
+                <span
+                  class="queue-status"
+                  [class.queue-status--mine]="conversation.owner?.id === currentUserId()"
+                  ><span class="dot"></span
+                  >{{
+                    conversation.owner?.id === currentUserId()
+                      ? 'Com você'
+                      : conversation.owner?.name
+                  }}</span
+                >
+              }
+              @if (conversation.unread > 0) {
+                <span
+                  class="unread-count"
+                  [attr.aria-label]="conversation.unread + ' mensagens não lidas'"
+                  >{{ conversation.unread }}</span
+                >
+              }
+            </span></span
+          >
+        </button>
+      </li>
+    } @empty {
+      <li class="empty-queue">
+        <span><app-icon name="search" /></span><strong>Nenhuma conversa encontrada</strong>
+        <p>Tente outro nome ou protocolo, ou ajuste os filtros.</p>
+        <button type="button" class="text-button" (click)="clearFilters.emit()">
+          Limpar filtros
+        </button>
+      </li>
+    }
+  </ul>
+</div>
+<div class="queue-footer">
+  <span class="dot" [class.dot--amber]="!connected()"></span>Canal principal<span>{{
+    connected() ? 'WhatsApp' : 'Desconectado'
+  }}</span>
+</div>

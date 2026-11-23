@@ -1,0 +1,32 @@
+<ul class="audio-list" [attr.aria-label]="label()">
+  @for (attachment of attachments(); track attachment.id) {
+    <li class="audio-file">
+      <div class="audio-heading">
+        <app-icon name="microphone" />
+        <span class="audio-name">{{ attachment.name }}</span>
+        <a
+          class="icon-button icon-button--compact"
+          [href]="attachment.url"
+          [download]="attachment.name"
+          [attr.aria-label]="'Baixar ' + attachment.name"
+          title="Baixar áudio"
+          ><app-icon name="download"
+        /></a>
+      </div>
+      <audio
+        controls
+        preload="none"
+        [src]="attachment.url"
+        [attr.aria-label]="'Reproduzir ' + attachment.name"
+        (error)="playbackFailed(attachment.id)"
+      >
+        Seu navegador não oferece reprodução de áudio. Use o botão para baixar o arquivo.
+      </audio>
+      @if (failedIds().includes(attachment.id)) {
+        <p class="form-error" role="status">
+          Não foi possível reproduzir este áudio. Baixe o arquivo para ouvir em outro aplicativo.
+        </p>
+      }
+    </li>
+  }
+</ul>

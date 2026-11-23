@@ -1,0 +1,220 @@
+<div class="management-page layout-stack">
+  <header class="page-heading">
+    <a
+      class="icon-button"
+      routerLink="/solicitacoes"
+      aria-label="Voltar a Solicitações"
+      title="Voltar a Solicitações"
+    >
+      <app-icon name="back" />
+    </a>
+    <h1 #title tabindex="-1">Padrões de solicitação</h1>
+    <button
+      #create
+      type="button"
+      class="icon-button icon-button--primary create-button"
+      aria-label="Cadastrar padrão de solicitação"
+      title="Cadastrar padrão de solicitação"
+      aria-haspopup="dialog"
+      aria-controls="request-pattern-editor"
+      [disabled]="
+        state.loading() || !!state.loadError() || state.saving() || !state.departments().length
+      "
+      (click)="open({ kind: 'create' }, create)"
+    >
+      <app-icon name="plus" />
+    </button>
+  </header>
+  <p role="status" aria-atomic="true">{{ status() }}</p>
+  <section
+    class="directory layout-stack"
+    aria-label="Catálogo de padrões de solicitação"
+    [attr.aria-busy]="state.loading()"
+  >
+    <label>
+      <span class="form-label">Buscar padrão</span>
+      <input
+        type="search"
+        class="form-input"
+        [formField]="searchForm.text"
+        placeholder="Nome do padrão ou departamento"
+      />
+    </label>
+    <p class="muted" role="status" aria-atomic="true">
+      @if (state.loading()) {
+        Buscando padrões...
+      } @else if (!state.loadError()) {
+        {{ state.results().length }} de {{ state.total() }} padrões
+      }
+    </p>
+    @if (state.loadError()) {
+      <p class="form-error" role="alert">{{ state.loadError() }}</p>
+      <button type="button" class="text-button retry-button" (click)="reload()">
+        Tentar novamente
+      </button>
+    } @else {
+      <ul class="patterns" aria-label="Padrões encontrados">
+        @for (pattern of state.results(); track pattern.id) {
+          <li class="pattern">
+            <div class="pattern-copy">
+              <strong>{{ pattern.name }}</strong>
+              <span class="muted">{{ pattern.departmentLabel }}</span>
+              <span class="muted"
+                >{{ pattern.requestCount }}
+                {{
+                  pattern.requestCount === 1 ? 'solicitação vinculada' : 'solicitações vinculadas'
+                }}</span
+              >
+            </div>
+            <div class="pattern-actions">
+              <button
+                #edit
+                type="button"
+                class="text-button"
+                aria-haspopup="dialog"
+                aria-controls="request-pattern-editor"
+                [attr.aria-label]="'Editar ' + pattern.name"
+                [disabled]="state.loading() || state.saving()"
+                (click)="open({ kind: 'edit', pattern: pattern }, edit)"
+              >
+                Editar
+              </button>
+              <button
+                #remove
+                type="button"
+                class="text-button"
+                aria-haspopup="dialog"
+                aria-controls="request-pattern-editor"
+                [attr.aria-label]="'Excluir ' + pattern.name"
+                [disabled]="state.loading() || state.saving()"
+                (click)="open({ kind: 'remove', pattern: pattern }, remove)"
+              >
+                Excluir
+              </button>
+            </div>
+          </li>
+        } @empty {
+          @if (!state.loading()) {
+            <li class="muted">
+              {{
+                state.search().text.trim()
+                  ? 'Nenhum padrão corresponde à busca.'
+                  : 'Nenhum padrão cadastrado.'
+              }}
+            </li>
+          }
+        }
+      </ul>
+    }
+  </section>
+</div>
+
+<dialog
+  #editorDialog
+  id="request-pattern-editor"
+  class="dialog"
+  aria-labelledby="request-pattern-editor-title"
+  (cancel)="onCancel($event)"
+  (close)="restoreFocus()"
+>
+  @let action = editor();
+  <form novalidate (submit)="save($event)" [attr.aria-busy]="state.saving()">
+    <div class="dialog__header">
+      <h2 id="request-pattern-editor-title">
+        {{
+          action.kind === 'create'
+            ? 'Cadastrar padrão'
+            : action.kind === 'edit'
+              ? 'Editar padrão'
+              : 'Excluir padrão'
+        }}
+      </h2>
+      <button
+        type="button"
+        class="icon-button"
+        aria-label="Fechar"
+        [disabled]="state.saving()"
+        (click)="close()"
+      >
+        <app-icon name="close" />
+      </button>
+    </div>
+    <div class="dialog__body layout-stack">
+      @if (action.kind === 'remove') {
+        <p>
+          Excluir <strong>{{ action.pattern.name }}</strong> do catálogo?
+        </p>
+        @if (action.pattern.requestCount) {
+          <p class="form-error">
+            Este padrão está em uso. Remova os vínculos com as solicitações antes de excluir.
+          </p>
+        }
+      } @else {
+        <label>
+          <span class="form-label">Nome</span>
+          <input
+            #editorName
+            class="form-input"
+            [formField]="editorForm.name"
+            [attr.aria-describedby]="showNameError() ? 'pattern-name-error' : null"
+          />
+        </label>
+        @if (showNameError()) {
+          <p id="pattern-name-error" class="form-error">Informe um nome com até 120 caracteres.</p>
+        }
+        <label>
+          <span class="form-label">Departamento sugerido</span>
+          <select
+            #editorDepartment
+            class="form-select"
+            [formField]="editorForm.departmentId"
+            [attr.aria-describedby]="
+              showDepartmentError()
+                ? 'pattern-department-error pattern-department-hint'
+                : 'pattern-department-hint'
+            "
+          >
+            <option value="">Selecione uma unidade</option>
+            @for (department of state.departments(); track department.id) {
+              <option [value]="department.id">{{ department.label }}</option>
+            }
+          </select>
+        </label>
+        @if (showDepartmentError()) {
+          <p id="pattern-department-error" class="form-error">Selecione um departamento.</p>
+        }
+        <p id="pattern-department-hint" class="muted">
+          O departamento será sugerido ao usar o padrão. Alterá-lo não modifica solicitações
+          existentes.
+        </p>
+      }
+      @if (state.actionError()) {
+        <p class="form-error" role="alert">{{ state.actionError() }}</p>
+      }
+    </div>
+    <div class="dialog__footer">
+      <button
+        #cancelButton
+        type="button"
+        class="button"
+        [disabled]="state.saving()"
+        (click)="close()"
+      >
+        Cancelar
+      </button>
+      @if (action.kind === 'remove') {
+        <button
+          type="submit"
+          class="button button--danger"
+          [disabled]="state.saving() || action.pattern.requestCount > 0"
+        >
+          {{ state.saving() ? 'Excluindo...' : 'Excluir' }}
+        </button>
+      } @else {
+        <button type="submit" class="button button--primary" [disabled]="state.saving()">
+          {{ state.saving() ? 'Salvando...' : 'Salvar' }}
+        </button>
+      }
+    </div>
+  </form>
+</dialog>

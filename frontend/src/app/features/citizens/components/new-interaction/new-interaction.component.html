@@ -1,0 +1,208 @@
+@if (showFloatingButton()) {
+  <button
+    type="button"
+    class="icon-button icon-button--primary icon-button--floating new-contact-button"
+    (click)="open($event)"
+    aria-label="Registrar interação com o munícipe"
+    title="Nova interação"
+  >
+    <app-icon name="plus" />
+  </button>
+}
+
+<dialog
+  #contactDialog
+  class="dialog contact-dialog"
+  aria-labelledby="new-contact-heading"
+  (close)="onClose()"
+  (click)="onBackdropClick($event)"
+>
+  <div class="dialog__header">
+    <div>
+      <h2 id="new-contact-heading">
+        {{ mode() === 'interaction' ? 'Nova interação' : 'Novo contato' }}
+      </h2>
+      <p>{{ citizenName() }}</p>
+    </div>
+    <button
+      type="button"
+      class="icon-button"
+      (click)="contactDialog.close()"
+      aria-label="Fechar cadastro"
+    >
+      <app-icon name="close" />
+    </button>
+  </div>
+  @if (mode() === 'interaction') {
+    <form (submit)="saveConversation($event)" novalidate>
+      <div class="dialog__body conversation-fields">
+        <div class="conversation-channel">
+          <span class="form-label" id="interaction-channel-label">Tipo de interação</span>
+          <div
+            class="icon-toolbar channel-options"
+            role="group"
+            aria-labelledby="interaction-channel-label"
+          >
+            @for (channel of channels; track channel.value) {
+              <button
+                type="button"
+                class="icon-button"
+                [attr.aria-label]="channel.label"
+                [attr.title]="channel.label"
+                [attr.aria-pressed]="selectedChannel() === channel.value"
+                (click)="selectChannel(channel.value)"
+              >
+                <app-icon [name]="channel.icon" />
+              </button>
+            }
+          </div>
+          <p class="channel-label" role="status">{{ selectedChannelLabel() }}</p>
+        </div>
+        <div class="conversation-text-field">
+          <label class="form-label" for="conversation-description">O que foi conversado?</label>
+          <textarea
+            id="conversation-description"
+            appSpeechToText
+            #conversationDictation="speechToText"
+            autofocus
+            rows="6"
+            class="form-input"
+            placeholder="Registre a conversa e os encaminhamentos."
+            [formField]="conversationForm.description"
+            [attr.aria-describedby]="
+              attempted() && conversationForm.description().invalid()
+                ? 'conversation-description-dictation-status conversation-description-error'
+                : 'conversation-description-dictation-status'
+            "
+          ></textarea>
+          <app-dictation-button
+            [target]="conversationDictation"
+            controlId="conversation-description"
+          />
+          @if (attempted() && conversationForm.description().invalid()) {
+            <span class="form-error" id="conversation-description-error"
+              >Registre a conversa em até 1.500 caracteres.</span
+            >
+          }
+        </div>
+        @if (failure()) {
+          <p class="form-error" role="alert">{{ failure() }}</p>
+        }
+      </div>
+      <div class="dialog__footer">
+        <button type="button" class="button" (click)="contactDialog.close()">Cancelar</button>
+        <button
+          type="submit"
+          class="button button--primary"
+          [disabled]="conversationForm().submitting()"
+        >
+          Registrar interação
+        </button>
+      </div>
+    </form>
+  } @else {
+    <form (submit)="save($event)" novalidate>
+      <div class="dialog__body contact-fields">
+        @if (!requestId() && citizenId()) {
+          <div class="full-width">
+            <a
+              class="button"
+              routerLink="/solicitacoes/nova"
+              [queryParams]="{ municipe: citizenId() }"
+              (click)="contactDialog.close()"
+              >Nova solicitação</a
+            >
+          </div>
+        }
+        <label
+          ><span class="form-label">Tipo de contato</span
+          ><select autofocus class="form-select" [formField]="contactForm.type">
+            @for (type of interactionTypes; track type.value) {
+              <option [value]="type.value">{{ type.label }}</option>
+            }
+          </select></label
+        >
+        <label
+          ><span class="form-label">Quem iniciou?</span
+          ><select class="form-select" [formField]="contactForm.direction">
+            <option value="active">Gabinete</option>
+            <option value="passive">{{ citizenId() ? 'Munícipe' : 'Contato recebido' }}</option>
+          </select></label
+        >
+        <label
+          ><span class="form-label">Data e horário</span
+          ><input
+            type="datetime-local"
+            class="form-input"
+            [formField]="contactForm.occurredAt"
+            [attr.aria-describedby]="
+              attempted() && contactForm.occurredAt().invalid() ? 'contact-date-error' : null
+            "
+          />
+          @if (attempted() && contactForm.occurredAt().invalid()) {
+            <span class="form-error" id="contact-date-error"
+              >Informe uma data e um horário válidos.</span
+            >
+          }
+        </label>
+        <label
+          ><span class="form-label">Secretaria / setor</span
+          ><select class="form-select" [formField]="contactForm.department">
+            @for (department of departments(); track department.id) {
+              <option [value]="department.id">{{ department.label }}</option>
+            }
+          </select></label
+        >
+        <label class="full-width"
+          ><span class="form-label">Título</span
+          ><input
+            type="text"
+            class="form-input"
+            placeholder="Ex.: Retorno sobre a solicitação"
+            [formField]="contactForm.title"
+            [attr.aria-describedby]="
+              attempted() && contactForm.title().invalid() ? 'contact-title-error' : null
+            "
+          />
+          @if (attempted() && contactForm.title().invalid()) {
+            <span class="form-error" id="contact-title-error"
+              >Escreva um título de até 100 caracteres.</span
+            >
+          }
+        </label>
+        <label class="full-width"
+          ><span class="form-label">Descrição</span
+          ><textarea
+            rows="4"
+            class="form-input"
+            placeholder="Registre o que foi conversado e os encaminhamentos."
+            [formField]="contactForm.description"
+            [attr.aria-describedby]="
+              attempted() && contactForm.description().invalid()
+                ? 'contact-description-error'
+                : null
+            "
+          ></textarea>
+          @if (attempted() && contactForm.description().invalid()) {
+            <span class="form-error" id="contact-description-error"
+              >Descreva o contato em até 1.500 caracteres.</span
+            >
+          }
+        </label>
+        @if (failure()) {
+          <p class="form-error full-width" role="alert">{{ failure() }}</p>
+        }
+      </div>
+      <div class="dialog__footer">
+        <button type="button" class="button" (click)="contactDialog.close()">Cancelar</button
+        ><button
+          type="submit"
+          class="button button--primary"
+          [disabled]="contactForm().submitting()"
+        >
+          Registrar contato
+        </button>
+      </div>
+    </form>
+  }
+</dialog>

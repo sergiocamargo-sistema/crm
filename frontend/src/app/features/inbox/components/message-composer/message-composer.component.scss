@@ -1,0 +1,254 @@
+:host {
+  display: block;
+  flex: 0 0 auto;
+}
+.composer {
+  padding: 0 17px 10px;
+  background: #fff;
+  border-top: 1px solid var(--border);
+}
+.suggestion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 39px;
+  padding: 9px 1px;
+}
+.suggestion-label {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  font-size: 9px;
+  color: #70725b;
+}
+.suggestion-label app-icon {
+  color: #8c8a50;
+  width: 12px;
+  height: 12px;
+}
+.suggestion button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 9px;
+  font-weight: 500;
+  border: 0;
+  background: none;
+  padding: 3px 0;
+  color: #5d7051;
+}
+.suggestion button app-icon {
+  width: 12px;
+  height: 12px;
+}
+.composer-card {
+  background: #fff;
+  border: 1px solid #dce4d6;
+  border-radius: 8px;
+  overflow: clip;
+}
+.composer-card:focus-within {
+  border-color: #8fab7c;
+  box-shadow: 0 0 0 2px #e8efe1;
+}
+.composer-mode {
+  display: flex;
+  align-items: center;
+  padding: 6px 9px 0;
+  gap: 5px;
+}
+.composer-mode button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 9px;
+  padding: 6px 8px;
+  border: 0;
+  background: transparent;
+  color: #687564;
+}
+.composer-mode button.active {
+  background: #eff5e8;
+  color: #4a6e3f;
+  font-weight: 600;
+}
+.composer-mode app-icon {
+  width: 12px;
+  height: 12px;
+}
+.note-hint {
+  margin-left: auto;
+  color: #806727;
+  font-size: 8px;
+}
+textarea {
+  display: block;
+  width: 100%;
+  resize: none;
+  border: 0;
+  background: none;
+  color: var(--ink);
+  padding: 13px 15px 4px;
+  min-height: 61px;
+  max-height: 150px;
+  font-size: 12px;
+  line-height: 1.6;
+  outline: none;
+}
+.composer-card textarea::placeholder {
+  color: #6d7a66;
+}
+.composer-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 1px 9px 8px;
+}
+.composer-toolbar .icon-button {
+  width: 26px;
+  height: 26px;
+}
+.composer-toolbar app-icon {
+  width: 15px;
+  height: 15px;
+}
+.shortcut-hint {
+  margin-left: auto;
+  padding-right: 12px;
+  font-size: 8px;
+  color: #6b7865;
+}
+.send-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border: 1px solid #326d47;
+  color: #fff;
+  background: #326d47;
+  font-size: 10px;
+}
+.send-button:hover:not(:disabled) {
+  background: #245b36;
+}
+.send-button app-icon {
+  width: 13px;
+  height: 13px;
+}
+.composer-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  margin-top: 9px;
+  font-size: 7px;
+  color: #6a7762;
+  min-height: 11px;
+}
+.composer-footer app-icon {
+  width: 8px;
+  height: 8px;
+}
+.composer-footer > span:not(.offline-text) {
+  margin: 0 3px;
+}
+.offline-text {
+  color: #8f6325;
+}
+.composer--note {
+  padding-top: 12px;
+}
+.composer--note .composer-card {
+  background: #fffcf0;
+  border-color: #e7dbb1;
+}
+.composer--note .composer-mode button.active {
+  background: #f7ecc9;
+  color: #795e21;
+}
+.composer--note .send-button {
+  background: #866e2e;
+  border-color: #866e2e;
+}
+.pending-attachments {
+  margin: 8px 11px;
+  padding: 0;
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+  list-style: none;
+}
+.pending-attachments li {
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  max-width: 100%;
+  font-size: 9px;
+  background: #eef3e8;
+  border: 1px solid #d9e3ce;
+  border-radius: 4px;
+  padding: 3px 4px 3px 6px;
+}
+.pending-attachments li > span {
+  max-width: 180px;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.pending-attachments app-icon {
+  width: 12px;
+  height: 12px;
+}
+.pending-attachments button {
+  display: flex;
+  background: none;
+  border: 0;
+  padding: 4px;
+}
+.attachment-error {
+  font-size: 10px;
+  color: #a13d2a;
+  padding: 5px 12px;
+}
+@media (max-width: 1160px) {
+  .composer-footer {
+    font-size: 7px;
+  }
+}
+@media (max-width: 700px) {
+  .composer {
+    padding: 0 10px 9px;
+  }
+  .composer--note {
+    padding-top: 10px;
+  }
+  .composer-mode button {
+    font-size: 10px;
+  }
+  textarea {
+    font-size: 12px;
+    padding: 13px 11px 5px;
+  }
+  .composer-footer {
+    font-size: 7px;
+  }
+  .suggestion-label,
+  .suggestion button {
+    font-size: 10px;
+  }
+  .shortcut-hint {
+    display: none;
+  }
+  .send-button {
+    margin-left: auto;
+    font-size: 11px;
+  }
+  .composer-toolbar .icon-button {
+    width: 32px;
+    height: 32px;
+  }
+  .note-hint {
+    font-size: 8px;
+  }
+}

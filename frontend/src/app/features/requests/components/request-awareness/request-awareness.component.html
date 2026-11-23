@@ -1,0 +1,83 @@
+<div class="awareness-heading">
+  <h2 id="request-awareness-title">
+    Ciências <span>{{ workspace().awareness.length }}</span>
+  </h2>
+  <button
+    #addButton
+    type="button"
+    class="icon-button"
+    aria-label="Vincular munícipe para ciência"
+    title="Adicionar ciência"
+    (click)="openAdd(addButton)"
+  >
+    <app-icon name="plus" />
+  </button>
+</div>
+<p class="awareness-description">Munícipes vinculados para dar ciência da propositura.</p>
+<ul class="awareness-list" aria-label="Munícipes vinculados para ciência">
+  @for (link of workspace().awareness; track link.id) {
+    <li>
+      <span class="avatar" aria-hidden="true">{{ link.citizen.initials }}</span>
+      <a
+        class="awareness-person"
+        [routerLink]="['/municipes', link.citizen.id]"
+        [title]="link.citizen.name"
+      >
+        <span>{{ link.citizen.name }}</span><small>{{ link.citizen.neighborhood }}</small>
+      </a>
+      <button
+        #removeButton
+        type="button"
+        class="icon-button"
+        [attr.aria-label]="'Remover vínculo de ciência de ' + link.citizen.name"
+        title="Remover vínculo"
+        (click)="openRemove(link, removeButton)"
+      >
+        <app-icon name="close" />
+      </button>
+    </li>
+  } @empty {
+    <li class="awareness-empty">Nenhum munícipe vinculado para ciência.</li>
+  }
+</ul>
+<p class="sr-only" role="status">{{ status() }}</p>
+
+<dialog
+  #editor
+  class="dialog awareness-dialog"
+  aria-labelledby="awareness-dialog-title"
+  (close)="onClose()"
+>
+  <div class="dialog__header">
+    <h2 id="awareness-dialog-title">{{ removing() ? 'Remover ciência' : 'Adicionar ciência' }}</h2>
+    <button type="button" class="icon-button" aria-label="Fechar" (click)="editor.close()">
+      <app-icon name="close" />
+    </button>
+  </div>
+  <div class="dialog__body awareness-fields">
+    @if (removing(); as link) {
+      <p>
+        Remover o vínculo de <strong>{{ link.citizen.name }}</strong> para ciência desta
+        propositura?
+      </p>
+    } @else {
+      <app-citizen-search
+        mode="picker"
+        inputId="awareness-search"
+        [excludedIds]="excludedCitizenIds()"
+        (citizenSelected)="add($event.id)"
+      />
+    }
+    @if (failure()) {
+      <p class="form-error" role="alert">{{ failure() }}</p>
+    }
+  </div>
+  @if (removing()) {
+    <div class="dialog__footer">
+      <button type="button" autofocus class="button" (click)="editor.close()">Cancelar</button>
+      <button type="button" class="button button--primary" (click)="remove()">
+        Remover vínculo
+      </button>
+    </div>
+  }
+</dialog>

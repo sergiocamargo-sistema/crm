@@ -1,0 +1,33 @@
+<section aria-labelledby="task-history-heading">
+  <h3 id="task-history-heading"><app-icon name="history" />Histórico de alterações</h3>
+  <ol class="history-list">
+    @for (event of history(); track event.id) {
+      <li>
+        <div class="history-meta">
+          <strong>{{ event.actorName }}</strong>
+          <time [attr.datetime]="event.occurredAt">{{
+            event.occurredAt | date: 'dd/MM/yyyy HH:mm:ss' : '-0300'
+          }}</time>
+        </div>
+        <p>{{ event.kind === 'created' ? 'Criou o card.' : 'Alterou o card.' }}</p>
+        @if (event.changes.length) {
+          <ul class="changes">
+            @for (change of event.changes; track change.field) {
+              <li>
+                <strong>{{ change.label }}</strong>
+                <div class="change-value">
+                  <span class="change-label">Antes</span><span>{{ change.before }}</span>
+                </div>
+                <div class="change-value">
+                  <span class="change-label">Depois</span><span>{{ change.after }}</span>
+                </div>
+              </li>
+            }
+          </ul>
+        }
+      </li>
+    } @empty {
+      <li>Nenhuma alteração registrada.</li>
+    }
+  </ol>
+</section>

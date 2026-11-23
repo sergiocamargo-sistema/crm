@@ -1,0 +1,167 @@
+.prototype-dialog {
+  .dialog__body--context {
+    padding: 0;
+  }
+  .dialog__body--context app-citizen-context {
+    height: auto;
+    border: 0;
+  }
+  .citizen-extra {
+    padding: 20px;
+    background: #f7faf3;
+    border-top: 1px solid var(--border);
+  }
+  .citizen-extra h3 {
+    font-size: 12px;
+    margin-bottom: 8px;
+  }
+  .citizen-extra > span {
+    font-size: 10px;
+    margin-top: 8px;
+    display: block;
+  }
+  .request-detail-title {
+    font-size: 19px;
+    line-height: 1.5;
+    font-weight: 500;
+    margin: 15px 0 20px;
+  }
+  .detail-list {
+    margin: 20px 0;
+  }
+  .detail-list > div {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    border-bottom: 1px solid var(--border);
+    padding: 11px 0;
+    font-size: 11px;
+  }
+  .detail-list dt {
+    color: var(--muted);
+  }
+  .detail-list dd {
+    text-align: right;
+    margin: 0;
+  }
+  .detail-note {
+    font-size: 11px;
+    margin-top: 18px;
+  }
+  .transfer-field {
+    margin-top: 22px;
+  }
+  .whatsapp-demo {
+    text-align: center;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    gap: 13px;
+    padding: 8px 0;
+  }
+  .whatsapp-large {
+    width: 64px;
+    height: 64px;
+    border-radius: 18px;
+    display: grid;
+    place-items: center;
+    background: #edf5e8;
+    color: #4a8156;
+  }
+  .whatsapp-large app-icon {
+    width: 34px;
+    height: 34px;
+  }
+  .whatsapp-demo h3 {
+    font-size: 18px;
+    font-weight: 500;
+  }
+  .whatsapp-demo p {
+    font-size: 12px;
+    line-height: 1.8;
+  }
+  .help-list {
+    padding-left: 19px;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.9;
+  }
+  .keyboard-shortcuts {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    font-size: 10px;
+    margin-top: 20px;
+  }
+  .keyboard-shortcuts > span {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .keyboard-shortcuts kbd {
+    font-family: inherit;
+    padding: 4px 7px;
+    background: #f6f8f2;
+    border: 1px solid #e3e9dc;
+    border-radius: 4px;
+    min-width: 105px;
+    text-align: center;
+  }
+  .new-attendance-preview {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin: 22px 0;
+  }
+  .new-attendance-preview > span {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    padding: 18px 10px;
+    font-size: 11px;
+    background: #f8faf5;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  .new-attendance-preview app-icon {
+    width: 22px;
+    height: 22px;
+    color: #6e8c5d;
+  }
+  .attachment-preview {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 15px;
+    padding: 15px 0;
+  }
+  .attachment-preview > app-icon {
+    width: 50px;
+    height: 50px;
+    color: #6b8b53;
+  }
+  .attachment-preview > h3 {
+    font-size: 16px;
+    overflow-wrap: anywhere;
+  }
+  .attachment-preview > span {
+    font-size: 11px;
+  }
+  .attachment-preview > p {
+    max-width: 320px;
+    font-size: 11px;
+  }
+  @media (max-width: 700px) {
+    .new-attendance-preview {
+      gap: 6px;
+    }
+    .new-attendance-preview > span {
+      font-size: 10px;
+    }
+    .detail-list > div {
+      gap: 10px;
+    }
+  }
+}

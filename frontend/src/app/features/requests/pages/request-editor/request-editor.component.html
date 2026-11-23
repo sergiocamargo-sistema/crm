@@ -1,0 +1,128 @@
+<div class="activity-page layout-stack">
+  <nav class="record-navigation" aria-label="Navegação da solicitação">
+    <a class="icon-button" [routerLink]="backLink()" aria-label="Voltar" title="Voltar"
+      ><app-icon name="back"
+    /></a>
+    @if (workspace(); as detail) {
+      <span class="badge">Solicitação #{{ detail.request.protocol }}</span>
+    }
+  </nav>
+
+  @if (id() && !workspace()) {
+    <div class="record-header">
+      <h1 #pageTitle tabindex="-1">Solicitação não encontrada</h1>
+      <a class="text-button" routerLink="/solicitacoes">Ver solicitações</a>
+    </div>
+  } @else {
+    <header class="record-header">
+      @if (citizen(); as person) {
+        <app-citizen-brief [citizen]="person" />
+      } @else {
+        <span class="record-kind"><app-icon name="building" />Sem munícipe solicitante</span>
+      }
+      <h1 #pageTitle tabindex="-1">{{ id() ? 'Editar solicitação' : 'Nova solicitação' }}</h1>
+    </header>
+
+    <form class="editor layout-stack" novalidate (submit)="save($event)">
+      @if (!id()) {
+        <section class="record-panel layout-stack" aria-labelledby="request-citizen-heading">
+          <h2 id="request-citizen-heading">
+            Munícipe solicitante <span class="optional">Opcional</span>
+          </h2>
+          @if (citizen()) {
+            <button
+              #removeCitizen
+              type="button"
+              class="text-button remove-citizen"
+              (click)="selectCitizen('')"
+            >
+              Remover vínculo
+            </button>
+          } @else {
+            <app-citizen-search
+              mode="picker"
+              inputId="request-applicant-search"
+              (citizenSelected)="selectCitizen($event.id)"
+            />
+          }
+        </section>
+      }
+
+      <section class="record-panel layout-stack" aria-labelledby="request-fields-heading">
+        <h2 id="request-fields-heading">Dados da solicitação</h2>
+        <label>
+          <span class="form-label">Título</span>
+          <input class="form-input" [formField]="fields.title" />
+        </label>
+        <label>
+          <span class="form-label">Descrição</span>
+          <textarea class="form-input" rows="5" [formField]="fields.description"></textarea>
+        </label>
+
+        <div class="editor-fields">
+          <label>
+            <span class="form-label">Departamento</span>
+            <select #departmentSelect class="form-select" [formField]="fields.departmentId">
+              <option value="">Selecione uma unidade</option>
+              @for (department of departments(); track department.id) {
+                <option [value]="department.id">{{ department.label }}</option>
+              }
+            </select>
+          </label>
+          <label>
+            <span class="form-label">Padrão de solicitação</span>
+            <select class="form-select" [formField]="fields.patternId">
+              <option value="">Sem padrão</option>
+              @for (pattern of patterns(); track pattern.id) {
+                <option [value]="pattern.id">{{ pattern.name }}</option>
+              }
+            </select>
+          </label>
+          <label>
+            <span class="form-label">Prioridade</span>
+            <select class="form-select" [formField]="fields.priority">
+              @for (priority of priorities; track priority) {
+                <option [value]="priority">{{ priority }}</option>
+              }
+            </select>
+          </label>
+          <label>
+            <span class="form-label">Situação</span>
+            <select class="form-select" [formField]="fields.status">
+              <option value="pending">Pendente</option>
+              <option value="completed">Finalizada</option>
+            </select>
+          </label>
+          <label>
+            <span class="form-label">Prazo <span class="optional">(opcional)</span></span>
+            <input class="form-input" type="datetime-local" [formField]="fields.dueAt" />
+          </label>
+        </div>
+        @if (suggestedDepartment(); as department) {
+          <button
+            type="button"
+            class="text-button department-suggestion"
+            (click)="useSuggestedDepartment()"
+          >
+            Usar departamento sugerido: {{ department.label }}
+          </button>
+        }
+        @if (attempted() && fields().invalid()) {
+          <p class="form-error" role="alert">
+            Informe o título (até 120 caracteres), a descrição (até 5.000) e o departamento.
+          </p>
+        }
+        @if (failure()) {
+          <p class="form-error" role="alert">{{ failure() }}</p>
+        }
+      </section>
+
+      <div class="editor-actions">
+        <a class="button" [routerLink]="backLink()">Cancelar</a>
+        <button type="submit" class="button button--primary" [disabled]="fields().submitting()">
+          {{ id() ? 'Salvar alterações' : 'Cadastrar solicitação' }}
+        </button>
+      </div>
+    </form>
+  }
+</div>

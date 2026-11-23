@@ -1,0 +1,64 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+.assignee-picker {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+.assignee-selection {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.assignee-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--font-size-xs);
+  color: var(--color-text);
+}
+.avatar {
+  width: 24px;
+  height: 24px;
+  font-size: 9px;
+  flex-shrink: 0;
+}
+.no-assignees {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+.assignee-choices {
+  padding-top: var(--space-1);
+}
+summary {
+  list-style: none;
+}
+summary::-webkit-details-marker {
+  display: none;
+}
+summary app-icon {
+  width: 14px;
+  height: 14px;
+}
+.assignee-options {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+}
+.assignee-options label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-sm);
+}
+.assignee-options input {
+  accent-color: var(--color-primary);
+}

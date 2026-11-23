@@ -1,0 +1,160 @@
+<header class="conversation-header">
+  <button
+    class="icon-button back-to-queue"
+    type="button"
+    (click)="backRequested.emit()"
+    aria-label="Voltar para as conversas"
+  >
+    <app-icon name="back" />
+  </button>
+  <span [class]="'avatar avatar--' + conversation().citizen.color">{{
+    conversation().citizen.initials
+  }}</span>
+  <div class="person-heading">
+    <h2>{{ conversation().citizen.name }}</h2>
+    <p>
+      <app-icon name="whatsapp" />{{ conversation().citizen.phone
+      }}<span class="heading-divider">·</span
+      ><span class="heading-neighborhood">{{ conversation().citizen.neighborhood }}</span>
+    </p>
+  </div>
+  <div class="conversation-header-actions">
+    <button
+      class="icon-button"
+      type="button"
+      (click)="citizenRequested.emit()"
+      aria-label="Ver contexto do munícipe"
+      title="Ver munícipe e atendimento"
+    >
+      <app-icon name="user" /></button
+    ><button
+      class="icon-button"
+      type="button"
+      [disabled]="!canManage()"
+      (click)="transferRequested.emit()"
+      aria-label="Transferir conversa"
+      title="Transferir conversa"
+    >
+      <app-icon name="transfer" /></button
+    ><button
+      class="icon-button close-conversation"
+      type="button"
+      [disabled]="!canManage()"
+      (click)="closeRequested.emit()"
+      aria-label="Encerrar conversa"
+      title="Encerrar conversa"
+    >
+      <app-icon name="circleCheck" />
+    </button>
+  </div>
+</header>
+<div class="conversation-status">
+  <span class="dot" [class.dot--amber]="conversation().status === 'waiting'"></span>
+  @if (conversation().status === 'waiting') {
+    <span>Aguardando atendimento</span><small>{{ conversation().waitingSince }}</small>
+  } @else if (conversation().status === 'closed') {
+    <span>Conversa encerrada</span>
+  } @else {
+    <span>Em atendimento</span><span class="status-divider">/</span
+    ><span class="status-owner">{{
+      conversation().owner?.id === currentUserId()
+        ? 'Você é responsável por esta conversa'
+        : conversation().owner?.name
+    }}</span>
+  }
+  <span class="private-label"><app-icon name="lock" />Canal privado</span>
+</div>
+@if (conversation().request; as request) {
+  <div class="linked-request-wrapper">
+    <div class="request-notice">
+      <span class="request-notice-icon"><app-icon name="clipboard" /></span>
+      <div>
+        <p>Conversa vinculada a um atendimento</p>
+        <button type="button" (click)="requestRequested.emit()">
+          <strong>#{{ request.protocol }}</strong
+          ><span>{{ request.title }}</span
+          ><app-icon name="arrowUp" />
+        </button>
+      </div>
+    </div>
+  </div>
+}
+<div #history class="message-history" tabindex="0" role="region" aria-label="Histórico da conversa">
+  <div class="date-divider"><span>Hoje, 17 de novembro</span></div>
+
+  <ol class="messages">
+    @for (message of conversation().messages; track message.id) {
+      <li [class]="'message-row message-row--' + message.kind">
+        @if (message.kind === 'incoming') {
+          <span [class]="'avatar message-avatar avatar--' + conversation().citizen.color">{{
+            conversation().citizen.initials
+          }}</span>
+        }
+        <div class="message-bubble">
+          @if (message.kind === 'note') {
+            <div class="note-label">
+              <app-icon name="lock" />Nota interna<span>· Somente a equipe</span>
+            </div>
+          }
+          @if (message.text) {
+            <p>{{ message.text }}</p>
+          }
+          @for (attachment of message.attachments; track attachment.id) {
+            <button
+              type="button"
+              class="message-attachment"
+              (click)="attachmentRequested.emit(attachment)"
+            >
+              <app-icon name="file" /><span
+                ><strong>{{ attachment.name }}</strong
+                ><small>{{ attachment.sizeLabel }}</small></span
+              ><app-icon name="chevron" />
+            </button>
+          }
+          <span class="message-meta">
+            @if (message.kind !== 'incoming') {
+              <span>{{ message.author }}</span>
+            }
+            <time [attr.datetime]="message.sentAt">{{ message.time }}</time>
+            @if (message.kind === 'outgoing') {
+              <span title="Resposta simulada" class="message-checks"
+                ><app-icon name="checks"
+              /></span>
+            }
+          </span>
+        </div>
+      </li>
+    }
+  </ol>
+  <div class="history-spacer"></div>
+</div>
+@if (!canManage()) {
+  <div class="assume-panel">
+    <div>
+      <app-icon name="user" />
+      <p>
+        {{
+          conversation().status === 'closed'
+            ? 'Esta conversa foi encerrada.'
+            : conversation().owner
+              ? 'Conversa com ' + conversation().owner?.name
+              : 'Esta conversa está aguardando um atendente.'
+        }}
+      </p>
+    </div>
+    @if (!conversation().owner || conversation().owner?.id === currentUserId()) {
+      <button type="button" class="button button--primary" (click)="assumeRequested.emit()">
+        {{ conversation().status === 'closed' ? 'Reabrir conversa' : 'Assumir conversa'
+        }}<app-icon name="arrow" />
+      </button>
+    }
+  </div>
+} @else {
+  <app-message-composer
+    [conversation]="conversation()"
+    [connected]="connected()"
+    [initialDraft]="initialDraft()"
+    [revision]="revision()"
+    (messageSubmitted)="messageSubmitted.emit($event)"
+  />
+}

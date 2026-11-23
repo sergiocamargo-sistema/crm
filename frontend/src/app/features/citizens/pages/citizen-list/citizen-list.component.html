@@ -1,0 +1,235 @@
+<div class="citizens-page layout-stack">
+  <header class="page-heading">
+    <a class="icon-button" routerLink="/" aria-label="Voltar ao início" title="Voltar ao início"
+      ><app-icon name="back"
+    /></a>
+    <h1 #pageTitle tabindex="-1">Munícipes</h1>
+    <span class="badge">{{ listState.total() }}</span>
+    <div class="page-actions">
+      <button
+        #printTrigger
+        type="button"
+        class="icon-button icon-button--primary"
+        aria-label="Escolher munícipes para imprimir etiquetas"
+        title="Imprimir etiquetas"
+        aria-haspopup="dialog"
+        aria-controls="label-recipient-options"
+        [disabled]="!listState.selectedIds().length && !listState.resultIds().length"
+        (click)="openPrintOptions(printTrigger)"
+      >
+        <app-icon name="print" />
+      </button>
+      <button
+        #filterTrigger
+        type="button"
+        class="icon-button"
+        aria-label="Buscar, ordenar e filtrar munícipes"
+        title="Busca e filtros"
+        aria-haspopup="dialog"
+        (click)="filters.open(filterTrigger)"
+      >
+        <app-icon name="filterFunnel" />
+        @if (listState.activeFilterCount()) {
+          <span class="icon-button__badge" aria-hidden="true">{{
+            listState.activeFilterCount()
+          }}</span>
+        }
+      </button>
+    </div>
+  </header>
+  <section
+    class="directory-panel layout-stack"
+    aria-label="Lista de munícipes"
+    [attr.aria-busy]="listState.loading()"
+  >
+    <div class="results-toolbar">
+      <p class="results-count" role="status" aria-atomic="true">
+        @if (listState.loading()) {
+          Buscando munícipes...
+        } @else {
+          {{ listState.results().length }} de {{ listState.total() }} munícipes
+        }
+      </p>
+      <div class="selection-toolbar">
+        <button
+          #selectionTrigger
+          type="button"
+          class="text-button"
+          [disabled]="!listState.resultIds().length"
+          (click)="list.selectResults()"
+        >
+          {{ listState.selectionMode() ? 'Selecionar todos' : 'Selecionar resultados' }}
+        </button>
+        @if (listState.selectionMode()) {
+          <span role="status" aria-atomic="true">
+            {{ listState.selectedIds().length }} selecionados no total
+            @if (
+              !listState.loading() && !listState.error() && listState.selectedOutsideResultsCount()
+            ) {
+              · {{ listState.selectedOutsideResultsCount() }} fora desta busca
+            }
+          </span>
+          <button type="button" class="text-button" (click)="clearSelection(selectionTrigger)">
+            Limpar seleção
+          </button>
+        }
+      </div>
+    </div>
+    <div class="column-headings citizen-grid" aria-hidden="true">
+      <span>Munícipe</span><span>Contato / CRA</span><span>Categorias</span><span>Solicitações</span
+      ><span>Última interação</span><span></span>
+    </div>
+    <ul id="citizen-list" class="citizen-list" aria-label="Munícipes encontrados">
+      @for (person of listState.results(); track person.id) {
+        <li class="citizen-item">
+          <div class="citizen-row citizen-grid">
+            <div class="person-identity">
+              <a class="person-profile" [routerLink]="['/municipes', person.id]">
+                <span class="avatar portrait" aria-hidden="true">
+                  @if (person.photo && !failedPhotos().has(person.id)) {
+                    <img
+                      [ngSrc]="person.photo.src"
+                      width="48"
+                      height="48"
+                      alt=""
+                      (error)="imageFailed(person.id)"
+                    />
+                  } @else {
+                    {{ person.initials }}
+                  }
+                </span>
+                <span class="person-name-group">
+                  <span
+                    class="person-name"
+                    [id]="'directory-name-' + person.id"
+                    [title]="person.name"
+                    >{{ person.name }}</span
+                  >
+                  <span class="neighborhood">{{ person.neighborhood }}</span>
+                </span>
+              </a>
+              <div class="row-controls">
+                @if (listState.selectionMode()) {
+                  <input
+                    type="checkbox"
+                    class="row-selection"
+                    [formField]="selectionForm[person.id]"
+                    [attr.aria-label]="'Selecionar ' + person.name + ' para etiquetas'"
+                  />
+                }
+                <app-citizen-actions [citizen]="person" />
+              </div>
+            </div>
+            <span class="person-contact">
+              <span class="phone-number"><app-icon name="phone" />{{ person.phone }}</span>
+              <span class="cra">CRA {{ person.cra ?? 'não informado' }}</span>
+            </span>
+            <span class="person-categories">
+              @for (category of person.categories.slice(0, 2); track category) {
+                <span class="badge badge--category">{{ category }}</span>
+              }
+              @if (person.categories.length > 2) {
+                <span class="more-categories" [title]="person.categories.slice(2).join(', ')"
+                  >+{{ person.categories.length - 2 }}<span class="sr-only"> categorias</span></span
+                >
+              }
+              @if (!person.categories.length) {
+                <span class="no-categories">Sem categorias</span>
+              }
+            </span>
+            <span
+              class="request-counts"
+              [attr.title]="
+                person.pendingRequests + ' pendentes e ' + person.completedRequests + ' finalizadas'
+              "
+            >
+              <span class="badge badge--danger"
+                ><app-icon name="clock" />{{ person.pendingRequests
+                }}<span class="sr-only"> solicitações pendentes</span></span
+              >
+              <span class="badge badge--success"
+                ><app-icon name="check" />{{ person.completedRequests
+                }}<span class="sr-only"> solicitações finalizadas</span></span
+              >
+            </span>
+            <span class="last-interaction">
+              @if (person.lastInteractionAt; as date) {
+                <time [attr.datetime]="date"
+                  ><span class="mobile-label">Interação · </span
+                  >{{ date | date: 'dd/MM/yyyy' : '-0300' }}</time
+                >
+              } @else {
+                <span>Sem interações</span>
+              }
+            </span>
+            <app-icon class="open-citizen" name="chevron" />
+          </div>
+        </li>
+      } @empty {
+        <li class="empty-list">
+          @if (listState.loading()) {
+            <p role="status">Buscando munícipes...</p>
+          } @else if (listState.error(); as error) {
+            <p role="alert">{{ error }}</p>
+            <button type="button" class="button" (click)="list.retry()">Tentar novamente</button>
+          } @else {
+            <app-icon name="search" />
+            <h2>Nenhum munícipe encontrado</h2>
+            <p>
+              Tente outro nome, telefone, CRA, observação ou classificação, ou ajuste os filtros.
+            </p>
+            @if (listState.hasCriteria()) {
+              <button type="button" class="button" (click)="reset()">Limpar busca e filtros</button>
+            }
+          }
+        </li>
+      }
+    </ul>
+  </section>
+  <dialog
+    #printDialog
+    id="label-recipient-options"
+    class="dialog"
+    aria-labelledby="label-recipient-title"
+    (close)="onPrintOptionsClose()"
+  >
+    <div class="dialog__header">
+      <h2 id="label-recipient-title">Imprimir etiquetas</h2>
+      <button
+        type="button"
+        class="icon-button"
+        aria-label="Fechar opções de impressão"
+        (click)="printDialog.close()"
+      >
+        <app-icon name="close" />
+      </button>
+    </div>
+    <div class="dialog__body print-options">
+      <div class="print-option">
+        <button
+          type="button"
+          class="button button--primary"
+          [disabled]="!listState.selectedIds().length"
+          (click)="printLabels('selected')"
+        >
+          <app-icon name="print" />
+          Selecionados ({{ listState.selectedIds().length }})
+        </button>
+        <p class="dialog__muted">Inclui os munícipes selecionados em outras buscas.</p>
+      </div>
+      <div class="print-option">
+        <button
+          type="button"
+          class="button"
+          [disabled]="!listState.resultIds().length"
+          (click)="printLabels('results')"
+        >
+          <app-icon name="print" />
+          Todos os resultados ({{ listState.resultIds().length }})
+        </button>
+        <p class="dialog__muted">Toda a busca atual, incluindo todas as páginas.</p>
+      </div>
+    </div>
+  </dialog>
+  <app-citizen-filters #filters />
+</div>

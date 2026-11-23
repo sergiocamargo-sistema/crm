@@ -1,0 +1,42 @@
+:host {
+  display: block;
+}
+.citizen-actions-panel {
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  padding: var(--space-3);
+  width: max-content;
+  max-width: calc(100% - 16px);
+  max-height: calc(100dvh - 16px);
+  overflow-y: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  color: var(--color-text);
+  box-shadow: var(--shadow-popover);
+}
+.citizen-actions-panel:popover-open {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+.actions-person {
+  max-width: 240px;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.icon-toolbar {
+  flex-wrap: wrap;
+}
+.share-status {
+  max-width: 240px;
+  color: var(--color-primary);
+  font-size: var(--font-size-xs);
+}
+.share-status:empty {
+  display: none;
+}

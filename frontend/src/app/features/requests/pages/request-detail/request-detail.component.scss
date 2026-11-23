@@ -1,0 +1,99 @@
+@use '../../../../shared/styles/record-detail';
+
+.request-protocol {
+  color: var(--color-primary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+}
+.request-heading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+.request-heading .record-heading-row {
+  align-items: start;
+}
+.request-heading h1 {
+  flex: 1 1 15rem;
+}
+.task-count {
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-regular);
+}
+.request-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+.task-list,
+.task-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.request-task {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  scroll-margin-top: calc(var(--header-height) + var(--space-4));
+}
+.request-task summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3);
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  list-style: none;
+}
+.request-task summary::-webkit-details-marker {
+  display: none;
+}
+.request-task summary app-icon {
+  color: var(--color-primary);
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+}
+.request-task[open] summary app-icon {
+  transform: rotate(90deg);
+}
+.request-task summary > span:first-of-type {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.task-body {
+  padding: var(--space-3);
+  border-top: 1px solid var(--color-border);
+}
+.task-body p {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: var(--font-size-sm);
+  line-height: 1.7;
+}
+.task-meta {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+.task-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+.text-button app-icon {
+  width: 16px;
+  height: 16px;
+}
+#request-timeline {
+  scroll-margin-top: calc(var(--header-height) + var(--space-4));
+}
+#request-attachments {
+  scroll-margin-top: calc(var(--header-height) + var(--space-4));
+}
+#request-awareness {
+  scroll-margin-top: calc(var(--header-height) + var(--space-4));
+}

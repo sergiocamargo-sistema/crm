@@ -1,0 +1,122 @@
+@if (isHeader()) {
+  <button
+    #mobileTrigger
+    type="button"
+    class="icon-button mobile-search-trigger"
+    aria-label="Abrir busca de munícipe"
+    [attr.aria-controls]="panelId()"
+    [attr.aria-expanded]="mobileExpanded()"
+    (click)="openMobileSearch()"
+  >
+    <app-icon name="search" />
+  </button>
+}
+<search
+  #searchPanel
+  [id]="panelId()"
+  aria-label="Busca de munícipes"
+  class="citizen-search"
+  [class.header-search]="isHeader()"
+  [class.picker-search]="!isHeader()"
+  [attr.popover]="mobile() ? 'auto' : null"
+  (toggle)="onPanelToggle()"
+>
+  <div class="search-field" [class.search-field--open]="resultsOpen()">
+    <button
+      type="button"
+      class="icon-button icon-button--compact close-mobile-search"
+      aria-label="Fechar busca"
+      (click)="closeMobileSearch()"
+    >
+      <app-icon name="chevron" />
+    </button>
+    <app-icon class="search-field-icon" name="search" />
+    <input
+      #searchInput
+      [id]="inputId()"
+      type="search"
+      [formField]="searchField()"
+      autocomplete="off"
+      spellcheck="false"
+      placeholder="Buscar munícipe..."
+      aria-label="Buscar munícipe"
+      [attr.aria-describedby]="hintId()"
+      [attr.aria-controls]="resultsId()"
+      (focus)="opened.set(true)"
+      (input)="opened.set(true)"
+      (keydown)="onInputKeydown($event)"
+    />
+    @if (store().model().query) {
+      <button
+        type="button"
+        class="icon-button icon-button--compact clear-search"
+        (click)="clear()"
+        aria-label="Limpar busca"
+      >
+        <app-icon name="close" />
+      </button>
+    }
+    @if (isHeader()) {
+      <kbd aria-hidden="true">Ctrl K</kbd>
+    }
+  </div>
+  <p class="sr-only" [id]="hintId()">
+    Busque por nome ou telefone, com pelo menos dois caracteres. Use Tab ou seta para baixo para
+    acessar os resultados.
+  </p>
+  <section
+    [id]="resultsId()"
+    class="search-results"
+    aria-label="Resultados da busca de munícipes"
+    [hidden]="!resultsOpen()"
+  >
+    <div class="results-heading"><span>Munícipes</span></div>
+    @if (store().results().length > 0) {
+      <ul>
+        @for (citizen of store().results(); track citizen.id; let index = $index) {
+          <li>
+            <ng-template #person>
+              <span class="avatar" aria-hidden="true">{{ citizen.initials }}</span>
+              <span class="result-person">
+                <strong>{{ citizen.name }}</strong>
+                <small>{{ citizen.neighborhood }}<span>·</span>{{ citizen.phone }}</small>
+              </span>
+            </ng-template>
+            @if (isHeader()) {
+              <a
+                #resultButton
+                class="citizen-result"
+                [routerLink]="['/municipes', citizen.id]"
+                (click)="selectCitizen()"
+                (keydown)="onResultKeydown($event, index)"
+              >
+                <ng-container [ngTemplateOutlet]="person" />
+                <app-icon name="chevron" />
+              </a>
+            } @else {
+              <button
+                #resultButton
+                type="button"
+                class="citizen-result"
+                (click)="chooseCitizen(citizen)"
+                (keydown)="onResultKeydown($event, index)"
+              >
+                <ng-container [ngTemplateOutlet]="person" />
+                <app-icon name="plus" />
+              </button>
+            }
+          </li>
+        }
+      </ul>
+    } @else {
+      <div class="empty-search">
+        <app-icon name="search" /><strong>Nenhum munícipe encontrado</strong>
+        <p>Tente outro nome ou telefone.</p>
+      </div>
+    }
+    <p class="results-footer">Busca por nome ou telefone</p>
+  </section>
+  <p class="sr-only" role="status">
+    {{ resultsOpen() ? store().results().length + ' resultados de munícipes.' : '' }}
+  </p>
+</search>

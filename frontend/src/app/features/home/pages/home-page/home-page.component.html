@@ -1,0 +1,46 @@
+<div class="home-page">
+  <div class="welcome">
+    <p class="greeting">Olá, {{ firstName }}<span>.</span></p>
+    <h1>{{ homeMessage() }}</h1>
+  </div>
+  <nav class="module-grid" aria-label="Módulos do gabinete">
+    @for (module of modules; track module.id) {
+      @if (module.route; as route) {
+        <a class="module-tile" [routerLink]="route">
+          <span class="module-icon"><app-icon [name]="module.icon" /></span>
+          <span class="module-label">{{ module.label }}</span>
+        </a>
+      } @else {
+        <button type="button" class="module-tile" (click)="selectModule(module.label)">
+          <span class="module-icon"><app-icon [name]="module.icon" /></span
+          ><span class="module-label">{{ module.label }}</span>
+        </button>
+      }
+    }
+  </nav>
+  <footer class="home-footer">
+    <img
+      class="footer-brand"
+      ngSrc="brand/sergio-camargo-monochrome.svg"
+      width="312"
+      height="64"
+      alt="Vereador Sérgio Camargo"
+    />
+    <span>Ambiente de demonstração<span class="footer-dot">·</span>Dados fictícios</span>
+  </footer>
+</div>
+<div class="module-notice-region" role="status" aria-atomic="true">
+  @if (selectedModule()) {
+    <div class="module-notice">
+      <span>{{ selectedModule() }} <span class="notice-divider">·</span> Em breve</span
+      ><button
+        type="button"
+        class="icon-button icon-button--compact"
+        (click)="dismissNotice()"
+        aria-label="Fechar aviso"
+      >
+        <app-icon name="close" />
+      </button>
+    </div>
+  }
+</div>

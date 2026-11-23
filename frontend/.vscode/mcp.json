@@ -1,0 +1,17 @@
+{
+  "servers": {
+    "angular-cli": {
+      "command": "/home/vini/.nvm/versions/node/v22.23.2/bin/node",
+      "args": [
+        "node_modules/@angular/cli/bin/ng.js",
+        "mcp",
+        "--root",
+        "${workspaceFolder}"
+      ],
+      "cwd": "${workspaceFolder}",
+      "env": {
+        "NG_CLI_ANALYTICS": "false"
+      }
+    }
+  }
+}

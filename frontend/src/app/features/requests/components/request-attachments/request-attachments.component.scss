@@ -1,0 +1,72 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+.attachments-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+h2 {
+  margin: 0;
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+}
+h2 > span {
+  color: var(--color-text-muted);
+  font-weight: var(--font-weight-regular);
+}
+.attachment-gallery {
+  border-radius: var(--radius-control);
+  overflow: hidden;
+}
+.document-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.document-list li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+.document-list li > app-icon {
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  color: var(--color-primary);
+}
+.document-data {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+  flex: 1;
+}
+.document-data a {
+  font-size: var(--font-size-sm);
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+.document-data a:hover {
+  text-decoration: underline;
+}
+.document-data > span {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+.empty-attachments {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+.form-error {
+  margin: 0;
+}

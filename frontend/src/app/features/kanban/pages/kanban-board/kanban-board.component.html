@@ -1,0 +1,294 @@
+<div class="kanban-page layout-stack">
+  <header class="page-heading">
+    <a class="icon-button" routerLink="/" aria-label="Voltar ao início" title="Voltar ao início"
+      ><app-icon name="back"
+    /></a>
+    <h1 #pageTitle tabindex="-1">Kanban</h1>
+    <span class="badge">{{ boardState.results().length }}</span>
+    <div class="page-actions">
+      <a
+        class="icon-button"
+        routerLink="/kanban/etiquetas"
+        aria-label="Gerenciar etiquetas das tarefas"
+        title="Gerenciar etiquetas das tarefas"
+        ><app-icon name="tag"
+      /></a>
+      <a
+        class="icon-button"
+        routerLink="/relatorios/horas-trabalhadas"
+        aria-label="Relatório de horas trabalhadas"
+        title="Relatório de horas trabalhadas"
+        ><app-icon name="chart"
+      /></a>
+      <button
+        #filterTrigger
+        type="button"
+        class="icon-button"
+        aria-label="Buscar e filtrar tarefas"
+        title="Busca e filtros"
+        aria-haspopup="dialog"
+        aria-controls="kanban-filters"
+        (click)="openFilters(filterTrigger)"
+      >
+        <app-icon name="filterFunnel" />
+        @if (boardState.activeFilterCount()) {
+          <span class="icon-button__badge" aria-hidden="true">{{
+            boardState.activeFilterCount()
+          }}</span>
+        }
+      </button>
+      <button
+        #newTask
+        type="button"
+        class="icon-button icon-button--primary"
+        aria-label="Criar tarefa"
+        title="Nova tarefa"
+        aria-haspopup="dialog"
+        (click)="editor.open(newTask)"
+      >
+        <app-icon name="plus" />
+      </button>
+    </div>
+  </header>
+  <div class="board-summary">
+    <button
+      type="button"
+      class="icon-button"
+      aria-label="Visualização por colunas personalizadas"
+      [attr.aria-pressed]="boardState.viewSettings().mode === 'custom'"
+      [title]="
+        boardState.viewSettings().mode === 'custom'
+          ? 'Colunas personalizadas: alternar para status'
+          : 'Por status: alternar para colunas personalizadas'
+      "
+      (click)="toggleView()"
+    >
+      <app-icon [name]="boardState.viewSettings().mode === 'custom' ? 'kanban' : 'circleCheck'" />
+    </button>
+    @if (boardState.overdueCount()) {
+      <span class="badge badge--danger">{{ boardState.overdueCount() }} com prazo vencido</span>
+    }
+    @if (boardState.activeFilterCount()) {
+      <button type="button" class="text-button" (click)="board.clearFilters()">
+        Limpar filtros
+      </button>
+    }
+  </div>
+  <p class="sr-only" role="status" aria-atomic="true">{{ message() }}</p>
+  @if (failure()) {
+    <p class="form-error" role="alert">{{ failure() }}</p>
+  }
+  @if (!boardState.results().length && boardState.activeFilterCount()) {
+    <p class="empty-results" role="status">
+      Nenhuma tarefa encontrada. Ajuste os filtros ou limpe a busca.
+    </p>
+  }
+  <div
+    #boardViewport
+    class="board-viewport"
+    [class.board-viewport--dragging]="!!dragging()"
+    role="region"
+    aria-label="Quadro de tarefas; role horizontalmente para ver as colunas"
+    tabindex="0"
+  >
+    <div class="board-columns">
+      @for (column of boardState.columns(); track column.id) {
+        <section
+          class="kanban-column"
+          [class.column--drag-target]="dragTarget() === column.id"
+          [attr.data-status]="column.status"
+          [attr.aria-labelledby]="'column-title-' + column.id"
+          [attr.data-kanban-column]="column.id"
+        >
+          <div class="column-heading">
+            <span class="column-indicator" aria-hidden="true"></span>
+            <h2 [id]="'column-title-' + column.id">{{ column.label }}</h2>
+            <span class="column-count">{{ column.tasks.length }}</span>
+            <button
+              #addInColumn
+              type="button"
+              class="icon-button icon-button--compact"
+              [attr.aria-label]="'Criar tarefa em ' + column.label"
+              title="Criar tarefa nesta coluna"
+              (click)="editor.open(addInColumn, null, column.target)"
+            >
+              <app-icon name="plus" />
+            </button>
+          </div>
+          <ul
+            class="column-tasks"
+            [attr.aria-label]="column.label"
+            [class.drop-at-end]="dragTarget() === column.id && dropBeforeId() === null"
+          >
+            @for (task of column.tasks; track task.id; let index = $index) {
+              <li
+                [class.task--dragging]="dragging() === task.id"
+                [attr.data-task-id]="task.id"
+                [class.drop-before]="dragTarget() === column.id && dropBeforeId() === task.id"
+              >
+                <app-task-card
+                  [task]="task"
+                  [labels]="boardState.workspace().labels"
+                  [overdue]="boardState.isOverdue(task)"
+                  [priorityCover]="task.id === boardState.firstCoverTaskId()"
+                  [canMoveUp]="index > 0"
+                  [canMoveDown]="index < column.tasks.length - 1"
+                  (reorderRequested)="reorderTask(task.id, column, $event)"
+                  (editRequested)="openTask(task.id, $event.trigger, $event.focusPlacement)"
+                  (dragRequested)="startDrag(task.id, $event)"
+                  (dragFinished)="endDrag()"
+                  (mouseStarted)="startMouseDrag(task.id, $event)"
+                  (mouseMoved)="moveMouseDrag($event)"
+                  (mouseDropped)="dropMouseDrag($event)"
+                  (touchStarted)="startTouchDrag(task.id, $event)"
+                  (touchMoved)="moveTouchDrag($event)"
+                  (touchDropped)="dropTouchDrag($event)"
+                />
+              </li>
+            } @empty {
+              <li class="column-empty">
+                <app-icon name="checks" /><span>Nenhuma tarefa por aqui</span>
+              </li>
+            }
+          </ul>
+        </section>
+      }
+      @if (boardState.viewSettings().mode === 'custom') {
+        <div class="kanban-column kanban-column--create">
+          <button
+            #newColumn
+            type="button"
+            class="button"
+            aria-haspopup="dialog"
+            aria-controls="kanban-column-editor"
+            (click)="openColumnEditor(newColumn)"
+          >
+            <app-icon name="plus" />
+            Criar nova coluna
+          </button>
+        </div>
+      }
+    </div>
+  </div>
+</div>
+<app-task-editor
+  #editor
+  (saved)="taskSaved($event)"
+  (closed)="taskClosed()"
+  (focusFallback)="focusHeading()"
+/>
+<dialog
+  #columnEditor
+  id="kanban-column-editor"
+  class="dialog"
+  aria-labelledby="kanban-column-title"
+  (close)="columnEditorClosed()"
+>
+  <div class="dialog__header">
+    <h2 id="kanban-column-title">Nova coluna</h2>
+    <button
+      type="button"
+      class="icon-button"
+      aria-label="Fechar cadastro da coluna"
+      (click)="columnEditor.close()"
+    >
+      <app-icon name="close" />
+    </button>
+  </div>
+  <form (submit)="saveColumn($event)" novalidate>
+    <div class="dialog__body column-fields">
+      <label
+        ><span class="form-label">Nome da coluna</span>
+        <input
+          #columnNameInput
+          class="form-input"
+          [formField]="columnForm.name"
+          placeholder="Ex.: Prioridades da semana"
+        />
+      </label>
+      @if (columnAttempted() && columnForm().invalid()) {
+        <p class="form-error" role="alert">Informe um nome de até 60 caracteres.</p>
+      }
+      @if (columnFailure()) {
+        <p class="form-error" role="alert">{{ columnFailure() }}</p>
+      }
+    </div>
+    <div class="dialog__footer">
+      <button type="button" class="button" (click)="columnEditor.close()">Cancelar</button>
+      <button type="submit" class="button button--primary" [disabled]="columnForm().submitting()">
+        Criar coluna
+      </button>
+    </div>
+  </form>
+</dialog>
+<dialog
+  #filters
+  id="kanban-filters"
+  class="dialog kanban-filters"
+  aria-labelledby="kanban-filters-title"
+  (close)="filtersClosed()"
+>
+  <div class="dialog__header">
+    <h2 id="kanban-filters-title">Buscar e filtrar</h2>
+    <button type="button" class="icon-button" aria-label="Fechar filtros" (click)="filters.close()">
+      <app-icon name="close" />
+    </button>
+  </div>
+  <div class="dialog__body filter-fields">
+    <label
+      ><span class="form-label">Buscar tarefa</span>
+      <input
+        #filterSearch
+        type="search"
+        class="form-input"
+        [formField]="filtersForm.search"
+        placeholder="Título, munícipe, protocolo..."
+        autocomplete="off"
+      />
+    </label>
+    <label
+      ><span class="form-label">Responsável</span>
+      <select class="form-select" [formField]="filtersForm.assigneeId">
+        <option value="">Toda a equipe</option>
+        @for (user of boardState.assignees; track user.id) {
+          <option [value]="user.id">{{ user.name }}</option>
+        }
+      </select>
+    </label>
+    <label
+      ><span class="form-label">Departamento da solicitação</span>
+      <select class="form-select" [formField]="filtersForm.departmentId">
+        <option value="">Todos os departamentos</option>
+        @for (department of boardState.departmentChoices(); track department.id) {
+          <option [value]="department.id">{{ department.label }}</option>
+        }
+      </select>
+    </label>
+    <label
+      ><span class="form-label">Prioridade</span>
+      <select class="form-select" [formField]="filtersForm.priority">
+        <option value="">Todas as prioridades</option>
+        @for (priority of priorities; track priority.value) {
+          <option [value]="priority.value">{{ priority.label }}</option>
+        }
+      </select>
+    </label>
+    <label class="checkbox-label"
+      ><input type="checkbox" [formField]="filtersForm.overdueOnly" />Somente com prazo
+      vencido</label
+    >
+  </div>
+  <div class="dialog__footer">
+    <button
+      type="button"
+      class="text-button"
+      [disabled]="!boardState.activeFilterCount()"
+      (click)="board.clearFilters()"
+    >
+      Limpar filtros
+    </button>
+    <button type="button" class="button button--primary" (click)="filters.close()">
+      Ver {{ boardState.results().length }} tarefas
+    </button>
+  </div>
+</dialog>

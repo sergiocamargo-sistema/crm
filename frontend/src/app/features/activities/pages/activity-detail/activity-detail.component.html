@@ -1,0 +1,182 @@
+<div class="activity-page layout-stack">
+  @if (detail(); as record) {
+    <nav class="record-navigation" aria-label="Navegação do registro">
+      @if (record.citizen; as citizen) {
+        <a
+          class="icon-button"
+          [routerLink]="['/municipes', citizen.id]"
+          aria-label="Voltar à ficha do munícipe"
+          title="Voltar ao munícipe"
+          ><app-icon name="back"
+        /></a>
+        <a class="citizen-link" [routerLink]="['/municipes', citizen.id]" [title]="citizen.name">{{
+          citizen.name
+        }}</a>
+      } @else if (record.related[0]; as related) {
+        <a
+          class="icon-button"
+          [routerLink]="related.route"
+          aria-label="Voltar à solicitação"
+          title="Voltar à solicitação"
+          ><app-icon name="back"
+        /></a>
+        <a class="citizen-link" [routerLink]="related.route" [title]="related.title">{{
+          related.title
+        }}</a>
+      } @else {
+        <a class="icon-button" routerLink="/" aria-label="Voltar ao início" title="Voltar ao início"
+          ><app-icon name="back"
+        /></a>
+      }
+      <button
+        type="button"
+        class="icon-button share-link"
+        aria-label="Copiar link deste registro"
+        title="Copiar link"
+        (click)="copyLink()"
+      >
+        <app-icon name="share" />
+      </button>
+    </nav>
+
+    <header class="record-header">
+      <div class="record-heading-row">
+        <span class="record-kind"><app-icon [name]="record.icon" />{{ record.label }}</span>
+        @if (record.status; as status) {
+          <span
+            class="badge"
+            [class.badge--danger]="status.tone === 'danger'"
+            [class.badge--success]="status.tone === 'success'"
+            [class.badge--amber]="status.tone === 'warning'"
+            >{{ status.label }}</span
+          >
+        }
+      </div>
+      <h1 #pageTitle tabindex="-1">{{ record.title }}</h1>
+      <time class="record-date" [attr.datetime]="record.date"
+        ><app-icon name="calendar" />{{ record.dateLabel }}</time
+      >
+    </header>
+
+    <div class="record-columns">
+      <div class="layout-stack">
+        <section class="record-panel" aria-labelledby="record-content-heading">
+          <h2 id="record-content-heading">{{ record.contentLabel }}</h2>
+          <p class="record-description">{{ record.description }}</p>
+        </section>
+
+        @if (record.kind === 'conversation') {
+          <section class="record-panel" aria-labelledby="record-messages-heading">
+            <h2 id="record-messages-heading">
+              Mensagens <span class="message-count">{{ record.messages.length }}</span>
+            </h2>
+            <ol class="message-list">
+              @for (message of record.messages; track message.id) {
+                <li class="message" [class.message--outgoing]="message.direction === 'outgoing'">
+                  @if (message.direction === 'incoming' && record.citizen) {
+                    <a class="message-author" [routerLink]="['/municipes', record.citizen.id]">{{
+                      message.author
+                    }}</a>
+                  } @else {
+                    <span class="message-author">{{ message.author }} · Gabinete</span>
+                  }
+                  <p>{{ message.text }}</p>
+                  <time [attr.datetime]="message.sentAt">{{
+                    message.sentAt | date: 'dd/MM/yyyy HH:mm' : '-0300'
+                  }}</time>
+                </li>
+              } @empty {
+                <li class="empty-description">Nenhuma mensagem registrada nesta conversa.</li>
+              }
+            </ol>
+          </section>
+        }
+
+        @if (record.history.length) {
+          <section class="record-panel" aria-labelledby="record-history-heading">
+            <h2 id="record-history-heading">Andamento da solicitação</h2>
+            <ol class="progress-list">
+              @for (entry of record.history; track entry.id) {
+                <li>
+                  <time [attr.datetime]="entry.occurredAt">{{
+                    entry.occurredAt | date: 'dd/MM/yyyy HH:mm' : '-0300'
+                  }}</time>
+                  <h3>{{ entry.title }}</h3>
+                  <p>{{ entry.description }}</p>
+                </li>
+              }
+            </ol>
+          </section>
+        }
+
+        @if (record.related.length) {
+          <section class="record-panel" aria-labelledby="record-related-heading">
+            <h2 id="record-related-heading">
+              {{ record.kind === 'request' ? 'Contatos relacionados' : 'Solicitação relacionada' }}
+            </h2>
+            <ul class="related-list">
+              @for (related of record.related; track related.id) {
+                <li>
+                  <a [routerLink]="related.route"
+                    ><span>{{ related.title }}</span
+                    ><app-icon name="chevron"
+                  /></a>
+                </li>
+              }
+            </ul>
+          </section>
+        }
+      </div>
+
+      <aside class="layout-stack" aria-label="Informações do registro">
+        <section class="record-panel" aria-labelledby="record-information-heading">
+          <h2 id="record-information-heading">Informações</h2>
+          <dl class="record-fields">
+            @if (record.citizen; as citizen) {
+              <div>
+                <dt>Munícipe</dt>
+                <dd>
+                  <a [routerLink]="['/municipes', citizen.id]">{{ citizen.name }}</a>
+                </dd>
+              </div>
+            }
+            @for (field of record.fields; track field.label) {
+              <div>
+                <dt>{{ field.label }}</dt>
+                <dd>{{ field.value }}</dd>
+              </div>
+            }
+          </dl>
+        </section>
+        @if (record.participants.length) {
+          <section class="record-panel" aria-labelledby="record-participants-heading">
+            <h2 id="record-participants-heading">Participantes</h2>
+            <ul class="participant-list">
+              @for (participant of record.participants; track participant) {
+                <li>
+                  <app-icon name="user" />
+                  @if (record.citizen && participant === record.citizen.name) {
+                    <a [routerLink]="['/municipes', record.citizen.id]">{{ participant }}</a>
+                  } @else {
+                    <span>{{ participant }}</span>
+                  }
+                </li>
+              }
+            </ul>
+          </section>
+        }
+      </aside>
+    </div>
+  } @else {
+    <section class="record-panel not-found">
+      <app-icon name="search" />
+      <h1 #pageTitle tabindex="-1">{{ notFound() }}</h1>
+      <p>
+        O registro deste link não está disponível. Busque o munícipe no cabeçalho para consultar
+        seus registros.
+      </p>
+      <a class="button button--primary" routerLink="/">Voltar ao início</a>
+    </section>
+  }
+  <p class="share-status" role="status">{{ shareStatus() }}</p>
+</div>

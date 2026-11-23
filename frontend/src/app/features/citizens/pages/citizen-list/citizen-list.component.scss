@@ -1,0 +1,309 @@
+:host {
+  display: block;
+}
+.citizens-page {
+  max-width: var(--layout-width);
+  margin-inline: auto;
+  padding: var(--space-6) var(--space-8) var(--space-12);
+}
+.page-heading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+h1 {
+  color: var(--color-primary);
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+}
+h1:focus {
+  outline: none;
+}
+.page-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  margin-left: auto;
+}
+.directory-panel {
+  padding: var(--space-5);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+}
+.results-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: start;
+  gap: var(--space-3);
+}
+.results-count {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+.citizen-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(140px, 1fr) minmax(0, 1.2fr) 90px 110px 16px;
+  gap: var(--space-4);
+  align-items: center;
+}
+.column-headings {
+  padding: var(--space-3) var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+.citizen-list {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+.citizen-list > li + li {
+  border-top: 1px solid var(--color-border);
+}
+.citizen-row {
+  position: relative;
+  padding: var(--space-4) var(--space-2);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+}
+.citizen-row:hover {
+  background: var(--brand-blue-faint);
+}
+.citizen-row:has(.person-profile:focus-visible) {
+  background: var(--brand-blue-faint);
+}
+.person-identity {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+.person-profile {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex: 1;
+  min-width: 0;
+  text-decoration: none;
+  color: inherit;
+}
+.person-profile::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-sm);
+}
+.person-profile:focus-visible {
+  outline: none;
+}
+.person-profile:focus-visible::after {
+  outline: 3px solid var(--color-focus);
+  outline-offset: -3px;
+}
+.portrait {
+  width: 48px;
+  height: 48px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.portrait img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.person-name-group,
+.person-contact {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+}
+.person-name {
+  color: var(--color-primary);
+  font-weight: var(--font-weight-semibold);
+  font-size: var(--font-size-sm);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.neighborhood,
+.cra,
+.no-categories,
+.last-interaction {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  overflow-wrap: anywhere;
+}
+.phone-number {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-xs);
+  white-space: nowrap;
+}
+.phone-number app-icon {
+  width: 14px;
+  height: 14px;
+  color: var(--color-text-muted);
+}
+.person-categories,
+.request-counts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 0;
+}
+.person-categories .badge {
+  text-align: left;
+}
+.more-categories {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+.request-counts app-icon {
+  width: 12px;
+  height: 12px;
+}
+.open-citizen {
+  width: 16px;
+  height: 16px;
+  color: var(--color-primary);
+}
+.mobile-label {
+  display: none;
+}
+.empty-list {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-10) var(--space-4);
+  text-align: center;
+}
+.empty-list > app-icon {
+  width: 28px;
+  height: 28px;
+  color: var(--color-primary);
+}
+.empty-list h2 {
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-semibold);
+}
+.empty-list p {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-muted);
+}
+@media (max-width: 1000px) and (min-width: 701px) {
+  .citizen-grid {
+    grid-template-columns: minmax(0, 1.7fr) 145px minmax(0, 1.3fr) 90px 16px;
+    gap: var(--space-3);
+  }
+  .last-interaction,
+  .column-headings > span:nth-child(5) {
+    display: none;
+  }
+}
+@media (max-width: 700px) {
+  .citizens-page {
+    padding: var(--space-4) var(--space-4) var(--space-8);
+  }
+  .directory-panel {
+    padding: var(--space-4);
+  }
+  .results-toolbar {
+    gap: var(--space-2);
+  }
+  .column-headings {
+    display: none;
+  }
+  .citizen-row {
+    grid-template-columns: minmax(0, 1fr) 16px;
+    gap: var(--space-3) var(--space-2);
+    padding: var(--space-4) 0;
+  }
+  .person-identity {
+    grid-column: 1;
+    grid-row: 1;
+  }
+  .open-citizen {
+    grid-column: 2;
+    grid-row: 1;
+  }
+  .person-contact {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-4);
+  }
+  .person-categories {
+    grid-column: 1 / -1;
+  }
+  .request-counts {
+    grid-column: 1 / -1;
+  }
+  .last-interaction {
+    display: block;
+    grid-column: 1 / -1;
+  }
+  .mobile-label {
+    display: inline;
+  }
+  .person-name {
+    font-size: var(--font-size-md);
+  }
+}
+
+.selection-toolbar {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0;
+  min-width: 0;
+  text-align: right;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+}
+.print-options {
+  display: grid;
+  gap: var(--space-6);
+}
+.print-option {
+  display: grid;
+  gap: var(--space-2);
+}
+.print-option p {
+  font-size: var(--font-size-xs);
+}
+.row-controls {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  flex-shrink: 0;
+}
+.row-selection {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--color-primary);
+  cursor: pointer;
+}
+@media (max-width: 400px) {
+  .page-actions {
+    gap: var(--space-2);
+  }
+}
+
+@media (max-width: 700px) {
+  .citizen-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .open-citizen {
+    display: none;
+  }
+}

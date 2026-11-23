@@ -1,0 +1,209 @@
+<dialog
+  #sidebar
+  class="filter-sidebar"
+  aria-labelledby="filters-title"
+  (close)="onClose()"
+  (click)="onBackdropClick($event)"
+>
+  <div class="sidebar-heading">
+    <div>
+      <span class="sidebar-eyebrow">Munícipes</span>
+      <h2 id="filters-title">Buscar e filtrar</h2>
+    </div>
+    <button type="button" class="icon-button" aria-label="Fechar filtros" (click)="sidebar.close()">
+      <app-icon name="close" />
+    </button>
+  </div>
+  <div class="sidebar-content">
+    <section class="sidebar-section" aria-label="Busca e ordenação">
+      <label class="form-label" for="directory-search">Buscar munícipe</label>
+      <div class="sidebar-search">
+        <app-icon name="search" class="search-symbol" />
+        <input
+          #searchInput
+          id="directory-search"
+          type="search"
+          class="form-input"
+          [formField]="filtersForm.query"
+          placeholder="Nome, telefone, CRA, observação..."
+          aria-label="Buscar por nome, telefone, CRA, bairro, observações ou classificações"
+          autocomplete="off"
+        />
+        @if (list.model().query) {
+          <button
+            type="button"
+            class="icon-button icon-button--compact clear-search"
+            aria-label="Limpar busca"
+            (click)="clearSearch()"
+          >
+            <app-icon name="close" />
+          </button>
+        }
+      </div>
+      <label
+        ><span class="form-label">Ordenar por</span>
+        <select class="form-select" [formField]="filtersForm.order">
+          <option value="name-asc">Nome: A–Z</option>
+          <option value="name-desc">Nome: Z–A</option>
+          <option value="recent">Interação mais recente</option>
+        </select>
+      </label>
+    </section>
+    <details class="sidebar-group" open>
+      <summary>
+        <app-icon name="user" /><span>Perfil e aniversário</span
+        ><app-icon name="down" class="group-chevron" />
+      </summary>
+      <div class="group-fields">
+        <label
+          ><span class="form-label">Bairro</span>
+          <select class="form-select" [formField]="filtersForm.neighborhood">
+            <option value="">Todos os bairros</option>
+            @for (neighborhood of list.neighborhoods(); track neighborhood) {
+              <option [value]="neighborhood">{{ neighborhood }}</option>
+            }
+          </select>
+        </label>
+        <div class="birth-filters">
+          <label
+            ><span class="form-label">Faixa etária</span>
+            <select class="form-select" [formField]="filtersForm.ageRange">
+              <option value="">Todas as idades</option>
+              @for (range of ageRanges; track range.value) {
+                <option [value]="range.value">{{ range.label }}</option>
+              }
+            </select>
+          </label>
+          <label
+            ><span class="form-label">Dia do aniversário</span>
+            <select
+              class="form-select"
+              [formField]="filtersForm.birthdayDay"
+              [attr.aria-describedby]="
+                filtersForm.birthdayDay().invalid() ? 'birthday-filter-error' : null
+              "
+            >
+              <option value="">Todos os dias</option>
+              @for (day of birthdayDays; track day) {
+                <option [value]="day">{{ day }}</option>
+              }
+            </select>
+          </label>
+          <label
+            ><span class="form-label">Mês do aniversário</span>
+            <select class="form-select" [formField]="filtersForm.birthdayMonth">
+              <option value="">Todos os meses</option>
+              @for (month of birthdayMonths; track month.value) {
+                <option [value]="month.value">{{ month.label }}</option>
+              }
+            </select>
+          </label>
+          @if (filtersForm.birthdayDay().invalid()) {
+            <p class="form-error birthday-filter-error" id="birthday-filter-error" role="alert">
+              O mês selecionado não possui esse dia.
+            </p>
+          }
+        </div>
+      </div>
+    </details>
+    <details class="sidebar-group">
+      <summary>
+        <app-icon name="tag" /><span>Categorias</span><app-icon name="down" class="group-chevron" />
+      </summary>
+      <div class="group-fields">
+        <div class="category-filters">
+          <app-filter-selection
+            controlId="included-categories"
+            label="Incluir categorias"
+            hint="Mostrar munícipes com as categorias escolhidas."
+            [choices]="list.categoryChoices()"
+            [selected]="list.model().includedCategories"
+            (added)="list.addCategoryFilter('include', $event)"
+            (removed)="list.removeCategoryFilter('include', $event)"
+          />
+          <app-filter-selection
+            controlId="excluded-categories"
+            label="Excluir categorias"
+            hint="Quem tiver qualquer uma destas categorias fica fora."
+            [choices]="list.categoryChoices()"
+            [selected]="list.model().excludedCategories"
+            [excluding]="true"
+            (added)="list.addCategoryFilter('exclude', $event)"
+            (removed)="list.removeCategoryFilter('exclude', $event)"
+          />
+        </div>
+        @if (list.model().includedCategories.length > 1) {
+          <label class="category-match"
+            ><span class="form-label">Combinar categorias incluídas</span>
+            <select class="form-select" [formField]="filtersForm.categoryMatch">
+              <option value="all">Ter todas as categorias</option>
+              <option value="any">Ter pelo menos uma categoria</option>
+            </select>
+          </label>
+        }
+      </div>
+    </details>
+    <details class="sidebar-group">
+      <summary>
+        <app-icon name="clipboard" /><span>Solicitações e departamentos</span
+        ><app-icon name="down" class="group-chevron" />
+      </summary>
+      <div class="group-fields">
+        <label
+          ><span class="form-label">Solicitações</span>
+          <select class="form-select" [formField]="filtersForm.requestStatus">
+            <option value="">Todas as situações</option>
+            <option value="pending">Com solicitações pendentes</option>
+            <option value="completed">Com solicitações finalizadas</option>
+            <option value="none">Sem solicitações</option>
+          </select>
+        </label>
+        <div class="category-filters">
+          <app-filter-selection
+            controlId="included-departments"
+            label="Incluir por departamento"
+            hint="Pelo menos uma solicitação nestes departamentos, na situação selecionada."
+            placeholder="Buscar departamento..."
+            itemLabel="departamento"
+            icon="building"
+            [choices]="list.departmentChoices()"
+            [selected]="list.model().includedDepartmentIds"
+            (added)="list.addDepartmentFilter('include', $event)"
+            (removed)="list.removeDepartmentFilter('include', $event)"
+          />
+          <app-filter-selection
+            controlId="excluded-departments"
+            label="Excluir por departamento"
+            hint="Quem tiver qualquer solicitação nestes departamentos fica fora."
+            placeholder="Buscar departamento..."
+            itemLabel="departamento"
+            icon="building"
+            [choices]="list.departmentChoices()"
+            [selected]="list.model().excludedDepartmentIds"
+            [excluding]="true"
+            (added)="list.addDepartmentFilter('exclude', $event)"
+            (removed)="list.removeDepartmentFilter('exclude', $event)"
+          />
+        </div>
+      </div>
+    </details>
+  </div>
+  <div class="sidebar-footer">
+    <button
+      type="button"
+      class="text-button"
+      [disabled]="!list.activeFilterCount()"
+      (click)="list.clearFilters()"
+    >
+      Limpar filtros
+    </button>
+    <button type="button" class="button button--primary" (click)="sidebar.close()">
+      @if (list.store.loading() || list.store.error()) {
+        Ver lista
+      } @else {
+        Ver {{ list.results().length }} munícipes
+      }
+      <app-icon name="arrow" />
+    </button>
+  </div>
+</dialog>

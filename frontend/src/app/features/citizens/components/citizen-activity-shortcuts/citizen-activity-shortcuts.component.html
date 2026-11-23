@@ -1,0 +1,144 @@
+<div class="layout-stack">
+  <div class="icon-toolbar icon-toolbar--badged" role="group" aria-label="Atividades do munícipe">
+    <button
+      id="citizen-requests-trigger"
+      type="button"
+      class="icon-button"
+      [attr.aria-label]="requestsLabel()"
+      [attr.title]="requestsLabel()"
+      [attr.aria-expanded]="selected() === 'requests'"
+      aria-controls="citizen-activity-summary"
+      (click)="toggle('requests')"
+    >
+      <app-icon name="clipboard" />
+      <span class="icon-button__badge icon-button__badge--danger" aria-hidden="true">{{
+        pendingRequests()
+      }}</span>
+      <span
+        class="icon-button__badge icon-button__badge--success icon-button__badge--lower"
+        aria-hidden="true"
+        >{{ completedRequests() }}</span
+      >
+    </button>
+    <button
+      id="citizen-interactions-trigger"
+      type="button"
+      class="icon-button"
+      [attr.aria-label]="'Interações: ' + citizen().interactions.length"
+      [attr.title]="'Interações: ' + citizen().interactions.length"
+      [attr.aria-expanded]="selected() === 'interactions'"
+      aria-controls="citizen-activity-summary"
+      (click)="toggle('interactions')"
+    >
+      <app-icon name="history" />
+      <span class="icon-button__badge" aria-hidden="true">{{ citizen().interactions.length }}</span>
+    </button>
+    <button
+      id="citizen-conversations-trigger"
+      type="button"
+      class="icon-button"
+      [attr.aria-label]="'Conversas: ' + conversations().length"
+      [attr.title]="'Conversas: ' + conversations().length"
+      [attr.aria-expanded]="selected() === 'conversations'"
+      aria-controls="citizen-activity-summary"
+      (click)="toggle('conversations')"
+    >
+      <app-icon name="message" />
+      <span class="icon-button__badge" aria-hidden="true">{{ conversations().length }}</span>
+    </button>
+    <button
+      id="citizen-appointments-trigger"
+      type="button"
+      class="icon-button"
+      [attr.aria-label]="'Agendamentos: ' + citizen().appointments.length"
+      [attr.title]="'Agendamentos: ' + citizen().appointments.length"
+      [attr.aria-expanded]="selected() === 'appointments'"
+      aria-controls="citizen-activity-summary"
+      (click)="toggle('appointments')"
+    >
+      <app-icon name="calendar" />
+      <span class="icon-button__badge" aria-hidden="true">{{ citizen().appointments.length }}</span>
+    </button>
+  </div>
+
+  <section
+    id="citizen-activity-summary"
+    class="activity-summary"
+    [hidden]="selected() === null"
+    [attr.aria-labelledby]="selected() ? 'citizen-' + selected() + '-trigger' : null"
+  >
+    @switch (selected()) {
+      @case ('requests') {
+        <h2>Solicitações</h2>
+        <ul>
+          @for (request of citizen().requests; track request.id) {
+            <li>
+              <a class="activity-row" [routerLink]="['/solicitacoes', request.id]">
+                <span>{{ request.title }}</span>
+                <span
+                  class="badge"
+                  [class.badge--danger]="request.status === 'pending'"
+                  [class.badge--success]="request.status === 'completed'"
+                  >{{ request.status === 'pending' ? 'Pendente' : 'Finalizada' }}</span
+                >
+              </a>
+            </li>
+          } @empty {
+            <li>Nenhuma solicitação cadastrada.</li>
+          }
+        </ul>
+      }
+      @case ('interactions') {
+        <h2>Interações</h2>
+        <ul>
+          @for (interaction of citizen().interactions; track interaction.id) {
+            <li>
+              <a class="activity-row" [routerLink]="detailRoute(interaction)">
+                <span>{{ interaction.title }}</span>
+                <time [attr.datetime]="interaction.occurredAt">{{
+                  interaction.occurredAt | date: 'dd/MM/yyyy HH:mm' : '-0300'
+                }}</time>
+              </a>
+            </li>
+          } @empty {
+            <li>Nenhuma interação registrada.</li>
+          }
+        </ul>
+      }
+      @case ('conversations') {
+        <h2>Conversas</h2>
+        <ul>
+          @for (conversation of conversations(); track conversation.id) {
+            <li>
+              <a class="activity-row" [routerLink]="['/conversas', conversation.id]">
+                <span>{{ conversation.title }}</span>
+                <time [attr.datetime]="conversation.occurredAt">{{
+                  conversation.occurredAt | date: 'dd/MM/yyyy HH:mm' : '-0300'
+                }}</time>
+              </a>
+            </li>
+          } @empty {
+            <li>Nenhuma conversa registrada.</li>
+          }
+        </ul>
+      }
+      @case ('appointments') {
+        <h2>Agendamentos</h2>
+        <ul>
+          @for (appointment of citizen().appointments; track appointment.id) {
+            <li>
+              <a class="activity-row" [routerLink]="['/agendamentos', appointment.id]">
+                <span>{{ appointment.title }}</span>
+                <time [attr.datetime]="appointment.startsAt">{{
+                  appointment.startsAt | date: 'dd/MM/yyyy HH:mm' : '-0300'
+                }}</time>
+              </a>
+            </li>
+          } @empty {
+            <li>Nenhum agendamento cadastrado.</li>
+          }
+        </ul>
+      }
+    }
+  </section>
+</div>

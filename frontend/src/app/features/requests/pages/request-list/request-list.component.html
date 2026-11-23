@@ -1,0 +1,182 @@
+<div class="requests-page layout-stack">
+  <header class="page-heading">
+    <a class="icon-button" routerLink="/" aria-label="Voltar ao início" title="Voltar ao início">
+      <app-icon name="back" />
+    </a>
+    <h1 #pageTitle tabindex="-1">Solicitações</h1>
+    <span class="badge">{{ state.total() }}</span>
+    <div class="page-actions">
+      <button
+        #filterButton
+        type="button"
+        class="icon-button filter-button"
+        aria-label="Buscar, ordenar e filtrar solicitações"
+        title="Busca e filtros"
+        aria-haspopup="dialog"
+        aria-controls="request-list-filters"
+        (click)="filterDialog.showModal()"
+      >
+        <app-icon name="filterFunnel" />
+        @if (state.activeFilterCount(); as count) {
+          <span class="icon-button__badge" aria-hidden="true">{{ count }}</span>
+        }
+      </button>
+      <a
+        class="icon-button"
+        routerLink="/solicitacoes/departamentos"
+        aria-label="Gerenciar secretarias e departamentos"
+        title="Gerenciar secretarias e departamentos"
+        ><app-icon name="building"
+      /></a>
+      <a
+        class="icon-button"
+        routerLink="/solicitacoes/padroes"
+        aria-label="Gerenciar padrões de solicitação"
+        title="Gerenciar padrões de solicitação"
+        ><app-icon name="tag"
+      /></a>
+      <a
+        class="icon-button"
+        routerLink="/solicitacoes/nova"
+        aria-label="Nova solicitação"
+        title="Nova solicitação"
+      >
+        <app-icon name="plus" />
+      </a>
+    </div>
+  </header>
+
+  <section class="directory-panel layout-stack" aria-label="Lista de solicitações">
+    <p class="results-count" role="status" aria-atomic="true">
+      {{ state.results().length }} de {{ state.total() }} solicitações
+    </p>
+    @if (state.results().length) {
+      <div class="request-row column-headings" aria-hidden="true">
+        <span>Solicitação</span><span>Munícipe</span><span>Departamento</span><span>Abertura</span
+        ><span>Situação</span>
+      </div>
+      <ul class="request-list" aria-label="Solicitações encontradas">
+        @for (request of state.results(); track request.id) {
+          <li class="request-row">
+            <div class="identity">
+              <a class="request-title" [routerLink]="['/solicitacoes', request.id]">{{
+                request.title
+              }}</a>
+              <span class="request-protocol">#{{ request.protocol }}</span>
+            </div>
+            <div class="field">
+              <span class="mobile-label">Munícipe</span>
+              @if (request.citizen; as citizen) {
+                <a [routerLink]="['/municipes', citizen.id]">{{ citizen.name }}</a>
+              } @else {
+                <span>Sem munícipe vinculado</span>
+              }
+            </div>
+            <div class="field">
+              <span class="mobile-label">Departamento</span>
+              <span>{{ request.department }}</span>
+            </div>
+            <div class="field">
+              <span class="mobile-label">Abertura</span>
+              <time [attr.datetime]="request.createdAt">{{
+                request.createdAt | date: 'dd/MM/yyyy' : '-0300'
+              }}</time>
+            </div>
+            <div class="field">
+              <span class="mobile-label">Situação</span>
+              <span
+                class="badge"
+                [class.badge--danger]="request.status === 'pending'"
+                [class.badge--success]="request.status === 'completed'"
+              >
+                {{ request.status === 'pending' ? 'Pendente' : 'Finalizada' }}
+              </span>
+            </div>
+          </li>
+        }
+      </ul>
+    } @else {
+      <div class="empty-results">
+        <p>
+          {{
+            state.activeFilterCount()
+              ? 'Nenhuma solicitação corresponde aos filtros.'
+              : 'Nenhuma solicitação cadastrada.'
+          }}
+        </p>
+        @if (state.activeFilterCount()) {
+          <button type="button" class="text-button" (click)="resetFilters()">Limpar filtros</button>
+        }
+      </div>
+    }
+  </section>
+</div>
+
+<dialog
+  #filterDialog
+  id="request-list-filters"
+  class="dialog filter-sidebar"
+  aria-labelledby="request-filters-title"
+  (close)="restoreFilterFocus()"
+>
+  <div class="dialog__header">
+    <h2 id="request-filters-title">Buscar e filtrar</h2>
+    <button
+      type="button"
+      class="icon-button"
+      aria-label="Fechar filtros"
+      (click)="filterDialog.close()"
+    >
+      <app-icon name="close" />
+    </button>
+  </div>
+  <div class="dialog__body layout-stack">
+    <label>
+      <span class="form-label">Buscar solicitação</span>
+      <input
+        class="form-input"
+        type="search"
+        [formField]="filters.text"
+        placeholder="Título, protocolo, munícipe, comentário..."
+        autofocus
+      />
+    </label>
+    <label>
+      <span class="form-label">Situação</span>
+      <select class="form-select" [formField]="filters.status">
+        <option value="">Todas as situações</option>
+        <option value="pending">Pendente</option>
+        <option value="completed">Finalizada</option>
+      </select>
+    </label>
+    <label>
+      <span class="form-label">Departamento</span>
+      <select class="form-select" [formField]="filters.departmentId">
+        <option value="">Todos os departamentos</option>
+        @for (department of state.departments(); track department.id) {
+          <option [value]="department.id">{{ department.label }}</option>
+        }
+      </select>
+    </label>
+    <label>
+      <span class="form-label">Ordenar por abertura</span>
+      <select class="form-select" [formField]="filters.order">
+        <option value="recent">Mais recentes primeiro</option>
+        <option value="oldest">Mais antigas primeiro</option>
+      </select>
+    </label>
+  </div>
+  <div class="dialog__footer">
+    <button
+      type="button"
+      class="button"
+      [disabled]="!state.activeFilterCount()"
+      (click)="resetFilters()"
+    >
+      Limpar filtros
+    </button>
+    <button type="button" class="button button--primary" (click)="filterDialog.close()">
+      Ver resultados
+    </button>
+  </div>
+</dialog>

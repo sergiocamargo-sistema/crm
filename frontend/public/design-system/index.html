@@ -1,0 +1,890 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#064ea0" />
+    <meta
+      name="description"
+      content="Guia visual do Gabinete Sérgio Camargo: marca, cores, tipografia e componentes compartilhados com a aplicação."
+    />
+    <title>Design system · Gabinete Sérgio Camargo</title>
+    <link rel="icon" type="image/svg+xml" href="../brand/simbolo.svg" />
+    <link rel="stylesheet" href="tokens.css" />
+    <link rel="stylesheet" href="components.css" />
+    <link rel="stylesheet" href="guide.css" />
+    <script src="guide.js" defer></script>
+  </head>
+  <body>
+    <a class="guide-skip" href="#conteudo">Ir para o conteúdo</a>
+    <header class="guide-header">
+      <a href="../" aria-label="Sérgio Camargo · Abrir sistema"
+        ><img
+          src="../brand/sergio-camargo.svg"
+          width="312"
+          height="64"
+          alt="Vereador Sérgio Camargo"
+      /></a>
+      <a class="back-link" href="../">Abrir sistema <span aria-hidden="true">↗</span></a>
+    </header>
+    <main id="conteudo">
+      <section class="cover" aria-labelledby="guide-title">
+        <div class="cover-content">
+          <p class="eyebrow">Identidade & interface <span>01 / 2026</span></p>
+          <h1 id="guide-title">Design system<br />do gabinete<span>.</span></h1>
+          <p class="cover-description">
+            Uma base visual para todas as telas.<br />Clareza para trabalhar. Identidade para
+            reconhecer.
+          </p>
+          <span class="version"
+            >Versão 1.1 <span aria-hidden="true">·</span> 17 de novembro de 2026</span
+          >
+        </div>
+        <div class="cover-symbol" aria-hidden="true">
+          <img src="../brand/simbolo.svg" alt="" width="64" height="64" />
+        </div>
+      </section>
+      <nav class="section-nav" aria-label="Seções do design system">
+        <a href="#marca">01 Marca</a><a href="#cores">02 Cores</a
+        ><a href="#tipografia">03 Tipografia</a><a href="#componentes">04 Componentes</a
+        ><a href="#layout">05 Layout</a>
+      </nav>
+      <div class="guide-body">
+        <section id="marca" class="guide-section" aria-labelledby="brand-title">
+          <div class="section-heading">
+            <span class="section-number">01</span>
+            <div>
+              <h2 id="brand-title">Uma marca que acompanha o sistema.</h2>
+              <p>
+                A composição dos prints preservada: VEREADOR acima do nome e o elemento da bandeira
+                integrado à letra o de Sérgio.
+              </p>
+            </div>
+          </div>
+          <div class="brand-specimens">
+            <article class="brand-specimen">
+              <div class="logo-stage">
+                <img
+                  src="../brand/sergio-camargo.svg"
+                  width="312"
+                  height="64"
+                  alt="Marca principal: Vereador Sérgio Camargo"
+                />
+              </div>
+              <div class="specimen-caption">
+                <span>Principal · Fundo claro</span
+                ><a href="../brand/sergio-camargo.svg" download>Baixar SVG</a>
+              </div>
+            </article>
+            <article class="brand-specimen brand-specimen--inverse">
+              <div class="logo-stage">
+                <img
+                  src="../brand/sergio-camargo-inverse.svg"
+                  width="312"
+                  height="64"
+                  alt="Marca inversa: Vereador Sérgio Camargo"
+                />
+              </div>
+              <div class="specimen-caption">
+                <span>Inversa · Fundo escuro</span
+                ><a href="../brand/sergio-camargo-inverse.svg" download>Baixar SVG</a>
+              </div>
+            </article>
+            <article class="brand-specimen">
+              <div class="logo-stage">
+                <img
+                  src="../brand/sergio-camargo-monochrome.svg"
+                  width="312"
+                  height="64"
+                  alt="Marca monocromática: Vereador Sérgio Camargo"
+                />
+              </div>
+              <div class="specimen-caption">
+                <span>Monocromática · Impressão</span
+                ><a href="../brand/sergio-camargo-monochrome.svg" download>Baixar SVG</a>
+              </div>
+            </article>
+            <article class="brand-specimen brand-specimen--symbol">
+              <div class="logo-stage">
+                <img
+                  src="../brand/simbolo.svg"
+                  width="64"
+                  height="64"
+                  alt="Elemento da bandeira integrado à letra o de Sérgio"
+                />
+              </div>
+              <div class="specimen-caption">
+                <span>Recorte do o · Favicon</span
+                ><a href="../brand/simbolo.svg" download>Baixar SVG</a>
+              </div>
+            </article>
+          </div>
+          <div class="guidance">
+            <strong>Respiro e legibilidade</strong>
+            <p>
+              Reserve ao redor da marca ao menos ¼ da altura do símbolo. Use a assinatura completa a
+              partir de 180 px e o símbolo a partir de 24 px. Preserve as proporções e escolha a
+              versão conforme o fundo.
+            </p>
+          </div>
+        </section>
+        <section id="cores" class="guide-section" aria-labelledby="colors-title">
+          <div class="section-heading">
+            <span class="section-number">02</span>
+            <div>
+              <h2 id="colors-title">Azul para guiar. Amarelo para destacar.</h2>
+              <p>
+                O azul #064EA0 foi identificado nas áreas planas dos prints. Os tons de interface
+                ampliam a paleta para texto, campos e estados.
+              </p>
+            </div>
+          </div>
+          <div class="palette">
+            <button class="swatch swatch--blue" data-copy="#064EA0">
+              <span class="sr-only">Copiar cor </span>
+              <span class="swatch-color" aria-hidden="true">Aa</span
+              ><span class="swatch-details"
+                ><strong>Azul principal</strong><code>#064EA0</code></span
+              >
+            </button>
+            <button class="swatch swatch--yellow" data-copy="#F5DF31">
+              <span class="sr-only">Copiar cor </span>
+              <span class="swatch-color" aria-hidden="true">Aa</span
+              ><span class="swatch-details"
+                ><strong>Amarelo de destaque</strong><code>#F5DF31</code></span
+              >
+            </button>
+            <button class="swatch swatch--navy" data-copy="#1B1B2B">
+              <span class="sr-only">Copiar cor </span>
+              <span class="swatch-color" aria-hidden="true">Aa</span
+              ><span class="swatch-details"><strong>Azul noturno</strong><code>#1B1B2B</code></span>
+            </button>
+            <button class="swatch swatch--canvas" data-copy="#F4F6FA">
+              <span class="sr-only">Copiar cor </span>
+              <span class="swatch-color" aria-hidden="true">Aa</span
+              ><span class="swatch-details"
+                ><strong>Fundo da aplicação</strong><code>#F4F6FA</code></span
+              >
+            </button>
+          </div>
+          <div class="semantic-strip">
+            <div>
+              <span class="semantic-dot semantic-dot--success"></span><strong>Sucesso</strong
+              ><code>#176540</code>
+            </div>
+            <div>
+              <span class="semantic-dot semantic-dot--warning"></span><strong>Atenção</strong
+              ><code>#76520A</code>
+            </div>
+            <div>
+              <span class="semantic-dot semantic-dot--danger"></span><strong>Erro</strong
+              ><code>#AC2C36</code>
+            </div>
+            <div>
+              <span class="semantic-dot semantic-dot--muted"></span><strong>Texto secundário</strong
+              ><code>#5D6C81</code>
+            </div>
+          </div>
+          <div class="guidance">
+            <strong>Contraste antes de decoração</strong>
+            <p>
+              Texto branco sobre azul. Texto escuro sobre amarelo. Ações destrutivas usam vermelho;
+              status combinam texto e cor. Clique nas amostras para copiar os códigos.
+            </p>
+          </div>
+        </section>
+        <section id="tipografia" class="guide-section" aria-labelledby="type-title">
+          <div class="section-heading">
+            <span class="section-number">03</span>
+            <div>
+              <h2 id="type-title">Uma família. Hierarquia clara.</h2>
+              <p>
+                Inter Variable, servida localmente. Pesos fortes carregam a identidade dos prints;
+                textos e dados mantêm leitura confortável.
+              </p>
+            </div>
+          </div>
+          <div class="type-specimen">
+            <div class="type-letter">Aa<span>Inter Variable</span></div>
+            <div class="type-samples">
+              <div>
+                <span class="type-caption">Display editorial · 48 / 850 / itálico</span>
+                <p class="type-display">PRESENÇA<br />QUE CONECTA.</p>
+              </div>
+              <div>
+                <span class="type-caption">Título de tela · 26–34 / 750</span>
+                <p class="type-heading">O que você precisa fazer hoje?</p>
+              </div>
+              <div>
+                <span class="type-caption">Texto · 14–16 / 400</span>
+                <p class="type-body">
+                  Pessoas, solicitações e informações organizadas em um só lugar.
+                </p>
+              </div>
+              <div>
+                <span class="type-caption">Rótulo · 13 / 650</span>
+                <p class="type-label">Nome completo do munícipe</p>
+              </div>
+            </div>
+          </div>
+        </section>
+        <section id="componentes" class="guide-section" aria-labelledby="components-title">
+          <div class="section-heading">
+            <span class="section-number">04</span>
+            <div>
+              <h2 id="components-title">Componentes para o dia a dia.</h2>
+              <p>
+                Estes exemplos compartilham os mesmos tokens e estilos usados pela home. Os dados
+                abaixo são fictícios.
+              </p>
+            </div>
+          </div>
+          <article class="component-panel">
+            <div class="panel-heading">
+              <h3>Botões</h3>
+              <span>44 px de altura mínima · foco por teclado</span>
+            </div>
+            <div class="button-examples">
+              <button type="button" class="button button--primary" data-demo="Botão primário">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <path d="M5 12l4 4L19 6" /></svg
+                >Salvar cadastro</button
+              ><button type="button" class="button" data-demo="Botão secundário">Cancelar</button
+              ><button type="button" class="button button--accent" data-demo="Botão de destaque">
+                Novo atendimento</button
+              ><button type="button" class="button button--danger" data-demo="Botão destrutivo">
+                Arquivar</button
+              ><button type="button" class="button button--primary" disabled>Indisponível</button>
+            </div>
+            <p class="component-note">
+              Passe o mouse ou use Tab para conferir hover e foco. Os botões demonstram estilos.
+            </p>
+          </article>
+          <article class="component-panel" id="botoes-icone">
+            <div class="panel-heading">
+              <h3>Botões com ícone · padrão 1.1</h3>
+              <span>30 × 30 px · ícone 18 px · circular</span>
+            </div>
+            <div class="button-examples">
+              <button
+                type="button"
+                class="icon-button"
+                aria-label="Buscar"
+                title="Buscar"
+                data-demo="Buscar"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <path d="M21 21l-5-5 M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0" />
+                </svg></button
+              ><button
+                type="button"
+                class="icon-button"
+                aria-label="Ações do munícipe"
+                title="Ações do munícipe"
+                data-demo="Ações do munícipe"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <path d="M4 6h16 M4 12h16 M4 18h16" />
+                </svg></button
+              ><button
+                type="button"
+                class="icon-button"
+                aria-label="Filtrar"
+                title="Filtrar"
+                data-demo="Filtrar"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <path d="M3 4h18l-7 8v7l-4 2v-9z" />
+                </svg></button
+              ><button
+                type="button"
+                class="icon-button"
+                aria-label="Compartilhar"
+                title="Compartilhar"
+                data-demo="Compartilhar"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <path
+                    d="M18 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6 M18 22a3 3 0 1 0 0-6 3 3 0 0 0 0 6 M6 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6 M9 10.5l6-4 M9 13.5l6 4"
+                  />
+                </svg></button
+              ><button
+                type="button"
+                class="icon-button"
+                aria-label="Fechar"
+                title="Fechar"
+                data-demo="Fechar"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <path d="M6 6l12 12 M18 6L6 18" />
+                </svg></button
+              ><button
+                type="button"
+                class="icon-button"
+                aria-label="Filtro selecionado"
+                title="Filtro selecionado"
+                data-demo="Filtro selecionado"
+                aria-pressed="true"
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <path d="M3 4h18l-7 8v7l-4 2v-9z" />
+                </svg></button
+              ><button
+                type="button"
+                class="icon-button"
+                aria-label="Compartilhar indisponível"
+                title="Compartilhar indisponível"
+                data-demo="Compartilhar indisponível"
+                disabled
+              >
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                  focusable="false"
+                >
+                  <path
+                    d="M18 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6 M18 22a3 3 0 1 0 0-6 3 3 0 0 0 0 6 M6 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6 M9 10.5l6-4 M9 13.5l6 4"
+                  />
+                </svg>
+              </button>
+            </div>
+            <p class="component-note">
+              Busca, menu, filtro e fechar usam a mesma base. Hover, foco e seleção são definidos
+              uma única vez no arquivo compartilhado, inclusive em links e no summary dos filtros.
+            </p>
+            <div class="icon-variant-examples">
+              <div>
+                <div class="icon-toolbar icon-toolbar--badged">
+                  <button
+                    type="button"
+                    class="icon-button"
+                    aria-label="Solicitações: 1 pendente e 1 finalizada"
+                    title="Solicitações: 1 pendente e 1 finalizada"
+                    data-demo="Solicitações: 1 pendente e 1 finalizada"
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                      focusable="false"
+                    >
+                      <path d="M9 5H5v16h14V5h-4 M9 3h6v4H9z M8 12h8 M8 16h5" />
+                    </svg>
+                    <span class="icon-button__badge icon-button__badge--danger" aria-hidden="true"
+                      >1</span
+                    >
+                    <span
+                      class="icon-button__badge icon-button__badge--success icon-button__badge--lower"
+                      aria-hidden="true"
+                      >1</span
+                    >
+                  </button>
+                  <button
+                    type="button"
+                    class="icon-button"
+                    aria-label="Interações: 9"
+                    title="Interações: 9"
+                    data-demo="Interações: 9"
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                      focusable="false"
+                    >
+                      <path d="M4 4h16v14H8l-4 3z M8 9h8 M8 13h5" />
+                    </svg>
+                    <span class="icon-button__badge" aria-hidden="true">9</span>
+                  </button>
+                  <button
+                    type="button"
+                    class="icon-button"
+                    aria-label="Agendamentos: 2"
+                    title="Agendamentos: 2"
+                    data-demo="Agendamentos: 2"
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                      focusable="false"
+                    >
+                      <path d="M5 5h14v16H5z M8 3v4 M16 3v4 M5 10h14 M8 14h2 M14 14h2 M8 18h2" />
+                    </svg>
+                    <span class="icon-button__badge" aria-hidden="true">2</span>
+                  </button>
+                </div>
+                <span>Contadores: pendentes, finalizadas, interações e agendamentos.</span>
+              </div>
+              <div>
+                <div class="icon-toolbar">
+                  <button
+                    type="button"
+                    class="icon-button icon-button--compact"
+                    aria-label="Compartilhar compacto"
+                    title="Compartilhar compacto"
+                    data-demo="Compartilhar compacto"
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                      focusable="false"
+                    >
+                      <path
+                        d="M18 8a3 3 0 1 0 0-6 3 3 0 0 0 0 6 M18 22a3 3 0 1 0 0-6 3 3 0 0 0 0 6 M6 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6 M9 10.5l6-4 M9 13.5l6 4"
+                      />
+                    </svg></button
+                  ><button
+                    type="button"
+                    class="icon-button icon-button--compact"
+                    aria-label="Fechar compacto"
+                    title="Fechar compacto"
+                    data-demo="Fechar compacto"
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                      focusable="false"
+                    >
+                      <path d="M6 6l12 12 M18 6L6 18" />
+                    </svg>
+                  </button>
+                </div>
+                <span>Compacto · ferramentas no desktop</span>
+              </div>
+              <div>
+                <button
+                  type="button"
+                  class="icon-button icon-button--success"
+                  aria-label="WhatsApp"
+                  title="WhatsApp"
+                  data-demo="WhatsApp"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                    focusable="false"
+                  >
+                    <path
+                      d="M20.5 11.8a8.5 8.5 0 0 1-12.6 7.5L3 21l1.6-4.8A8.5 8.5 0 1 1 20.5 11.8 M8.6 7.4l1.2 2.4-1 1a9 9 0 0 0 4.4 4.2l1-1.1 2.3 1.2c-.2 2-1.6 2-2.7 1.6-3.8-1.4-6.6-4.2-7-7.4 0-1 .6-1.8 1.8-1.9"
+                    />
+                  </svg></button
+                ><span>WhatsApp · verde semântico</span>
+              </div>
+              <div>
+                <div class="icon-overlay-stage">
+                  <button
+                    type="button"
+                    class="icon-button icon-button--overlay icon-button--with-count"
+                    aria-label="Ver todas as fotos"
+                    data-demo="Fotos"
+                  >
+                    <svg
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      aria-hidden="true"
+                      focusable="false"
+                    >
+                      <path d="M3 3h18v18H3z M3 17l6-6 4 4 3-3 5 5 M9 7h.01" /></svg
+                    ><span>4</span>
+                  </button>
+                </div>
+                <span>Sobre fotos · ícone com contador</span>
+              </div>
+              <div>
+                <button
+                  type="button"
+                  class="icon-button icon-button--primary icon-button--floating"
+                  aria-label="Nova interação"
+                  title="Nova interação"
+                  data-demo="Nova interação"
+                >
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                    focusable="false"
+                  >
+                    <path d="M12 5v14 M5 12h14" />
+                  </svg></button
+                ><span>Flutuante · ação principal</span>
+              </div>
+            </div>
+            <p class="component-note">
+              Novas telas devem reutilizar estas classes.
+              <a href="README.md">Consultar as variantes e regras para agentes</a>.
+            </p>
+          </article>
+          <article class="component-panel">
+            <div class="panel-heading">
+              <h3>Campos e validação</h3>
+              <span>Rótulo permanente · ajuda junto ao campo</span>
+            </div>
+            <div class="field-examples">
+              <div>
+                <label class="form-label" for="example-name">Nome completo</label
+                ><input
+                  class="form-input"
+                  id="example-name"
+                  placeholder="Ex.: Mariana Oliveira"
+                  aria-describedby="name-hint"
+                />
+                <p class="form-hint" id="name-hint">Informe o nome como a pessoa se apresenta.</p>
+              </div>
+              <div>
+                <label class="form-label" for="example-phone">Telefone</label
+                ><input
+                  class="form-input"
+                  id="example-phone"
+                  value="123"
+                  aria-invalid="true"
+                  aria-describedby="phone-error"
+                />
+                <p class="form-error" id="phone-error">Informe o telefone completo com DDD.</p>
+              </div>
+              <div>
+                <label class="form-label" for="example-disabled">Responsável</label
+                ><input
+                  class="form-input"
+                  id="example-disabled"
+                  value="Equipe do gabinete"
+                  disabled
+                />
+                <p class="form-hint">Exemplo de campo indisponível.</p>
+              </div>
+            </div>
+          </article>
+          <article class="component-panel">
+            <div class="panel-heading">
+              <h3>Identificação e estados</h3>
+              <span>Cor acompanhada de texto</span>
+            </div>
+            <div class="identification-example">
+              <div class="person-example">
+                <span class="avatar">MO</span>
+                <div><strong>Mariana Oliveira</strong><span>Munícipe · Dados fictícios</span></div>
+              </div>
+              <div class="badges">
+                <span class="badge">Em andamento</span
+                ><span class="badge badge--success">Concluído</span
+                ><span class="badge badge--amber">Aguardando retorno</span
+                ><span class="badge badge--danger">Falha na conexão</span>
+              </div>
+            </div>
+          </article>
+          <article class="component-panel">
+            <div class="panel-heading">
+              <h3>Categorias do munícipe</h3>
+              <span>Etiquetas de leitura · formato de cápsula</span>
+            </div>
+            <div class="badges">
+              <button
+                type="button"
+                class="badge badge--category badge--category-action"
+                aria-label="Remover categoria Paróquia Sagrada Família"
+                data-demo="Confirmação de remoção de categoria"
+              >
+                Paróquia Sagrada Família
+              </button>
+              <button
+                type="button"
+                class="badge badge--category badge--category-action"
+                aria-label="Remover categoria Ministro da Eucaristia"
+                data-demo="Confirmação de remoção de categoria"
+              >
+                Ministro da Eucaristia
+              </button>
+              <button
+                type="button"
+                class="badge badge--category badge--category-action"
+                aria-label="Remover categoria Pastoral Familiar"
+                data-demo="Confirmação de remoção de categoria"
+              >
+                Pastoral Familiar
+              </button>
+            </div>
+          </article>
+          <article class="component-panel">
+            <div class="panel-heading">
+              <h3>Etiquetas das tarefas</h3>
+              <span>Seletor compacto · etiquetas removíveis · texto com contraste AA</span>
+            </div>
+            <div class="layout-stack">
+              <button
+                type="button"
+                class="form-input form-input--compact"
+                data-demo="Abrir seletor de etiquetas"
+              >
+                Adicionar etiqueta
+              </button>
+              <div class="badges">
+                <button
+                  type="button"
+                  class="task-label task-label--removable"
+                  style="--task-label-background: #f4bf23; --task-label-foreground: #000000"
+                  aria-label="Remover etiqueta Retorno ao munícipe"
+                  data-demo="Remover etiqueta selecionada"
+                >
+                  <span>Retorno ao munícipe</span>
+                  <svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    aria-hidden="true"
+                  >
+                    <path d="M6 6l12 12M18 6L6 18" />
+                  </svg>
+                </button>
+                <span
+                  class="task-label"
+                  style="--task-label-background: #064ea0; --task-label-foreground: #ffffff"
+                  >Documentação</span
+                >
+                <span
+                  class="task-label"
+                  style="--task-label-background: #267848; --task-label-foreground: #ffffff"
+                  >Visita</span
+                >
+              </div>
+            </div>
+          </article>
+          <article class="component-panel">
+            <div class="panel-heading">
+              <h3>Acessos de módulos</h3>
+              <span>Ícones de traço · rótulos diretos</span>
+            </div>
+            <div class="module-examples">
+              <button type="button" class="module-tile" data-demo="Acesso a Munícipes">
+                <span class="module-icon"
+                  ><svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.7"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path
+                      d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M16 3a4 4 0 0 1 0 8M22 21v-2a4 4 0 0 0-3-3.87"
+                    />
+                    <circle cx="9" cy="7" r="4" /></svg></span
+                ><span class="module-label">Munícipes</span></button
+              ><button type="button" class="module-tile" data-demo="Acesso a Solicitações">
+                <span class="module-icon"
+                  ><svg
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.7"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    aria-hidden="true"
+                  >
+                    <path d="M9 5H5v16h14V5h-4M9 3h6v4H9zM8 12h8M8 16h6" /></svg></span
+                ><span class="module-label">Solicitações</span>
+              </button>
+            </div>
+          </article>
+          <article class="component-panel dialog-example">
+            <div>
+              <h3>Diálogos e confirmação</h3>
+              <p>
+                Janela nativa, título claro e foco contido. Escape fecha e devolve o foco ao botão.
+              </p>
+            </div>
+            <button type="button" class="button button--primary" id="open-dialog">
+              Ver diálogo
+            </button>
+          </article>
+        </section>
+        <section id="layout" class="guide-section" aria-labelledby="layout-title">
+          <div class="section-heading">
+            <span class="section-number">05</span>
+            <div>
+              <h2 id="layout-title">Espaço para trabalhar.</h2>
+              <p>
+                Escala de 4 px, contêiner de até 1160 px e uma hierarquia que se adapta ao celular.
+              </p>
+            </div>
+          </div>
+          <div class="layout-panels">
+            <article class="component-panel">
+              <h3>Espaçamento</h3>
+              <div class="spacing-examples">
+                <div><span>4</span><i style="--size: 4px"></i></div>
+                <div><span>8</span><i style="--size: 8px"></i></div>
+                <div><span>12</span><i style="--size: 12px"></i></div>
+                <div><span>16</span><i style="--size: 16px"></i></div>
+                <div><span>24</span><i style="--size: 24px"></i></div>
+                <div><span>32</span><i style="--size: 32px"></i></div>
+                <div><span>48</span><i style="--size: 48px"></i></div>
+              </div>
+            </article>
+            <article class="component-panel">
+              <h3>Geometria</h3>
+              <div class="radius-examples">
+                <div>
+                  <span class="radius-control"></span>
+                  <p>Campo · 10 px</p>
+                </div>
+                <div>
+                  <span class="radius-card"></span>
+                  <p>Card · 14 px</p>
+                </div>
+                <div>
+                  <span class="radius-dialog"></span>
+                  <p>Diálogo · 20 px</p>
+                </div>
+              </div>
+            </article>
+          </div>
+          <div class="responsive-rule">
+            <strong>Espaço entre blocos</strong>
+            <p>
+              Prefira gap no contêiner flex/grid em vez de margens nos filhos. A classe layout-stack
+              usa 12 px entre blocos, como o card do nome e o conteúdo da ficha.
+            </p>
+          </div>
+          <div class="responsive-rule">
+            <strong>Home responsiva</strong>
+            <p>
+              Até 600 px: 2 colunas e busca em lupa, que expande ao tocar com foco imediato. Acima
+              de 600 px: 4 colunas e campo de busca aberto. Acessos sempre quadrados; cabeçalho fixo
+              e margens preservadas. A interface respeita movimento reduzido.
+            </p>
+          </div>
+        </section>
+        <footer class="guide-footer">
+          <img
+            src="../brand/sergio-camargo-monochrome.svg"
+            width="312"
+            height="64"
+            alt="Vereador Sérgio Camargo"
+          />
+          <p>Gabinete digital · Design system 1.1</p>
+          <a href="../">Voltar para a home <span aria-hidden="true">↗</span></a>
+        </footer>
+      </div>
+    </main>
+    <dialog class="dialog" id="example-dialog" aria-labelledby="example-dialog-title">
+      <div class="dialog__header">
+        <h2 id="example-dialog-title">Confirmar ação</h2>
+        <button type="button" class="icon-button" data-close-dialog aria-label="Fechar diálogo">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+            focusable="false"
+          >
+            <path d="M6 6l12 12 M18 6L6 18" />
+          </svg>
+        </button>
+      </div>
+      <div class="dialog__body">
+        <p>
+          Este é um exemplo do padrão de confirmação do sistema. A janela mantém o foco e pode ser
+          fechada com Escape.
+        </p>
+      </div>
+      <div class="dialog__footer">
+        <button type="button" class="button" data-close-dialog>Cancelar</button
+        ><button type="button" class="button button--primary" id="confirm-dialog">
+          Confirmar exemplo
+        </button>
+      </div>
+    </dialog>
+    <p class="guide-toast" id="guide-status" role="status" aria-atomic="true"></p>
+  </body>
+</html>

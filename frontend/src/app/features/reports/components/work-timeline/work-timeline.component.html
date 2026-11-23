@@ -1,0 +1,72 @@
+<p class="sr-only" id="work-timeline-help">
+  Horários na horizontal e funcionários na vertical. Role horizontalmente para ver todos os
+  horários. Cada tijolo abre o card. Períodos simultâneos aparecem com transparência e contorno
+  tracejado.
+</p>
+<div
+  class="timeline-scroll"
+  role="region"
+  tabindex="0"
+  aria-label="Atividades por funcionário e horário"
+  aria-describedby="work-timeline-help"
+>
+  <div
+    class="timeline-canvas"
+    [style.--axis-min-width.px]="layout().hours * 88"
+    [style.--hour-step.%]="100 / layout().hours"
+  >
+    <div class="timeline-header" aria-hidden="true">
+      <div class="person-label axis-caption">Funcionário</div>
+      <div class="time-axis">
+        @for (tick of layout().ticks; track tick.instant; let first = $first; let last = $last) {
+          <span
+            class="hour-tick"
+            [class.hour-tick--first]="first"
+            [class.hour-tick--last]="last"
+            [style.left.%]="tick.left"
+            >{{ time(tick.instant) }}</span
+          >
+        }
+      </div>
+    </div>
+    @for (row of layout().rows; track row.group.user.id) {
+      <section class="timeline-row" [attr.aria-labelledby]="'timeline-person-' + row.group.user.id">
+        <div class="person-label">
+          <span class="avatar" aria-hidden="true">{{ row.group.user.initials }}</span>
+          <div class="person-copy">
+            <h2 [id]="'timeline-person-' + row.group.user.id">{{ row.group.user.name }}</h2>
+            <span class="person-duration"
+              >{{ duration(row.group.duration) }} · {{ row.group.tiles.length }}
+              {{ row.group.tiles.length === 1 ? 'card' : 'cards' }}</span
+            >
+            @if (row.overlapDuration) {
+              <span class="overlap-note">{{ duration(row.overlapDuration) }} simultâneos</span>
+            }
+          </div>
+        </div>
+        <div class="person-track" [style.height.px]="row.height">
+          @for (block of row.blocks; track block.id) {
+            <a
+              class="timeline-block"
+              [class.timeline-block--overlap]="block.overlap"
+              [attr.data-color]="block.color"
+              [style.left.%]="block.left"
+              [style.width.%]="block.width"
+              [style.top.px]="18 + block.lane * 20"
+              routerLink="/kanban"
+              [queryParams]="{ tarefa: block.tile.task.id }"
+              [attr.aria-label]="description(block)"
+              [title]="description(block)"
+            >
+              <span class="block-title">{{ block.tile.task.title }}</span>
+              <span class="block-time"
+                >{{ time(block.start) }}–{{ time(block.end) }} ·
+                {{ duration(block.end - block.start) }}</span
+              >
+            </a>
+          }
+        </div>
+      </section>
+    }
+  </div>
+</div>

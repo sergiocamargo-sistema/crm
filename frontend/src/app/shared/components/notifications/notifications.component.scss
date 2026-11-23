@@ -1,0 +1,57 @@
+:host {
+  display: block;
+  flex-shrink: 0;
+}
+.notifications-dialog {
+  width: min(420px, 100%);
+  height: 100dvh;
+  max-height: 100dvh;
+  margin: 0 0 0 auto;
+  border-radius: var(--radius-card) 0 0 var(--radius-card);
+}
+.notifications-dialog[open] {
+  display: flex;
+  flex-direction: column;
+}
+.notification-content {
+  display: grid;
+  align-content: start;
+  gap: var(--space-3);
+  overflow-y: auto;
+}
+.notification-list {
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  display: grid;
+  gap: var(--space-2);
+}
+.notification-list a {
+  display: flex;
+  align-items: start;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  color: var(--color-text);
+  text-decoration: none;
+  font-size: var(--font-size-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+}
+.notification-list a:hover,
+.is-unread a {
+  background: var(--color-primary-soft);
+}
+.notification-list app-icon {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+time {
+  display: block;
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+.empty-notifications {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}

@@ -1,0 +1,68 @@
+<div class="attachments-heading">
+  <h2>
+    Anexos <span>{{ attachments().length }}</span>
+  </h2>
+  <input #filePicker type="file" multiple hidden [accept]="accept" (change)="addFiles($event)" />
+  <button
+    type="button"
+    class="icon-button"
+    aria-label="Adicionar fotos, áudios e documentos"
+    title="Adicionar anexos"
+    (click)="filePicker.click()"
+  >
+    <app-icon name="plus" />
+  </button>
+</div>
+
+@if (photos().length) {
+  <app-photo-gallery
+    class="attachment-gallery"
+    [photos]="photos()"
+    [galleryId]="'request-photos-' + requestId()"
+    title="Fotos da solicitação"
+    [showLabels]="false"
+  />
+}
+
+@if (documents().length) {
+  <ul class="document-list" aria-label="Documentos da solicitação">
+    @for (document of documents(); track document.id) {
+      <li>
+        <app-icon name="file" />
+        <div class="document-data">
+          <a
+            [href]="document.url"
+            target="_blank"
+            rel="noopener noreferrer"
+            [title]="document.name"
+            >{{ document.name }}</a
+          >
+          <span
+            >{{ document.name.split('.').at(-1)?.toUpperCase() }}
+            @if (document.size !== null) {
+              · {{ sizeLabel(document.size) }}
+            }
+          </span>
+        </div>
+        <a
+          class="icon-button"
+          [href]="document.url"
+          [download]="document.name"
+          [attr.aria-label]="'Baixar ' + document.name"
+          title="Baixar documento"
+          ><app-icon name="download"
+        /></a>
+      </li>
+    }
+  </ul>
+}
+
+@if (audios().length) {
+  <app-audio-attachments [attachments]="audios()" label="Áudios da solicitação" />
+}
+@if (!attachments().length) {
+  <p class="empty-attachments">Adicione fotos, áudios ou documentos relacionados à solicitação.</p>
+}
+@if (failure()) {
+  <p class="form-error" role="alert">{{ failure() }}</p>
+}

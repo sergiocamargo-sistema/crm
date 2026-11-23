@@ -1,0 +1,16 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+.task-label-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+.task-label-list li {
+  min-width: 0;
+  max-width: 100%;
+}

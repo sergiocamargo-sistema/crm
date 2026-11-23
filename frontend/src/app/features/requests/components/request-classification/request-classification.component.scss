@@ -1,0 +1,63 @@
+:host {
+  display: block;
+}
+.classification-fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+.department-picker {
+  position: relative;
+}
+.department-options {
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  inset: calc(100% + var(--space-1)) 0 auto;
+  max-height: 16rem;
+  overflow-y: auto;
+  z-index: 5;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  box-shadow: var(--shadow-popover);
+  padding: var(--space-2);
+}
+.department-options button {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text);
+  padding: var(--space-3);
+  text-align: left;
+  font-size: var(--font-size-xs);
+  overflow-wrap: anywhere;
+}
+.department-options button:hover,
+.department-options button[aria-pressed='true'] {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+}
+.department-options app-icon {
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+}
+.form-input,
+.form-select {
+  min-width: 0;
+}
+.classification-status,
+.form-error {
+  margin: 0;
+  font-size: var(--font-size-xs);
+}
+.classification-status {
+  color: var(--color-success);
+}
+.classification-status:empty {
+  display: none;
+}

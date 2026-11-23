@@ -1,0 +1,187 @@
+:host {
+  display: flow-root;
+  flex: 0 0 auto;
+}
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 13px;
+  margin-bottom: 22px;
+  flex: 0 0 auto;
+}
+.metric {
+  display: flex;
+  align-items: center;
+  padding: 16px 17px;
+  gap: 12px;
+  min-height: 82px;
+  background: white;
+  border: 1px solid #e4e9dd;
+  border-radius: 8px;
+  position: relative;
+  overflow: hidden;
+}
+.metric-icon {
+  display: grid;
+  place-items: center;
+  width: 35px;
+  height: 35px;
+  background: #edf3e7;
+  border: 1px solid #e2ead9;
+  color: #6c8654;
+  border-radius: 8px;
+  flex: 0 0 auto;
+}
+.metric-icon app-icon {
+  width: 18px;
+  height: 18px;
+}
+.metric-icon--waiting {
+  background: #fbf4df;
+  border-color: #f3eacd;
+  color: #b08d44;
+}
+.metric-icon--mine {
+  background: #edf0f6;
+  border-color: #e2e7ef;
+  color: #788ca6;
+}
+.metric-icon--done {
+  background: #eef3ec;
+  border-color: #e3eadf;
+  color: #7d9670;
+}
+.metric-label {
+  font-size: 10px;
+  color: #6b795f;
+  display: block;
+  white-space: nowrap;
+}
+.metric strong {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 25px;
+  line-height: 1;
+  letter-spacing: -0.8px;
+  font-weight: 500;
+  margin-top: 8px;
+}
+.metric strong small {
+  font-size: 8px;
+  font-weight: 400;
+  color: #5e6c53;
+  letter-spacing: 0;
+}
+.metric-decoration {
+  position: absolute;
+  width: 3px;
+  height: 20px;
+  background: #f1f4eb;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  border-radius: 3px 0 0 3px;
+}
+@media (min-width: 1700px) {
+  .metric {
+    min-height: 90px;
+  }
+}
+@media (max-width: 1320px) and (min-width: 701px) {
+  .metric {
+    padding: 16px 13px;
+    gap: 9px;
+  }
+  .metric-label {
+    font-size: 9px;
+  }
+}
+@media (max-width: 1160px) {
+  .metric strong small {
+    font-size: 7px;
+  }
+  .metrics {
+    gap: 10px;
+  }
+  .metric-label {
+    font-size: 8px;
+  }
+  .metric-icon {
+    width: 30px;
+    height: 30px;
+  }
+  .metric strong {
+    font-size: 23px;
+    gap: 6px;
+  }
+}
+@media (max-width: 900px) and (min-width: 701px) {
+  .metric {
+    gap: 8px;
+    padding: 13px 9px;
+  }
+  .metric-icon {
+    width: 27px;
+    height: 29px;
+  }
+  .metric strong small {
+    display: none;
+  }
+  .metric-label {
+    font-size: 8px;
+  }
+}
+@media (max-height: 820px) and (min-width: 701px) {
+  .metrics {
+    margin-bottom: 17px;
+  }
+  .metric {
+    min-height: 72px;
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+}
+@media (max-width: 700px) {
+  .metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+  .metric {
+    min-height: 65px;
+    padding: 10px 11px;
+    gap: 10px;
+  }
+  .metric-label {
+    font-size: 8px;
+  }
+  .metric strong {
+    font-size: 22px;
+    margin-top: 6px;
+    gap: 7px;
+  }
+  .metric strong small {
+    font-size: 7px;
+  }
+  .metric-icon {
+    width: 30px;
+    height: 30px;
+  }
+  .metric-icon app-icon {
+    width: 16px;
+    height: 16px;
+  }
+}
+@media (max-width: 360px) {
+  .metric {
+    gap: 7px;
+    padding-left: 9px;
+  }
+  .metric-label {
+    font-size: 7px;
+  }
+  .metric strong small {
+    font-size: 6px;
+  }
+}

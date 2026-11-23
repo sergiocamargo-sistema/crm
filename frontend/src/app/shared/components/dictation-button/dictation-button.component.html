@@ -1,0 +1,21 @@
+<span class="dictation-status" role="status" [id]="controlId() + '-dictation-status'">{{
+  target().status()
+}}</span>
+<button
+  type="button"
+  class="icon-button"
+  [attr.aria-controls]="controlId()"
+  [attr.aria-label]="target().active() ? 'Parar ditado' : 'Ditar texto por voz'"
+  [attr.title]="
+    !target().supported
+      ? target().status()
+      : target().active()
+        ? 'Parar ditado'
+        : 'Ditar texto por voz'
+  "
+  [attr.aria-pressed]="target().active()"
+  [disabled]="!target().active() && target().unavailable()"
+  (click)="target().toggle()"
+>
+  <app-icon [name]="target().active() ? 'stop' : 'microphone'" />
+</button>

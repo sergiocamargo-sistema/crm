@@ -1,0 +1,19 @@
+@for (part of parts(); track $index) {
+  @switch (part.kind) {
+    @case ('text') {
+      {{ part.text }}
+    }
+    @case ('mention') {
+      <span class="user-mention">{{ part.text }}</span>
+    }
+    @case ('link') {
+      <a
+        [href]="linkHref(part)"
+        [attr.target]="part.internal ? null : '_blank'"
+        rel="noopener noreferrer"
+        (click)="navigate($event, part)"
+        >{{ part.text }}</a
+      >
+    }
+  }
+}

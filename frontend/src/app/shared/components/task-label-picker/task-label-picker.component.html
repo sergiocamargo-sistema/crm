@@ -1,0 +1,66 @@
+<label class="form-label" [for]="controlId()">Etiquetas</label>
+<button
+  #trigger
+  type="button"
+  class="form-input form-input--compact label-trigger"
+  [id]="controlId()"
+  aria-label="Adicionar etiqueta"
+  [attr.aria-invalid]="invalid() || null"
+  [attr.popovertarget]="panelId()"
+  [disabled]="disabled()"
+>
+  Adicionar etiqueta
+  <app-icon name="down" />
+</button>
+
+<div
+  #panel
+  class="label-panel"
+  [id]="panelId()"
+  popover="auto"
+  role="group"
+  aria-label="Etiquetas da tarefa"
+  tabindex="-1"
+  autofocus
+  (toggle)="onPanelToggle()"
+  (keydown.escape)="onEscape($event)"
+  (keydown.enter)="$event.preventDefault()"
+>
+  @if (catalog().length) {
+    <input
+      type="search"
+      class="form-input label-search"
+      aria-label="Buscar etiquetas"
+      placeholder="Buscar etiqueta..."
+      autocomplete="off"
+      [formField]="searchForm.text"
+    />
+    <div class="label-options">
+      @for (label of options(); track label.id) {
+        <label class="label-option">
+          <input
+            type="checkbox"
+            [checked]="selectedIds().has(label.id)"
+            [disabled]="disabled()"
+            (change)="toggle(label.id, $event)"
+          />
+          <app-task-label-chip [label]="label" />
+        </label>
+      } @empty {
+        <p class="empty-labels" role="status">Nenhuma etiqueta encontrada.</p>
+      }
+    </div>
+  } @else {
+    <p class="empty-labels">Nenhuma etiqueta cadastrada.</p>
+  }
+</div>
+
+@if (value().length) {
+  <app-task-labels
+    [labelIds]="value()"
+    [catalog]="catalog()"
+    [removable]="true"
+    [disabled]="disabled()"
+    (removed)="remove($event)"
+  />
+}

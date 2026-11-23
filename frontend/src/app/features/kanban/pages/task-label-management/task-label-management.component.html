@@ -1,0 +1,207 @@
+<div class="management-page layout-stack">
+  <header class="page-heading">
+    <a
+      class="icon-button"
+      routerLink="/kanban"
+      aria-label="Voltar ao Kanban"
+      title="Voltar ao Kanban"
+    >
+      <app-icon name="back" />
+    </a>
+    <h1 #title tabindex="-1">Etiquetas das tarefas</h1>
+    <button
+      #create
+      type="button"
+      class="icon-button icon-button--primary create-button"
+      aria-label="Cadastrar etiqueta de tarefa"
+      title="Cadastrar etiqueta de tarefa"
+      aria-haspopup="dialog"
+      aria-controls="task-label-editor"
+      [disabled]="state.loading() || !!state.loadError() || state.saving()"
+      (click)="open({ kind: 'create' }, create)"
+    >
+      <app-icon name="plus" />
+    </button>
+  </header>
+  <p role="status" aria-atomic="true">{{ status() }}</p>
+  <section
+    class="directory layout-stack"
+    aria-label="Catálogo de etiquetas das tarefas"
+    [attr.aria-busy]="state.loading()"
+  >
+    <label>
+      <span class="form-label">Buscar etiqueta</span>
+      <input
+        type="search"
+        class="form-input"
+        [formField]="searchForm.text"
+        placeholder="Nome da etiqueta"
+      />
+    </label>
+    <p class="muted" role="status" aria-atomic="true">
+      @if (state.loading()) {
+        Buscando etiquetas...
+      } @else if (!state.loadError()) {
+        {{ state.results().length }} de {{ state.total() }} etiquetas
+      }
+    </p>
+    @if (state.loadError()) {
+      <p class="form-error" role="alert">{{ state.loadError() }}</p>
+      <button type="button" class="text-button retry-button" (click)="reload()">
+        Tentar novamente
+      </button>
+    } @else {
+      <ul class="labels" aria-label="Etiquetas encontradas">
+        @for (label of state.results(); track label.id) {
+          <li class="label">
+            <div class="label-copy">
+              <app-task-label-chip [label]="label" />
+              <span class="muted"
+                >{{ label.taskCount }}
+                {{ label.taskCount === 1 ? 'tarefa vinculada' : 'tarefas vinculadas' }}</span
+              >
+            </div>
+            <div class="label-actions">
+              <button
+                #edit
+                type="button"
+                class="text-button"
+                aria-haspopup="dialog"
+                aria-controls="task-label-editor"
+                [attr.aria-label]="'Editar ' + label.name"
+                [disabled]="state.loading() || state.saving()"
+                (click)="open({ kind: 'edit', label: label }, edit)"
+              >
+                Editar
+              </button>
+              <button
+                #remove
+                type="button"
+                class="text-button"
+                aria-haspopup="dialog"
+                aria-controls="task-label-editor"
+                [attr.aria-label]="'Excluir ' + label.name"
+                [disabled]="state.loading() || state.saving()"
+                (click)="open({ kind: 'remove', label: label }, remove)"
+              >
+                Excluir
+              </button>
+            </div>
+          </li>
+        } @empty {
+          @if (!state.loading()) {
+            <li class="muted">
+              {{
+                state.search().text.trim()
+                  ? 'Nenhuma etiqueta corresponde à busca.'
+                  : 'Nenhuma etiqueta cadastrada.'
+              }}
+            </li>
+          }
+        }
+      </ul>
+    }
+  </section>
+</div>
+
+<dialog
+  #editorDialog
+  id="task-label-editor"
+  class="dialog"
+  aria-labelledby="task-label-editor-title"
+  (cancel)="onCancel($event)"
+  (close)="restoreFocus()"
+>
+  @let action = editor();
+  <form novalidate (submit)="save($event)" [attr.aria-busy]="state.saving()">
+    <div class="dialog__header">
+      <h2 id="task-label-editor-title">
+        {{
+          action.kind === 'create'
+            ? 'Cadastrar etiqueta'
+            : action.kind === 'edit'
+              ? 'Editar etiqueta'
+              : 'Excluir etiqueta'
+        }}
+      </h2>
+      <button
+        type="button"
+        class="icon-button"
+        aria-label="Fechar"
+        [disabled]="state.saving()"
+        (click)="close()"
+      >
+        <app-icon name="close" />
+      </button>
+    </div>
+    <div class="dialog__body layout-stack">
+      @if (action.kind === 'remove') {
+        <p>
+          Excluir <strong>{{ action.label.name }}</strong> do catálogo?
+        </p>
+        @if (action.label.taskCount) {
+          <p class="form-error">
+            Esta etiqueta está em uso. Remova os vínculos com as tarefas antes de excluir.
+          </p>
+        }
+      } @else {
+        <label>
+          <span class="form-label">Nome</span>
+          <input
+            #editorName
+            class="form-input"
+            [formField]="editorForm.name"
+            [attr.aria-describedby]="showNameError() ? 'label-name-error' : null"
+          />
+        </label>
+        @if (showNameError()) {
+          <p id="label-name-error" class="form-error">Informe um nome com até 60 caracteres.</p>
+        }
+        <label>
+          <span class="form-label">Cor</span>
+          <input
+            #editorColor
+            type="color"
+            class="form-input"
+            [formField]="editorForm.color"
+            [attr.aria-describedby]="showColorError() ? 'label-color-error' : null"
+          />
+        </label>
+        @if (showColorError()) {
+          <p id="label-color-error" class="form-error">Escolha uma cor válida.</p>
+        }
+        <div class="label-preview">
+          <span class="form-label">Prévia</span>
+          <app-task-label-chip [label]="preview()" />
+        </div>
+      }
+      @if (state.actionError()) {
+        <p class="form-error" role="alert">{{ state.actionError() }}</p>
+      }
+    </div>
+    <div class="dialog__footer">
+      <button
+        #cancelButton
+        type="button"
+        class="button"
+        [disabled]="state.saving()"
+        (click)="close()"
+      >
+        Cancelar
+      </button>
+      @if (action.kind === 'remove') {
+        <button
+          type="submit"
+          class="button button--danger"
+          [disabled]="state.saving() || action.label.taskCount > 0"
+        >
+          {{ state.saving() ? 'Excluindo...' : 'Excluir' }}
+        </button>
+      } @else {
+        <button type="submit" class="button button--primary" [disabled]="state.saving()">
+          {{ state.saving() ? 'Salvando...' : 'Salvar' }}
+        </button>
+      }
+    </div>
+  </form>
+</dialog>

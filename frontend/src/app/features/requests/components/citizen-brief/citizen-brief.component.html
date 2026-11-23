@@ -1,0 +1,33 @@
+<section class="citizen-brief" aria-label="Resumo do munícipe">
+  <div class="brief-row">
+    @if (citizen().photos[0]; as photo) {
+      <a [routerLink]="['/municipes', citizen().id]" aria-label="Abrir ficha do munícipe"
+        ><img [ngSrc]="photo.src" width="52" height="52" alt=""
+      /></a>
+    }
+    <div class="brief-data">
+      <a class="brief-name" [routerLink]="['/municipes', citizen().id]" [title]="citizen().name">{{
+        citizen().name
+      }}</a>
+      <span class="brief-address"
+        >{{ citizen().address.street }} · {{ citizen().neighborhood }} ·
+        {{ citizen().address.city }}/{{ citizen().address.state }}</span
+      >
+      <span
+        >CRA <strong>{{ citizen().cra ?? 'Não informado' }}</strong></span
+      >
+    </div>
+  </div>
+  @if (citizen().observations) {
+    <button
+      type="button"
+      class="brief-observation"
+      [class.brief-observation--expanded]="expanded()"
+      [attr.aria-expanded]="expanded()"
+      aria-label="Expandir ou recolher observações do munícipe"
+      (click)="expanded.set(!expanded())"
+    >
+      <span>{{ citizen().observations }}</span>
+    </button>
+  }
+</section>

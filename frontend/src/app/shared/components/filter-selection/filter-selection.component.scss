@@ -1,0 +1,103 @@
+:host {
+  display: block;
+  min-width: 0;
+}
+.category-field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+.form-label {
+  margin: 0;
+}
+.category-hint {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+.selected-categories {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.selected-categories:empty {
+  display: none;
+}
+.selected-categories li {
+  min-width: 0;
+  max-width: 100%;
+}
+.selected-categories button {
+  gap: var(--space-1);
+  text-align: left;
+}
+.selected-categories app-icon {
+  width: 12px;
+  height: 12px;
+  flex: 0 0 auto;
+}
+.category-search {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+.category-search input {
+  flex: 1;
+  min-width: 0;
+}
+.category-picker {
+  position: relative;
+}
+.category-options {
+  position: absolute;
+  z-index: 5;
+  top: calc(100% + var(--space-2));
+  inset-inline: 0;
+  max-height: 220px;
+  overflow-y: auto;
+  list-style: none;
+  margin: 0;
+  padding: var(--space-1);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  box-shadow: var(--shadow-popover);
+}
+.category-options button {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: var(--space-3) var(--space-2);
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  text-align: left;
+  font-size: var(--font-size-sm);
+}
+.category-options button:hover,
+.category-options button:focus-visible {
+  background: var(--color-primary-soft);
+}
+.category-options button:focus-visible {
+  outline-offset: -3px;
+}
+.category-options button span {
+  flex: 1;
+  overflow-wrap: anywhere;
+}
+.category-options app-icon {
+  width: 16px;
+  height: 16px;
+  color: var(--color-primary);
+  flex: 0 0 auto;
+}
+.no-options {
+  padding: var(--space-3);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}

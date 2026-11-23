@@ -1,0 +1,124 @@
+<section class="citizen-section" aria-label="Resumo do munícipe">
+  <div class="section-header">
+    <h2>Munícipe</h2>
+    @if (showRecordAction()) {
+      <button type="button" class="text-button" (click)="citizenRequested.emit()">
+        Ver ficha<app-icon name="arrowUp" />
+      </button>
+    }
+  </div>
+  <div class="citizen-profile">
+    <span [class]="'avatar avatar--' + conversation().citizen.color">{{
+      conversation().citizen.initials
+    }}</span>
+    <div>
+      <h3>{{ conversation().citizen.name }}</h3>
+      <p>
+        {{ conversation().citizen.age }} anos<span>·</span>{{ conversation().citizen.neighborhood }}
+      </p>
+    </div>
+  </div>
+  <div class="citizen-contact">
+    <app-icon name="whatsapp" /><span>{{ conversation().citizen.phone }}</span
+    ><span class="contact-type">Principal</span>
+  </div>
+  @if (showAddress()) {
+    <div class="citizen-address">
+      <app-icon name="location" />
+      <p>{{ conversation().citizen.address }}</p>
+    </div>
+  }
+  <div class="classifications">
+    @for (classification of conversation().citizen.classifications; track classification) {
+      <span><app-icon name="tag" />{{ classification }}</span>
+    }
+  </div>
+  <div class="citizen-numbers">
+    <div>
+      <span>Último contato</span><strong>{{ conversation().citizen.lastContact }}</strong>
+    </div>
+    <div>
+      <span>Atendimentos</span
+      ><strong>{{ conversation().citizen.totalRequests }}<small>registrados</small></strong>
+    </div>
+  </div>
+</section>
+<section class="request-section" aria-label="Atendimento relacionado">
+  <div class="section-header">
+    <h2>Atendimento relacionado</h2>
+    <app-icon name="clipboard" />
+  </div>
+  @if (conversation().request; as request) {
+    <button type="button" class="case-card" (click)="requestRequested.emit()">
+      <span class="case-top"
+        ><strong>#{{ request.protocol }}</strong
+        ><app-icon name="arrowUp"
+      /></span>
+      <h3>{{ request.title }}</h3>
+      <span class="badge"><span class="dot"></span>{{ request.status }}</span
+      ><span class="case-category"><app-icon name="tag" />{{ request.category }}</span
+      ><span class="case-bottom"
+        ><span class="small-avatar">RS</span>{{ request.responsible
+        }}<small>{{ request.openedAt }}</small></span
+      >
+    </button>
+    <div class="followup-card">
+      <p>
+        <span class="followup-icon"><app-icon name="clock" /></span>Próximo passo<span
+          class="followup-time"
+          >{{ request.dueAt }}</span
+        >
+      </p>
+      <strong>{{ request.nextAction }}</strong><span class="followup-responsible"
+        >Responsável: {{ request.responsible }}</span
+      >
+    </div>
+  } @else {
+    <div class="no-request">
+      <app-icon name="clipboard" />
+      <p>Nenhum atendimento vinculado</p>
+      <span>O contexto da conversa aparece aqui conforme o acompanhamento da equipe.</span>
+    </div>
+  }
+</section>
+<section class="observations-section" aria-label="Observações do munícipe">
+  <div class="section-header">
+    <h2>Observações</h2>
+    <app-icon name="note" />
+  </div>
+  <p>{{ conversation().citizen.observations }}</p>
+</section>
+<section class="activity-section" aria-label="Atividades recentes">
+  <div class="section-header">
+    <h2>Atividades recentes</h2>
+    <app-icon name="history" />
+  </div>
+  <ol>
+    @for (activity of conversation().activities.slice(0, 4); track activity.id) {
+      <li>
+        <span class="activity-symbol"
+          ><app-icon
+            [name]="
+              activity.kind === 'assignment'
+                ? 'user'
+                : activity.kind === 'note'
+                  ? 'note'
+                  : activity.kind === 'request'
+                    ? 'clipboard'
+                    : 'message'
+            "
+        /></span>
+        <div>
+          <h3>{{ activity.title }}</h3>
+          <p>{{ activity.author }}</p>
+          <time>{{ activity.time }}</time>
+        </div>
+      </li>
+    } @empty {
+      <li class="no-activity">As próximas atividades aparecerão aqui.</li>
+    }
+  </ol>
+</section>
+<footer class="context-footer">
+  <app-icon name="lock" /><span>Informações de uso interno do gabinete</span>
+</footer>

@@ -1,0 +1,210 @@
+<section class="timeline-section" aria-labelledby="timeline-title">
+  <div class="timeline-heading">
+    <h2 id="timeline-title">
+      <button
+        type="button"
+        class="text-button timeline-toggle"
+        [attr.aria-expanded]="expanded()"
+        aria-controls="timeline-content"
+        (click)="expanded.set(!expanded())"
+      >
+        <app-icon name="chevron" [class.timeline-chevron--open]="expanded()" />
+        Linha do tempo <span class="timeline-count">{{ interactions().length }}</span>
+      </button>
+    </h2>
+    <div class="icon-toolbar" role="group" aria-label="Ações da linha do tempo">
+      <details class="filters">
+        <summary
+          class="icon-button filter-trigger"
+          aria-controls="timeline-filters"
+          aria-label="Filtrar linha do tempo"
+          title="Filtrar linha do tempo"
+        >
+          <app-icon name="filterFunnel" />
+          @if (activeFilterCount()) {
+            <span class="icon-button__badge">{{ activeFilterCount() }}</span>
+          }
+        </summary>
+        <div class="filter-panel" id="timeline-filters">
+          <div class="filter-panel-heading">
+            <h3>Filtrar histórico</h3>
+            <button
+              type="button"
+              class="text-button"
+              aria-label="Limpar filtros"
+              (click)="clearFilters()"
+            >
+              Limpar
+            </button>
+          </div>
+          <div class="timeline-search">
+            <label class="form-label" for="timeline-query">Buscar</label>
+            <div class="search-control">
+              <app-icon name="search" /><input
+                id="timeline-query"
+                class="form-input"
+                type="search"
+                placeholder="Buscar no histórico..."
+                [formField]="filterForm.query"
+              />
+            </div>
+          </div>
+          <div class="date-fields">
+            <label
+              ><span class="form-label">De</span
+              ><input type="date" class="form-input" [formField]="filterForm.from"
+            /></label>
+            <label
+              ><span class="form-label">Até</span
+              ><input type="date" class="form-input" [formField]="filterForm.to"
+            /></label>
+          </div>
+          @if (invalidDateRange()) {
+            <p class="form-error" role="status">
+              A data final deve ser igual ou posterior à inicial.
+            </p>
+          }
+          <label
+            ><span class="form-label">Departamento</span
+            ><select class="form-select" [formField]="filterForm.department">
+              <option value="">Todas as secretarias</option>
+              @for (department of departments(); track department) {
+                <option [value]="department">{{ department }}</option>
+              }
+            </select></label
+          >
+          <label
+            ><span class="form-label">Tipo de ação</span
+            ><select class="form-select" [formField]="filterForm.type">
+              <option value="">Todos os tipos</option>
+              @for (type of interactionTypes; track type.value) {
+                <option [value]="type.value">{{ type.label }}</option>
+              }
+            </select></label
+          >
+          <p class="form-hint">Os filtros são combinados e aplicados automaticamente.</p>
+        </div>
+      </details>
+      <button
+        #addContactButton
+        type="button"
+        class="icon-button"
+        aria-label="Registrar outro tipo de contato"
+        title="Outros tipos de contato"
+        (click)="contactRequested.emit(addContactButton)"
+      >
+        <app-icon name="plus" />
+      </button>
+    </div>
+  </div>
+
+  <div id="timeline-content" role="region" aria-labelledby="timeline-title" [hidden]="!expanded()">
+    @if (expanded()) {
+      @for (group of groups(); track group.key) {
+        <section class="timeline-month" [attr.aria-label]="group.label">
+          <ol class="timeline-list">
+            @for (item of group.items; track item.id) {
+              <li>
+                <time class="interaction-date" [attr.datetime]="item.occurredAt">
+                  <strong>{{ item.day }}</strong><span>{{ item.month }}</span
+                  ><small>{{ item.time }}</small>
+                </time>
+                <span class="timeline-dot" aria-hidden="true"></span>
+                <article class="interaction-card">
+                  <div class="interaction-meta">
+                    <span class="interaction-type"
+                      ><app-icon [name]="item.icon" />{{ item.typeLabel }}</span
+                    >
+                    @if (item.direction) {
+                      <span
+                        class="interaction-direction"
+                        [class.interaction-direction--active]="item.direction === 'active'"
+                        role="img"
+                        [attr.aria-label]="
+                          item.direction === 'active'
+                            ? 'Contato iniciado pelo gabinete'
+                            : 'Contato iniciado pelo munícipe'
+                        "
+                        [attr.title]="
+                          item.direction === 'active'
+                            ? 'Contato iniciado pelo gabinete'
+                            : 'Contato iniciado pelo munícipe'
+                        "
+                      >
+                        <app-icon [name]="item.direction === 'active' ? 'arrowUp' : 'arrowDown'" />
+                      </span>
+                    }
+                  </div>
+                  <h3 class="interaction-title">
+                    @if (allowReplies() && item.commentId) {
+                      <button
+                        type="button"
+                        class="text-button comment-title"
+                        (click)="replyRequested.emit(item.commentId)"
+                      >
+                        {{ item.title }}
+                      </button>
+                    } @else {
+                      <a [routerLink]="item.detailRoute" [fragment]="item.fragment">{{
+                        item.title
+                      }}</a>
+                    }
+                  </h3>
+                  <p class="interaction-description"><app-rich-text [text]="item.description" /></p>
+                  @if (showCardFooter()) {
+                    <footer class="interaction-footer">
+                      @if (item.contextLabel) {
+                        <a [routerLink]="item.detailRoute" [fragment]="item.fragment">{{
+                          item.contextLabel
+                        }}</a>
+                      }
+                      <span><app-icon name="building" />{{ item.department }}</span>
+                      <span><app-icon name="user" />{{ item.author }}</span>
+                      @if (allowReplies() && item.commentId) {
+                        <button
+                          type="button"
+                          class="text-button"
+                          (click)="replyRequested.emit(item.commentId)"
+                        >
+                          Responder
+                        </button>
+                      }
+                      @if (item.protocol) {
+                        @if (item.requestId) {
+                          <a class="protocol" [routerLink]="['/solicitacoes', item.requestId]"
+                            >#{{ item.protocol }}</a
+                          >
+                        } @else {
+                          <span class="protocol">#{{ item.protocol }}</span>
+                        }
+                      }
+                    </footer>
+                  }
+                </article>
+              </li>
+            }
+          </ol>
+        </section>
+      } @empty {
+        <div class="empty-timeline">
+          <span><app-icon name="search" /></span>
+          <h3>
+            {{
+              interactions().length ? 'Nenhuma interação encontrada' : 'O histórico começa por aqui'
+            }}
+          </h3>
+          <p>
+            {{
+              interactions().length
+                ? 'Tente outro termo ou ajuste os filtros para ver mais registros.'
+                : 'As ações realizadas com este munícipe aparecerão nesta linha do tempo.'
+            }}
+          </p>
+          @if (activeFilterCount()) {
+            <button type="button" class="button" (click)="clearFilters()">Limpar filtros</button>
+          }
+        </div>
+      }
+    }
+  </div>
+</section>

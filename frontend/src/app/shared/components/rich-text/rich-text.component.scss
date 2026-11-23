@@ -1,0 +1,12 @@
+:host {
+  display: inline;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.user-mention {
+  background: var(--color-primary-soft);
+  color: var(--color-primary);
+  border-radius: var(--radius-xs);
+  padding-inline: 2px;
+  font-weight: var(--font-weight-medium);
+}

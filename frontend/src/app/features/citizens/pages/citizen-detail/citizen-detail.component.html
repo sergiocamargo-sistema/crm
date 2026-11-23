@@ -1,0 +1,196 @@
+<div class="detail-page">
+  @if (citizen(); as person) {
+    <div class="layout-stack">
+      <header class="citizen-header">
+        <app-citizen-photo-gallery [photos]="person.photos" [citizenName]="person.name" />
+        <div class="identity-row">
+          <h1 #pageTitle class="citizen-name" tabindex="-1" [attr.title]="person.name">
+            {{ person.name }}
+          </h1>
+          <button
+            #actionsTrigger
+            type="button"
+            class="icon-button mobile-actions-trigger"
+            aria-label="Ações do munícipe"
+            aria-controls="citizen-contact-actions"
+            [attr.aria-expanded]="actionsExpanded()"
+            (click)="toggleActions()"
+          >
+            <app-icon name="menu" />
+          </button>
+          <div
+            #actionsPanel
+            id="citizen-contact-actions"
+            class="identity-actions icon-toolbar"
+            role="group"
+            aria-label="Contato e compartilhamento"
+            [attr.popover]="mobileActions() ? 'auto' : null"
+            (toggle)="onActionsToggle()"
+            (click)="closeActions()"
+          >
+            @if (primaryWhatsapp(); as whatsapp) {
+              <a
+                class="icon-button icon-button--compact icon-button--success"
+                [href]="whatsapp"
+                target="_blank"
+                rel="noopener noreferrer"
+                [attr.aria-label]="'Abrir WhatsApp de ' + person.name"
+                title="Conversar no WhatsApp"
+                ><app-icon name="whatsapp"
+              /></a>
+            }
+            @for (social of person.socialLinks; track social.label) {
+              <a
+                class="icon-button icon-button--compact social-link"
+                [href]="social.url"
+                target="_blank"
+                rel="noopener noreferrer"
+                [attr.aria-label]="social.label + ' do munícipe (exemplo)'"
+                [attr.title]="social.label + ' · exemplo'"
+                ><app-icon [name]="social.icon"
+              /></a>
+            }
+            <a
+              class="icon-button icon-button--compact"
+              routerLink="/etiquetas"
+              [queryParams]="{ municipes: person.id }"
+              aria-label="Preparar etiqueta deste munícipe"
+              title="Imprimir etiqueta"
+            >
+              <app-icon name="print" />
+            </a>
+            <button
+              type="button"
+              class="icon-button icon-button--compact share-button"
+              (click)="copyLink()"
+              aria-label="Compartilhar link do munícipe"
+              title="Copiar link"
+            >
+              <app-icon name="share" />
+            </button>
+          </div>
+        </div>
+        <app-citizen-notes [citizen]="person" />
+      </header>
+
+      <div class="detail-columns">
+        <div class="layout-stack">
+          <app-citizen-activity-shortcuts [citizen]="person" />
+          <app-citizen-timeline
+            [interactions]="timeline()"
+            [contextKey]="person.id"
+            (contactRequested)="contactEditor.openOtherContact($event)"
+          />
+        </div>
+        <aside class="citizen-information" aria-label="Informações do munícipe">
+          <section class="info-card" aria-labelledby="address-title">
+            <div class="card-heading">
+              <span><app-icon name="location" /></span>
+              <h2 id="address-title">Endereço</h2>
+            </div>
+            <address>
+              <strong>{{ person.address.street }}</strong><span
+                >{{ person.address.complement }} · {{ person.neighborhood }}</span
+              ><span>{{ person.address.city }} / {{ person.address.state }}</span
+              ><span>CEP {{ person.address.postalCode }}</span>
+            </address>
+            <div class="address-reference">
+              <span>Referência</span>
+              <p>{{ person.address.reference }}</p>
+            </div>
+          </section>
+
+          <section class="info-card" aria-labelledby="personal-data-title">
+            <div class="card-heading">
+              <span><app-icon name="user" /></span>
+              <h2 id="personal-data-title">Dados pessoais</h2>
+            </div>
+            <dl class="personal-data">
+              @for (field of person.personalData; track field.label) {
+                <div>
+                  <dt>{{ field.label }}</dt>
+                  <dd>{{ field.value }}</dd>
+                </div>
+              }
+              <div>
+                <dt>CRA (Secretaria de Saúde)</dt>
+                <dd>{{ person.cra ?? 'Não informado' }}</dd>
+              </div>
+            </dl>
+          </section>
+
+          <section class="info-card" aria-labelledby="contact-data-title">
+            <div class="card-heading">
+              <span><app-icon name="phone" /></span>
+              <h2 id="contact-data-title">Contatos</h2>
+            </div>
+            <h3 class="contact-group-heading">Telefones</h3>
+            <ul class="contact-list">
+              @for (phone of person.phones; track phone.number) {
+                <li>
+                  <div>
+                    <span class="contact-label">{{ phone.label }}</span><a [href]="phone.callUrl">{{
+                      phone.number
+                    }}</a>
+                  </div>
+                  @if (phone.whatsappUrl) {
+                    <a
+                      class="icon-button icon-button--success"
+                      [href]="phone.whatsappUrl"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      [attr.aria-label]="'Abrir WhatsApp no número ' + phone.number"
+                      title="Abrir WhatsApp"
+                      ><app-icon name="whatsapp"
+                    /></a>
+                  }
+                </li>
+              }
+            </ul>
+            <h3 class="contact-group-heading">E-mails</h3>
+            <ul class="contact-list email-list">
+              @for (email of person.emails; track email.address) {
+                <li>
+                  <div>
+                    <span class="contact-label">{{ email.label }}</span><a
+                      [href]="'mailto:' + email.address"
+                      >{{ email.address }}</a
+                    >
+                  </div>
+                  <a
+                    class="icon-button"
+                    [href]="'mailto:' + email.address"
+                    [attr.aria-label]="'Enviar e-mail para ' + email.address"
+                    ><app-icon name="mail"
+                  /></a>
+                </li>
+              }
+            </ul>
+          </section>
+
+          <div class="record-meta">
+            <span><app-icon name="calendar" />Cadastro em {{ registrationDate() }}</span>
+            <span><app-icon name="user" />Responsável: {{ person.responsible }}</span>
+          </div>
+        </aside>
+      </div>
+    </div>
+    <app-new-interaction
+      #contactEditor
+      [citizenId]="person.id"
+      [citizenName]="person.name"
+      (saved)="onContactRegistered()"
+    />
+    <footer class="detail-footer">
+      <span class="demo-dot"></span>Dados fictícios para demonstração
+    </footer>
+  } @else {
+    <section class="not-found">
+      <span><app-icon name="users" /></span>
+      <h1 #pageTitle tabindex="-1">Munícipe não encontrado</h1>
+      <p>Este cadastro não está disponível nesta prévia. Busque outro nome no cabeçalho.</p>
+      <a class="button button--primary" routerLink="/">Voltar ao início</a>
+    </section>
+  }
+  <p class="share-status" role="status">{{ shareStatus() }}</p>
+</div>

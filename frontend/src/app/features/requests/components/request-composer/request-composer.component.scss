@@ -1,0 +1,39 @@
+.request-editor {
+  width: min(560px, calc(100% - 32px));
+  max-height: 90dvh;
+}
+.editor-fields {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.dialog__header h2 {
+  font-size: var(--font-size-lg);
+}
+.dialog__header p {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-muted);
+  margin: var(--space-1) 0 0;
+}
+.form-label,
+.form-error {
+  margin: 0;
+}
+.form-error:empty {
+  display: none;
+}
+textarea {
+  resize: vertical;
+}
+blockquote {
+  margin: 0;
+  padding: var(--space-3);
+  border-left: 3px solid var(--color-primary);
+  background: var(--color-primary-soft);
+  font-size: var(--font-size-xs);
+}
+blockquote p {
+  margin: var(--space-2) 0 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

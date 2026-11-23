@@ -1,0 +1,21 @@
+<header class="topbar">
+  <div class="topbar-inner">
+    <a routerLink="/" class="brand" aria-label="Sérgio Camargo · Início">
+      <img
+        class="brand-logo"
+        ngSrc="brand/sergio-camargo.svg"
+        width="312"
+        height="64"
+        alt="Vereador Sérgio Camargo"
+        priority
+      />
+    </a>
+    <app-citizen-search /><app-notifications /><span
+      class="avatar profile-avatar"
+      role="img"
+      [attr.aria-label]="'Perfil de ' + profile()?.actor?.name"
+      >{{ profile()?.actor?.initials }}</span
+    >
+  </div>
+  <div class="brand-line" aria-hidden="true"><span></span></div>
+</header>

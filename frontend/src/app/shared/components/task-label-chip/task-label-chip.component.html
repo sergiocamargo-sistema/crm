@@ -1,0 +1,14 @@
+@if (removable()) {
+  <button
+    type="button"
+    class="task-label task-label--removable"
+    [attr.aria-label]="'Remover etiqueta ' + label().name"
+    [disabled]="disabled()"
+    (click)="removed.emit(label().id)"
+  >
+    <span>{{ label().name }}</span>
+    <app-icon name="close" />
+  </button>
+} @else {
+  <span class="task-label">{{ label().name }}</span>
+}

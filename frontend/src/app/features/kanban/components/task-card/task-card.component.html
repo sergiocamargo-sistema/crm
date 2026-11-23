@@ -1,0 +1,174 @@
+<article
+  class="task-card"
+  [class.task-card--overdue]="overdue()"
+  [draggable]="!touchActive() && !mouseActive()"
+  appMouseCardDrag
+  [class.task-card--mouse-dragging]="mouseActive()"
+  (mouseDragStarted)="startMouse($event)"
+  (mouseDragMoved)="mouseMoved.emit($event)"
+  (mouseDragDropped)="finishMouse($event)"
+  (mouseDragCancelled)="cancelMouse()"
+  appTouchCardDrag
+  [class.task-card--touch-dragging]="touchActive()"
+  (touchDragStarted)="startTouch($event)"
+  (touchDragMoved)="touchMoved.emit($event)"
+  (touchDragDropped)="finishTouch($event)"
+  (touchDragCancelled)="cancelTouch()"
+  (pointerdown)="pointerDown($event)"
+  (dragstart)="beginDrag($event)"
+  (dragend)="finishDrag()"
+>
+  @if (task().cover; as cover) {
+    @if (failedCover() !== cover.url) {
+      <div class="card-cover">
+        @if (cover.url.startsWith('blob:')) {
+          <img
+            draggable="false"
+            [src]="cover.url"
+            [alt]="cover.name"
+            (error)="failedCover.set(cover.url)"
+          />
+        } @else {
+          <img
+            draggable="false"
+            [ngSrc]="cover.url"
+            [alt]="cover.name"
+            fill
+            sizes="(max-width: 700px) 80vw, 25vw"
+            [priority]="priorityCover()"
+            (error)="failedCover.set(cover.url)"
+          />
+        }
+      </div>
+    }
+  }
+  <div class="card-top">
+    <div class="card-badges">
+      <span
+        class="badge"
+        [class.badge--success]="task().status === 'completed'"
+        [class.badge--amber]="task().status === 'waiting'"
+        [attr.aria-label]="'Status: ' + status()"
+        >{{ status() }}</span
+      >
+      <span
+        class="badge"
+        [class.badge--danger]="task().priority === 'high'"
+        [class.badge--amber]="task().priority === 'low'"
+        >{{ priority() }}</span
+      >
+    </div>
+    <details #moveMenu class="card-move-menu">
+      <summary
+        #moveSummary
+        class="icon-button icon-button--compact"
+        [attr.aria-label]="'Mover e ordenar: ' + task().title"
+        title="Mover e ordenar"
+      >
+        <app-icon name="transfer" />
+      </summary>
+      <div class="card-move-actions" role="group" aria-label="Mover cartão">
+        <button
+          type="button"
+          class="text-button"
+          [disabled]="!canMoveUp()"
+          (click)="reorder('up', moveMenu, moveSummary)"
+        >
+          Subir
+        </button>
+        <button
+          type="button"
+          class="text-button"
+          [disabled]="!canMoveDown()"
+          (click)="reorder('down', moveMenu, moveSummary)"
+        >
+          Descer
+        </button>
+        <button
+          type="button"
+          class="text-button"
+          (click)="moveMenu.open = false; open(moveSummary, true)"
+        >
+          Alterar status ou coluna
+        </button>
+      </div>
+    </details>
+  </div>
+  @if (task().labelIds.length) {
+    <app-task-labels [labelIds]="task().labelIds" [catalog]="labels()" />
+  }
+  <h3>
+    <button
+      #titleButton
+      type="button"
+      class="text-button task-title"
+      (click)="open(titleButton, false)"
+    >
+      {{ task().title }}
+    </button>
+  </h3>
+  @if (task().description) {
+    <p class="task-description">{{ task().description }}</p>
+  }
+  @if (task().request; as request) {
+    <div class="task-context">
+      <a
+        draggable="false"
+        [routerLink]="['/solicitacoes', request.id]"
+        [fragment]="task().id"
+        [title]="request.title"
+      >
+        <app-icon name="clipboard" /> #{{ request.protocol }}
+      </a>
+      <span>{{ request.department }}</span>
+      @if (request.citizen; as citizen) {
+        <a
+          draggable="false"
+          [routerLink]="['/municipes', citizen.id]"
+          class="citizen-name"
+          [title]="citizen.name"
+        >
+          <app-icon name="user" />{{ citizen.name }}
+        </a>
+      }
+    </div>
+  } @else {
+    <span class="independent-label">Tarefa do gabinete</span>
+  }
+  <div class="card-footer">
+    <span
+      class="responsibles"
+      role="group"
+      [attr.aria-label]="'Responsáveis: ' + assigneeLabel()"
+      [title]="assigneeLabel()"
+    >
+      @for (user of assignees(); track user.id) {
+        <span class="avatar" [title]="user.name" aria-hidden="true">{{ user.initials }}</span>
+      }
+    </span>
+    @if (task().dueAt) {
+      <span class="due-date" [class.due-date--overdue]="overdue()">
+        <app-icon [name]="task().status === 'completed' ? 'check' : 'calendar'" />
+        <time
+          [attr.datetime]="task().dueAt"
+          [title]="task().dueAt | date: 'dd/MM/yyyy HH:mm' : '-0300'"
+        >
+          {{ task().dueAt | date: 'dd/MM' : '-0300' }}
+        </time>
+        @if (overdue()) {
+          <span class="sr-only">Prazo vencido</span>
+        }
+      </span>
+    }
+    @if (task().attachmentCount) {
+      <span class="comment-count" [attr.aria-label]="task().attachmentCount + ' anexos'"
+        ><app-icon name="attachment" />{{ task().attachmentCount }}</span
+      >
+    }
+    @if (task().commentCount) {
+      <span class="comment-count" [attr.aria-label]="task().commentCount + ' comentários'">
+        <app-icon name="message" />{{ task().commentCount }}
+      </span>
+    }
+  </div>
+</article>

@@ -1,0 +1,67 @@
+<div class="mention-editor">
+  <label class="form-label" [for]="controlId()">{{ label() }}</label>
+  <textarea
+    #textarea
+    class="form-input"
+    [id]="controlId()"
+    [rows]="rows()"
+    [value]="value()"
+    [disabled]="disabled()"
+    [required]="required()"
+    [attr.maxlength]="maxLength() ?? null"
+    [attr.aria-invalid]="invalid()"
+    [placeholder]="placeholder()"
+    appSpeechToText
+    #dictation="speechToText"
+    aria-autocomplete="list"
+    aria-haspopup="listbox"
+    [attr.aria-controls]="suggestions().length ? controlId() + '-mentions' : null"
+    [attr.aria-activedescendant]="
+      suggestions().length ? controlId() + '-user-' + activeIndex() : null
+    "
+    [attr.aria-describedby]="controlId() + '-dictation-status'"
+    (input)="changed()"
+    (click)="updateSuggestions()"
+    (keydown)="keydown($event)"
+    (keyup)="cursorMoved($event)"
+    (blur)="blurred()"
+  ></textarea>
+  @if (suggestions().length) {
+    <ul
+      class="mention-options"
+      role="listbox"
+      [id]="controlId() + '-mentions'"
+      aria-label="Usuários para mencionar"
+    >
+      @for (user of suggestions(); track user.id; let index = $index) {
+        <li
+          role="option"
+          [id]="controlId() + '-user-' + index"
+          [attr.aria-selected]="activeIndex() === index"
+        >
+          <button
+            type="button"
+            tabindex="-1"
+            class="mention-option"
+            (pointerdown)="$event.preventDefault()"
+            (click)="choose(user)"
+          >
+            <span class="avatar" aria-hidden="true">{{ user.initials }}</span>
+            <span
+              ><strong>{{ user.name }}</strong
+              ><span class="handle">@{{ user.handle }}</span></span
+            >
+          </button>
+        </li>
+      }
+    </ul>
+  }
+  <app-dictation-button [target]="dictation" [controlId]="controlId()" />
+  @if (previewLinks().length) {
+    <div class="reference-preview" aria-label="Registros mencionados">
+      @for (link of previewLinks(); track $index) {
+        <app-rich-text [text]="link.href" />
+      }
+    </div>
+  }
+</div>

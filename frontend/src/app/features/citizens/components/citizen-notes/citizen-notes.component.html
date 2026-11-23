@@ -1,0 +1,179 @@
+<div class="layout-stack">
+  <button
+    type="button"
+    class="observations"
+    aria-label="Editar observação do munícipe"
+    aria-describedby="citizen-observation-text"
+    aria-haspopup="dialog"
+    (click)="open('observations', $event)"
+  >
+    <span id="citizen-observation-text">{{
+      citizen().observations || 'Adicionar observação'
+    }}</span>
+  </button>
+  <div class="category-row">
+    <ul class="citizen-categories" aria-label="Categorias do munícipe">
+      @for (category of citizen().categories; track category) {
+        <li>
+          <button
+            type="button"
+            class="badge badge--category badge--category-action"
+            [attr.aria-label]="'Remover categoria ' + category"
+            aria-haspopup="dialog"
+            (click)="requestRemoval(category, $event)"
+          >
+            {{ category }}
+          </button>
+        </li>
+      }
+    </ul>
+    <button
+      #addCategoryButton
+      type="button"
+      class="icon-button"
+      aria-label="Adicionar categoria ao munícipe"
+      title="Adicionar categoria"
+      aria-haspopup="dialog"
+      (click)="open('category', $event)"
+    >
+      <app-icon name="plus" />
+    </button>
+  </div>
+</div>
+
+<dialog
+  #editor
+  class="dialog notes-editor"
+  aria-labelledby="notes-editor-title"
+  (close)="onClose()"
+  (click)="onBackdropClick($event)"
+>
+  @if (mode() !== 'category') {
+    <div class="dialog__header">
+      <h2 id="notes-editor-title">
+        {{
+          mode() === 'observations'
+            ? 'Editar observação'
+            : mode() === 'remove-category'
+              ? 'Remover categoria'
+              : 'Adicionar categoria'
+        }}
+      </h2>
+      <button type="button" class="icon-button" aria-label="Fechar edição" (click)="editor.close()">
+        <app-icon name="close" />
+      </button>
+    </div>
+  }
+  <form (submit)="save($event)" novalidate>
+    <div class="dialog__body layout-stack">
+      @if (mode() === 'observations') {
+        <label
+          ><span class="form-label">Observação</span
+          ><textarea class="form-input" rows="6" [formField]="observationForm.text"></textarea>
+        </label>
+        @if (attempted() && observationForm.text().invalid()) {
+          <p class="form-error" role="alert">A observação deve ter até 5.000 caracteres.</p>
+        }
+      } @else if (mode() === 'remove-category') {
+        <p>
+          Remover a categoria <strong>“{{ categoryToRemove() }}”</strong> deste munícipe?
+        </p>
+      } @else if (mode() === 'category') {
+        <div class="category-picker" (focusout)="onCategoryFocusOut($event)">
+          <div class="category-picker-heading">
+            <label id="notes-editor-title" class="form-label" for="category-query">Categoria</label>
+            <button
+              type="button"
+              class="icon-button"
+              aria-label="Fechar categorias"
+              (click)="editor.close()"
+            >
+              <app-icon name="close" />
+            </button>
+          </div>
+          <div class="category-search-control">
+            <app-icon name="search" /><input
+              #categoryInput
+              id="category-query"
+              class="form-input"
+              type="search"
+              autocomplete="off"
+              placeholder="Buscar categoria..."
+              [formField]="categoryForm.query"
+              aria-controls="category-suggestions"
+              aria-describedby="category-search-hint"
+              (focus)="suggestionsOpen.set(true)"
+              (input)="onCategoryInput(categoryInput.value)"
+              (keydown)="onCategoryKeydown($event)"
+            />
+          </div>
+          <p class="sr-only" id="category-search-hint">
+            Digite para buscar. Use as setas ou Tab para escolher uma opção e Enter para selecionar.
+          </p>
+          <div
+            id="category-suggestions"
+            class="category-suggestions"
+            [hidden]="!suggestionsOpen()"
+            role="region"
+            aria-label="Sugestões de categorias"
+          >
+            <ul>
+              @for (option of categoryOptions(); track option.value) {
+                <li>
+                  <button
+                    #categoryOption
+                    type="button"
+                    class="category-option"
+                    [disabled]="option.assigned"
+                    (click)="selectCategory(option.value, option.name)"
+                    (keydown)="onCategoryKeydown($event)"
+                  >
+                    <app-icon [name]="option.value === 'new' ? 'plus' : 'tag'" /><span>{{
+                      option.value === 'new' ? 'Cadastrar “' + option.name + '”' : option.name
+                    }}</span>
+                    @if (option.assigned) {
+                      <small>Já adicionada</small>
+                    }
+                  </button>
+                </li>
+              } @empty {
+                <li class="no-category-results">Nenhuma categoria encontrada.</li>
+              }
+            </ul>
+          </div>
+        </div>
+        <p class="sr-only" role="status">
+          {{ suggestionsOpen() ? categoryOptions().length + ' opções de categorias.' : '' }}
+        </p>
+        @if (attempted() && categoryForm().invalid()) {
+          <p class="form-error" role="alert">
+            Selecione uma categoria ou informe um nome de até 80 caracteres.
+          </p>
+        }
+      }
+      @if (failure()) {
+        <p class="form-error" role="alert">{{ failure() }}</p>
+      }
+    </div>
+    @if (mode() !== 'category') {
+      <div class="dialog__footer">
+        <button type="button" class="button" data-cancel (click)="editor.close()">Cancelar</button
+        ><button
+          type="submit"
+          class="button"
+          [class.button--primary]="mode() !== 'remove-category'"
+          [class.button--danger]="mode() === 'remove-category'"
+        >
+          {{
+            mode() === 'observations'
+              ? 'Salvar observação'
+              : mode() === 'remove-category'
+                ? 'Sim, remover'
+                : 'Adicionar categoria'
+          }}
+        </button>
+      </div>
+    }
+  </form>
+</dialog>
+<p class="sr-only" role="status">{{ status() }}</p>

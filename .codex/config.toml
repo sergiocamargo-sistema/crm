@@ -1,0 +1,10 @@
+# Configuração local: usa a versão de Node compatível já instalada nesta máquina.
+[mcp_servers.angular-cli]
+command = "/home/vini/.nvm/versions/node/v22.23.2/bin/node"
+args = ["/home/vini/Projects/gabinete-crm/frontend/node_modules/@angular/cli/bin/ng.js", "mcp", "--root", "/home/vini/Projects/gabinete-crm/frontend"]
+cwd = "/home/vini/Projects/gabinete-crm/frontend"
+startup_timeout_sec = 30
+tool_timeout_sec = 120
+
+[mcp_servers.angular-cli.env]
+NG_CLI_ANALYTICS = "false"

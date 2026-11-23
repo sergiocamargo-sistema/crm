@@ -1,0 +1,434 @@
+<div class="labels-page layout-stack">
+  <header class="page-heading">
+    <a
+      class="icon-button"
+      routerLink="/municipes"
+      aria-label="Voltar aos munícipes"
+      title="Voltar aos munícipes"
+      ><app-icon name="back"
+    /></a>
+    <h1 #pageTitle tabindex="-1">Imprimir etiquetas</h1>
+    <span class="badge">{{ recipients().length }} destinatários</span>
+  </header>
+  @if (preparation().error) {
+    <p class="form-error" role="alert">{{ preparation().error }}</p>
+  }
+  @if (preparation().recipients.length) {
+    <div class="label-workspace">
+      <aside class="editor-panel" aria-label="Configuração das etiquetas">
+        <details class="editor-section" open>
+          <summary>
+            <app-icon name="tag" /><span>Formato da etiqueta</span
+            ><app-icon name="down" class="section-chevron" />
+          </summary>
+          <div class="editor-fields">
+            <label
+              ><span class="form-label">Buscar código Pimaco ou formato</span
+              ><input
+                type="search"
+                class="form-input"
+                [formField]="editorForm.formatSearch"
+                placeholder="Ex.: 6182, A4360, A5..."
+                autocomplete="off"
+            /></label>
+            <label
+              ><span class="form-label">Formato</span>
+              <select
+                class="form-select"
+                [formField]="editorForm.formatId"
+                (change)="chooseFormat($event)"
+              >
+                <option value="custom">Medidas personalizadas</option>
+                @for (format of formatChoices(); track format.id) {
+                  <option [value]="format.id">{{ format.name }}</option>
+                }
+              </select>
+            </label>
+            @if (isCustom()) {
+              <label
+                ><span class="form-label">Nome do formato</span
+                ><input class="form-input" [formField]="editorForm.custom.name"
+              /></label>
+              <div class="measurements">
+                @for (dimension of dimensions; track dimension.key) {
+                  <label
+                    ><span class="form-label">{{ dimension.label }}</span
+                    ><input
+                      type="number"
+                      step="any"
+                      class="form-input"
+                      [formField]="editorForm.custom[dimension.key]"
+                  /></label>
+                }
+              </div>
+              <button type="button" class="button" (click)="saveFormat()">Salvar formato</button>
+            } @else {
+              <dl class="format-summary">
+                <div>
+                  <dt>Etiqueta</dt>
+                  <dd>{{ format().width }} × {{ format().height }} mm</dd>
+                </div>
+                <div>
+                  <dt>Grade</dt>
+                  <dd>{{ format().columns }} colunas × {{ format().rows }} linhas</dd>
+                </div>
+                @if (!paperRequired()) {
+                  <div>
+                    <dt>Folha</dt>
+                    <dd>{{ format().paperWidth }} × {{ format().paperHeight }} mm</dd>
+                  </div>
+                }
+              </dl>
+              @if (paperRequired()) {
+                <p class="editor-hint">
+                  Informe o tamanho do seu formulário contínuo ou papel especial.
+                </p>
+                <div class="measurements">
+                  <label
+                    ><span class="form-label">Largura da folha (mm)</span
+                    ><input
+                      type="number"
+                      step="any"
+                      class="form-input"
+                      [formField]="editorForm.continuousWidth"
+                  /></label>
+                  <label
+                    ><span class="form-label">Altura da folha (mm)</span
+                    ><input
+                      type="number"
+                      step="any"
+                      class="form-input"
+                      [formField]="editorForm.continuousHeight"
+                  /></label>
+                </div>
+              }
+              <div class="inline-actions">
+                <button type="button" class="text-button" (click)="customizeFormat()">
+                  Usar como personalizado
+                </button>
+                <a [href]="format().source" target="_blank" rel="noopener noreferrer"
+                  >Tabela oficial</a
+                >
+              </div>
+            }
+          </div>
+        </details>
+        <details class="editor-section" open>
+          <summary>
+            <app-icon name="filePen" /><span>Conteúdo e modelo</span
+            ><app-icon name="down" class="section-chevron" />
+          </summary>
+          <div class="editor-fields">
+            <label
+              ><span class="form-label">Modelo salvo</span>
+              <select
+                class="form-select"
+                [formField]="editorForm.templateId"
+                (change)="chooseTemplate($event)"
+              >
+                @for (template of configuration().templates; track template.id) {
+                  <option [value]="template.id">{{ template.name }}</option>
+                }
+              </select>
+            </label>
+            <label
+              ><span class="form-label">Nome do modelo</span
+              ><input class="form-input" [formField]="editorForm.template.name"
+            /></label>
+            <div class="measurements">
+              <label
+                ><span class="form-label">Fonte</span
+                ><select class="form-select" [formField]="editorForm.template.font">
+                  <option value="helvetica">Helvetica</option>
+                  <option value="times">Times Roman</option>
+                  <option value="courier">Courier</option>
+                </select></label
+              >
+              <label
+                ><span class="form-label">Tamanho (pt)</span
+                ><input
+                  type="number"
+                  step="0.5"
+                  class="form-input"
+                  [formField]="editorForm.template.fontSize"
+              /></label>
+              <label
+                ><span class="form-label">Alinhamento</span
+                ><select class="form-select" [formField]="editorForm.template.align">
+                  <option value="left">À esquerda</option>
+                  <option value="center">Centralizado</option>
+                  <option value="right">À direita</option>
+                </select></label
+              >
+              <label
+                ><span class="form-label">Margem interna (mm)</span
+                ><input
+                  type="number"
+                  step="0.1"
+                  class="form-input"
+                  [formField]="editorForm.template.padding"
+              /></label>
+            </div>
+            <ol class="content-blocks" aria-label="Campos na ordem de impressão">
+              @for (block of model().template.blocks; track block.id; let index = $index) {
+                <li>
+                  <label class="block-field"
+                    ><span class="sr-only">Campo {{ index + 1 }}</span
+                    ><select
+                      class="form-select"
+                      [formField]="editorForm.template.blocks[index].field"
+                    >
+                      @for (field of fields; track field.value) {
+                        <option [value]="field.value">{{ field.label }}</option>
+                      }
+                    </select></label
+                  >
+                  <div class="icon-toolbar">
+                    <button
+                      type="button"
+                      class="icon-button move-up"
+                      [disabled]="index === 0"
+                      [attr.aria-label]="'Subir campo ' + (index + 1)"
+                      (click)="moveField(index, -1)"
+                    >
+                      <app-icon name="down" />
+                    </button>
+                    <button
+                      type="button"
+                      class="icon-button"
+                      [disabled]="index === model().template.blocks.length - 1"
+                      [attr.aria-label]="'Descer campo ' + (index + 1)"
+                      (click)="moveField(index, 1)"
+                    >
+                      <app-icon name="down" />
+                    </button>
+                    <button
+                      type="button"
+                      class="icon-button"
+                      [attr.aria-label]="'Remover campo ' + (index + 1)"
+                      (click)="removeField(block.id)"
+                    >
+                      <app-icon name="close" />
+                    </button>
+                  </div>
+                  <label class="checkbox-label"
+                    ><input
+                      type="checkbox"
+                      [formField]="editorForm.template.blocks[index].bold"
+                    />Negrito</label
+                  >
+                  @if (index > 0) {
+                    <label class="checkbox-label join-previous">
+                      <input
+                        type="checkbox"
+                        [formField]="editorForm.template.blocks[index].joinPrevious"
+                      />
+                      Na mesma linha do anterior, separado por " - "
+                    </label>
+                  }
+                  @if (block.field === 'text') {
+                    <label class="fixed-text"
+                      ><span class="form-label">Texto fixo</span
+                      ><textarea
+                        rows="2"
+                        class="form-input"
+                        [formField]="editorForm.template.blocks[index].text"
+                      ></textarea>
+                    </label>
+                  }
+                </li>
+              }
+            </ol>
+            <div class="add-field-row">
+              <label class="block-field"
+                ><span class="sr-only">Campo a adicionar</span
+                ><select class="form-select" [formField]="editorForm.newField">
+                  @for (field of fields; track field.value) {
+                    <option [value]="field.value">{{ field.label }}</option>
+                  }
+                </select></label
+              >
+              <button
+                type="button"
+                class="icon-button"
+                aria-label="Adicionar campo ao modelo"
+                [disabled]="model().template.blocks.length >= 20"
+                (click)="addField()"
+              >
+                <app-icon name="plus" />
+              </button>
+            </div>
+            <div class="save-actions">
+              <button type="button" class="button" (click)="saveTemplate(false)">
+                Salvar alterações
+              </button>
+              <button type="button" class="button" (click)="saveTemplate(true)">
+                Salvar como novo
+              </button>
+            </div>
+          </div>
+        </details>
+        <details class="editor-section">
+          <summary>
+            <app-icon name="settings" /><span>Folha, cópias e calibração</span
+            ><app-icon name="down" class="section-chevron" />
+          </summary>
+          <div class="editor-fields">
+            <div class="measurements">
+              <label
+                ><span class="form-label">Cópias por munícipe</span
+                ><input type="number" class="form-input" [formField]="editorForm.copies"
+              /></label>
+              <label
+                ><span class="form-label"
+                  >Posição inicial (1–{{ format().columns * format().rows }})</span
+                ><input type="number" class="form-input" [formField]="editorForm.startAt"
+              /></label>
+              <label
+                ><span class="form-label">Deslocamento horizontal (mm)</span
+                ><input
+                  type="number"
+                  step="0.1"
+                  class="form-input"
+                  [formField]="editorForm.offsetX"
+              /></label>
+              <label
+                ><span class="form-label">Deslocamento vertical (mm)</span
+                ><input
+                  type="number"
+                  step="0.1"
+                  class="form-input"
+                  [formField]="editorForm.offsetY"
+              /></label>
+            </div>
+            <p class="editor-hint">
+              A posição inicial conta da esquerda para a direita e continua nas folhas seguintes.
+            </p>
+            <label class="checkbox-label"
+              ><input type="checkbox" [formField]="editorForm.guides" />Incluir contornos para
+              conferir o alinhamento</label
+            >
+          </div>
+        </details>
+      </aside>
+      <div class="preview-column layout-stack">
+        <section class="preview-panel layout-stack" aria-labelledby="label-preview-title">
+          <div class="preview-heading">
+            <h2 id="label-preview-title">Prévia das etiquetas</h2>
+            <button
+              type="button"
+              class="button button--primary"
+              [disabled]="generating() || !!validationError() || !!addressProblems().length"
+              (click)="generate()"
+            >
+              <app-icon name="print" />{{ generating() ? 'Gerando PDF...' : 'Gerar prévia em PDF' }}
+            </button>
+          </div>
+          @if (validationError()) {
+            <p class="form-error" role="alert">{{ validationError() }}</p>
+          }
+          @if (addressProblems().length) {
+            <ul class="address-errors" aria-label="Endereços que precisam de ajuste">
+              @for (problem of addressProblems(); track problem.id) {
+                <li>
+                  <span>{{ problem.name }}: {{ problem.error }}</span
+                  ><button type="button" class="text-button" (click)="exclude(problem.id)">
+                    Retirar deste lote
+                  </button>
+                </li>
+              }
+            </ul>
+          }
+          @if (failure()) {
+            <p class="form-error" role="alert">{{ failure() }}</p>
+          }
+          @if (preview(); as pdf) {
+            <div class="pdf-actions">
+              <span>{{ pdf.labels }} etiquetas · {{ pdf.pages }} folhas</span
+              ><a class="button" [href]="pdf.url" download="etiquetas-municipes.pdf"
+                ><app-icon name="download" />Baixar PDF</a
+              ><button type="button" class="button" (click)="print()">
+                <app-icon name="print" />Imprimir
+              </button>
+            </div>
+            <iframe
+              #pdfFrame
+              class="pdf-frame"
+              [src]="pdf.safeUrl"
+              title="PDF das etiquetas para conferência e impressão"
+            ></iframe>
+            <a [href]="pdf.url" target="_blank" rel="noopener noreferrer"
+              >Abrir o mesmo PDF em outra aba</a
+            >
+          } @else {
+            <div class="content-preview">
+              <span class="sample-caption">Modelo de conteúdo · primeiro destinatário</span>
+              <div class="sample-label" [style.text-align]="model().template.align">
+                @for (line of exampleLines(); track line.id) {
+                  <p>
+                    @for (part of line.parts; track $index) {
+                      <span [class.sample-bold]="part.bold">{{ part.text }}</span>
+                    }
+                  </p>
+                }
+              </div>
+              <p class="editor-hint">
+                Gere o PDF para conferir todas as etiquetas nas medidas da folha.
+              </p>
+            </div>
+          }
+          <p class="print-instructions">
+            Na impressão, use escala 100% / tamanho real e o papel indicado no formato.
+          </p>
+          <p class="editor-hint" role="status">{{ status() }}</p>
+        </section>
+        <details class="recipient-panel" open>
+          <summary>
+            Destinatários <span class="badge">{{ recipients().length }}</span><app-icon
+              name="down"
+            />
+          </summary>
+          <ul class="recipients">
+            @for (person of recipients(); track person.id) {
+              <li>
+                <div>
+                  <a [routerLink]="['/municipes', person.id]">{{ person.name }}</a><span
+                    >{{ person.street
+                    }}{{ person.complement ? ' · ' + person.complement : '' }}</span
+                  ><span
+                    >{{ person.neighborhood }} · {{ person.city }} / {{ person.state }} ·
+                    {{ person.postalCode }}</span
+                  >
+                </div>
+                <button
+                  type="button"
+                  class="icon-button"
+                  [attr.aria-label]="'Retirar ' + person.name + ' deste lote'"
+                  (click)="exclude(person.id)"
+                >
+                  <app-icon name="close" />
+                </button>
+              </li>
+            }
+          </ul>
+          @if (recipients().length < preparation().recipients.length) {
+            <button
+              type="button"
+              class="text-button restore-recipients"
+              (click)="restoreRecipients()"
+            >
+              Restaurar destinatários da seleção
+            </button>
+          }
+        </details>
+      </div>
+    </div>
+  } @else {
+    <section class="preview-panel empty-labels">
+      <app-icon name="users" />
+      <h2>Selecione os destinatários</h2>
+      <p>Escolha os munícipes na lista para preparar suas etiquetas.</p>
+      <a class="button button--primary" routerLink="/municipes">Selecionar munícipes</a>
+    </section>
+  }
+</div>

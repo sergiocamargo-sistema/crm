@@ -1,0 +1,104 @@
+<dialog
+  #editor
+  class="dialog request-editor"
+  aria-labelledby="request-editor-title"
+  (close)="onClose()"
+>
+  <div class="dialog__header">
+    <div>
+      <h2 id="request-editor-title">
+        {{
+          mode() === 'task'
+            ? 'Nova tarefa'
+            : parentId()
+              ? 'Responder comentário'
+              : 'Novo comentário'
+        }}
+      </h2>
+      <p>{{ context() }}</p>
+    </div>
+    <button type="button" class="icon-button" aria-label="Fechar" (click)="close()">
+      <app-icon name="close" />
+    </button>
+  </div>
+  @if (mode() === 'comment') {
+    <form (submit)="saveComment($event)" novalidate>
+      <div class="dialog__body editor-fields">
+        @if (parent(); as original) {
+          <blockquote>
+            <strong>{{ original.author }}</strong>
+            <p>{{ original.text }}</p>
+          </blockquote>
+        }
+        <label class="form-label" for="request-comment-text">Comentário</label>
+        <textarea
+          id="request-comment-text"
+          rows="5"
+          class="form-input"
+          appSpeechToText
+          #dictation="speechToText"
+          [formField]="commentForm.text"
+          aria-describedby="request-comment-text-dictation-status request-comment-error"
+        ></textarea>
+        <app-dictation-button [target]="dictation" controlId="request-comment-text" />
+        <p id="request-comment-error" class="form-error">
+          {{
+            attempted() && commentForm.text().invalid()
+              ? 'Escreva um comentário de até 5.000 caracteres.'
+              : ''
+          }}
+        </p>
+        @if (failure()) {
+          <p class="form-error" role="alert">{{ failure() }}</p>
+        }
+      </div>
+      <div class="dialog__footer">
+        <button type="button" class="button" (click)="close()">Cancelar</button
+        ><button
+          type="submit"
+          class="button button--primary"
+          [disabled]="commentForm().submitting()"
+        >
+          {{ parentId() ? 'Responder' : 'Comentar' }}
+        </button>
+      </div>
+    </form>
+  } @else {
+    <form (submit)="saveTask($event)" novalidate>
+      <div class="dialog__body editor-fields">
+        <label
+          ><span class="form-label">Título</span
+          ><input type="text" class="form-input" [formField]="taskForm.title"
+        /></label>
+        <label
+          ><span class="form-label">Descrição</span
+          ><textarea class="form-input" rows="3" [formField]="taskForm.description"></textarea>
+        </label>
+        <app-assignee-picker [formField]="taskForm.assigneeIds" />
+        <app-task-label-picker
+          controlId="request-task-labels"
+          [formField]="taskForm.labelIds"
+          [catalog]="taskLabels()"
+        />
+        <label
+          ><span class="form-label">Prazo</span
+          ><input type="datetime-local" class="form-input" [formField]="taskForm.dueAt"
+        /></label>
+        @if (attempted() && taskForm().invalid()) {
+          <p class="form-error" role="alert">
+            Informe título, responsáveis e prazo válidos. A descrição deve ter até 1.500 caracteres.
+          </p>
+        }
+        @if (failure()) {
+          <p class="form-error" role="alert">{{ failure() }}</p>
+        }
+      </div>
+      <div class="dialog__footer">
+        <button type="button" class="button" (click)="close()">Cancelar</button
+        ><button type="submit" class="button button--primary" [disabled]="taskForm().submitting()">
+          Criar tarefa
+        </button>
+      </div>
+    </form>
+  }
+</dialog>
