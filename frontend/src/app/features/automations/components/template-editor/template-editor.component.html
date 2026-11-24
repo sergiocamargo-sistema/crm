@@ -14,7 +14,6 @@
       controlId="automation-template-description"
       label="Instruções para a equipe"
       [formField]="fields.description"
-      [maxLength]="1500"
     />
     <app-assignee-picker [formField]="fields.assigneeIds" />
     <app-task-label-picker
@@ -40,8 +39,6 @@
         ><input
           type="number"
           class="form-input form-input--compact"
-          min="0"
-          max="3650"
           step="1"
           [formField]="fields.dueDays"
           aria-describedby="template-due-hint"

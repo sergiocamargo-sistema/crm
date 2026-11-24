@@ -11,7 +11,16 @@ import {
   untracked,
   viewChild,
 } from '@angular/core';
-import { form, FormField, maxLength, required } from '@angular/forms/signals';
+import {
+  disabled,
+  form,
+  FormField,
+  max,
+  maxLength,
+  min,
+  required,
+  validate,
+} from '@angular/forms/signals';
 import { TASK_PRIORITIES, type TaskPriority } from '../../../../core/models/task';
 import { AssigneePickerComponent } from '../../../../shared/components/assignee-picker/assignee-picker.component';
 import { TaskLabelPickerComponent } from '../../../../shared/components/task-label-picker/task-label-picker.component';
@@ -46,6 +55,14 @@ export class TemplateEditorComponent {
     required(schema.title);
     maxLength(schema.title, 120);
     maxLength(schema.description, 1500);
+    min(schema.dueDays, 0);
+    max(schema.dueDays, 3650);
+    disabled(schema.dueDays, () => !this.draft().dueEnabled);
+    validate(schema.dueDays, ({ value }) =>
+      Number.isInteger(value())
+        ? undefined
+        : { kind: 'integer', message: 'Informe um número inteiro de dias.' },
+    );
   });
   protected readonly priorities = TASK_PRIORITIES;
   protected readonly error = signal('');
@@ -81,6 +98,10 @@ export class TemplateEditorComponent {
   protected async save(event: SubmitEvent): Promise<void> {
     event.preventDefault();
     this.error.set('');
+    if (this.draft().dueEnabled && this.fields.dueDays().invalid()) {
+      this.error.set('Informe um prazo inteiro entre 0 e 3.650 dias.');
+      return;
+    }
     if (this.fields().invalid() || !this.draft().assigneeIds.length) {
       this.error.set(
         'Informe um título com até 120 caracteres e selecione ao menos um responsável. A descrição aceita até 1.500 caracteres.',
