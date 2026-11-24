@@ -9,6 +9,7 @@
 .page-heading {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: var(--space-3);
 }
 h1 {
@@ -22,6 +23,8 @@ h1:focus {
 .page-actions {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
   gap: var(--space-3);
   margin-left: auto;
 }

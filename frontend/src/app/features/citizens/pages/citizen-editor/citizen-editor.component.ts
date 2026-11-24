@@ -6,6 +6,7 @@ import {
   ElementRef,
   inject,
   Injector,
+  linkedSignal,
   signal,
   untracked,
   viewChild,
@@ -21,7 +22,8 @@ import {
   submit,
   validate,
 } from '@angular/forms/signals';
-import { Router, RouterLink } from '@angular/router';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { IconComponent } from '../../../../shared/components/icon/icon.component';
 import { CitizenSearchComponent } from '../../../../shared/components/citizen-search/citizen-search.component';
 import { CitizenCategoriesComponent } from '../../../../shared/components/citizen-categories/citizen-categories.component';
@@ -60,6 +62,22 @@ export class CitizenEditorComponent {
   protected readonly service = inject(CitizenRegistrationService);
   protected readonly state = this.service.store;
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
+  private readonly params = toSignal(this.route.paramMap, {
+    initialValue: this.route.snapshot.paramMap,
+  });
+  protected readonly id = computed(() => this.params().get('id') ?? undefined);
+  protected readonly backLink = computed(() => {
+    const id = this.id();
+    return id && !this.state.notFound() ? ['/municipes', id] : ['/municipes'];
+  });
+  protected readonly backLabel = computed(() =>
+    this.backLink().length > 1 ? 'Voltar à ficha' : 'Voltar aos munícipes',
+  );
+  protected readonly excludedReferrerIds = computed(() => {
+    const id = this.id();
+    return new Set(id ? [id] : []);
+  });
   private readonly injector = inject(Injector);
   private readonly heading = viewChild<ElementRef<HTMLElement>>('pageTitle');
   private readonly errors = viewChild<ElementRef<HTMLElement>>('errorSummary');
@@ -73,9 +91,12 @@ export class CitizenEditorComponent {
   protected readonly categoryControl = viewChild<CitizenCategoriesComponent>('categoryPicker');
   private leaveResolver: ((discard: boolean) => void) | null = null;
   private leavePromise: Promise<boolean> | null = null;
-  protected readonly model = signal(emptyCitizenDraft());
+  private readonly originalDraft = computed(
+    () => this.state.editingData()?.draft ?? emptyCitizenDraft(),
+  );
+  protected readonly model = linkedSignal(() => structuredClone(this.originalDraft()));
   protected readonly attempted = signal(false);
-  protected readonly referrer = signal<CitizenSummary | null>(null);
+  protected readonly referrer = linkedSignal(() => this.state.editingData()?.referrer ?? null);
   protected readonly reason = signal({ text: '' });
   protected readonly reasonForm = form(this.reason, (schema) => {
     required(schema.text, { message: 'Explique por que este é outro munícipe.' });
@@ -88,7 +109,7 @@ export class CitizenEditorComponent {
     disabled(schema, () => this.state.saving());
   });
   protected readonly fields = form(this.model, (schema) => {
-    disabled(schema, () => this.state.saving() || !!this.state.createdId());
+    disabled(schema, () => this.state.saving() || !!this.state.savedId());
     required(schema.name, { message: 'Informe o nome do munícipe.' });
     maxLength(schema.name, 200, { message: 'Nome: use até 200 caracteres.' });
     validate(schema.name, ({ value }) =>
@@ -140,12 +161,20 @@ export class CitizenEditorComponent {
   });
   protected readonly dirty = computed(
     () =>
-      JSON.stringify(this.model()) !== JSON.stringify(emptyCitizenDraft()) ||
-      !!this.state.photos().length,
+      JSON.stringify(this.model()) !== JSON.stringify(this.originalDraft()) ||
+      this.state.photosChanged(),
   );
 
   constructor() {
     afterNextRender(() => this.heading()?.nativeElement.focus());
+    effect(() => {
+      const id = this.id();
+      untracked(() => {
+        this.attempted.set(false);
+        this.reason.set({ text: '' });
+        void this.service.load(id);
+      });
+    });
     effect(() => {
       this.model();
       untracked(() => this.service.clearReview());
@@ -272,14 +301,19 @@ export class CitizenEditorComponent {
     });
   }
   private persist(confirm: boolean): void {
-    if (this.state.saving() || this.categoryControl()?.busy()) return;
+    if (this.state.saving() || this.categoryControl()?.busy() || (this.id() && !this.dirty()))
+      return;
     this.attempted.set(true);
     if (this.fields().invalid()) {
       afterNextRender(() => this.errors()?.nativeElement.focus(), { injector: this.injector });
       return;
     }
     void submit(this.fields, async () => {
-      const id = await this.service.save(this.model(), confirm ? this.reason().text : undefined);
+      const id = await this.service.save(
+        this.id(),
+        this.model(),
+        confirm ? this.reason().text : undefined,
+      );
       if (id) await this.router.navigate(['/municipes', id]);
       else
         afterNextRender(
@@ -304,7 +338,7 @@ export class CitizenEditorComponent {
   }
   canLeave(): boolean | Promise<boolean> {
     if (this.state.saving() || this.categoryControl()?.busy()) return false;
-    if (this.state.createdId() || !this.dirty()) return true;
+    if (this.state.savedId() || !this.dirty()) return true;
     if (!this.leavePromise) {
       this.leavePromise = new Promise((resolve) => {
         this.leaveResolver = resolve;

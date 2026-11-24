@@ -10,7 +10,10 @@ import type { TextReference } from '../../core/models/collaboration';
 import { isVoteEstimate, type VoteEstimate } from '../../core/models/vote-estimate';
 import { MockCitizenRegistry } from './mock-citizen-registry';
 import { MockCitizenRegistration } from './mock-citizen-registration';
-import type { CitizenRegistrationCommand } from '../../features/citizens/models/citizen-registration';
+import type {
+  CitizenRegistrationCommand,
+  CitizenUpdateCommand,
+} from '../../features/citizens/models/citizen-registration';
 import {
   INTERACTION_CHANNELS,
   INTERACTION_TYPES,
@@ -166,6 +169,14 @@ export class MockCitizenDetailRepository implements CitizenDetailRepository, Aut
 
   createCitizen(command: CitizenRegistrationCommand) {
     return this.registration.create(command, this.listCategories());
+  }
+
+  loadCitizenForEdit(id: string) {
+    return this.registration.loadForEdit(id);
+  }
+
+  updateCitizen(id: string, command: CitizenUpdateCommand) {
+    return this.registration.update(id, command, this.listCategories());
   }
 
   loadRequestList(query: RequestListQuery): RequestListResult {
@@ -636,9 +647,17 @@ export class MockCitizenDetailRepository implements CitizenDetailRepository, Aut
     const citizen = this.citizens().find((citizen) => citizen.id === citizenId);
     if (!citizen) return null;
     const contacts = this.contacts()[citizenId];
+    const referrerName = citizen.referrerId
+      ? this.citizens().find(({ id }) => id === citizen.referrerId)?.name
+      : undefined;
     return {
       ...citizen,
       ...this.profileEdits()[citizenId],
+      personalData: referrerName
+        ? citizen.personalData.map((field) =>
+            field.label === 'Indicado por' ? { ...field, value: referrerName } : field,
+          )
+        : citizen.personalData,
       interactions: contacts ?? citizen.interactions,
       requests: this.requestsForCitizen(citizenId),
     };

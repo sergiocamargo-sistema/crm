@@ -2,19 +2,24 @@
   <header class="record-navigation">
     <a
       class="icon-button"
-      routerLink="/municipes"
-      aria-label="Voltar aos munícipes"
-      title="Voltar aos munícipes"
+      [routerLink]="backLink()"
+      [attr.aria-label]="backLabel()"
+      [title]="backLabel()"
       ><app-icon name="back"
     /></a>
-    <h1 #pageTitle tabindex="-1">Adicionar munícipe</h1>
+    <h1 #pageTitle tabindex="-1">{{ id() ? 'Editar munícipe' : 'Adicionar munícipe' }}</h1>
   </header>
   @if (state.loading()) {
     <p role="status">Preparando cadastro...</p>
+  } @else if (state.notFound()) {
+    <section class="record-panel">
+      <h2>Munícipe não encontrado</h2>
+      <a class="button" routerLink="/municipes">Voltar aos munícipes</a>
+    </section>
   } @else if (state.loadError(); as error) {
     <section class="record-panel">
       <p role="alert">{{ error }}</p>
-      <button class="button" type="button" (click)="service.load()">Tentar novamente</button>
+      <button class="button" type="button" (click)="service.load(id())">Tentar novamente</button>
     </section>
   } @else if (state.configuration(); as configuration) {
     <div
@@ -350,13 +355,13 @@
         #categoryPicker
         inputId="new-citizen-categories"
         [selected]="model().categories"
-        [disabled]="state.saving() || !!state.createdId()"
+        [disabled]="state.saving() || !!state.savedId()"
         (selectionChanged)="setCategories($event)"
       />
     </section>
     <section class="record-panel" aria-labelledby="citizen-referrer-title">
       <h2 id="citizen-referrer-title">Indicado por</h2>
-      <fieldset class="plain-fieldset" [disabled]="state.saving() || !!state.createdId()">
+      <fieldset class="plain-fieldset" [disabled]="state.saving() || !!state.savedId()">
         @if (referrer(); as person) {
           <div class="record-heading-row">
             <span>{{ person.name }}</span><button
@@ -374,6 +379,7 @@
             #referrerPicker
             mode="picker"
             inputId="new-citizen-referrer"
+            [excludedIds]="excludedReferrerIds()"
             (citizenSelected)="selectReferrer($event)"
           />
         }
@@ -388,7 +394,7 @@
           #addPhotosButton
           aria-label="Adicionar fotos"
           title="Adicionar fotos"
-          [disabled]="state.saving() || !!state.createdId()"
+          [disabled]="state.saving() || !!state.savedId()"
           (click)="photoInput.click()"
         >
           <app-icon name="plus" />
@@ -445,9 +451,7 @@
         aria-labelledby="citizen-duplicates-title"
       >
         <h2 id="citizen-duplicates-title">Confira os cadastros encontrados</h2>
-        <p>
-          Há dados em comum com outros munícipes. Confira as fichas antes de criar um novo cadastro.
-        </p>
+        <p>Há dados em comum com outros munícipes. Confira as fichas antes de salvar.</p>
         <ul class="duplicate-list">
           @for (person of review.candidates; track person.id) {
             <li>
@@ -474,17 +478,21 @@
           [disabled]="state.saving()"
           (click)="confirmDistinct()"
         >
-          Confirmar pessoa distinta e cadastrar
+          {{
+            id() ? 'Confirmar pessoa distinta e salvar' : 'Confirmar pessoa distinta e cadastrar'
+          }}
         </button>
       </section>
     }
     <div class="editor-actions">
-      <a class="button" routerLink="/municipes">Cancelar</a>
+      <a class="button" [routerLink]="backLink()">Cancelar</a>
       <button
         class="button button--primary"
         type="submit"
         form="citizen-registration"
-        [disabled]="state.saving() || !!state.createdId() || categoryControl()?.busy()"
+        [disabled]="
+          state.saving() || !!state.savedId() || categoryControl()?.busy() || (!!id() && !dirty())
+        "
       >
         {{ state.saving() ? 'Salvando...' : 'Salvar munícipe' }}
       </button>

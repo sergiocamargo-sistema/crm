@@ -6,9 +6,11 @@ import type {
 } from '../models/citizen-detail';
 import type { CitizenListQuery, CitizenListResult } from '../models/citizen-list';
 import type {
+  CitizenEditingData,
   CitizenRegistrationCommand,
   CitizenRegistrationConfiguration,
   CitizenRegistrationResult,
+  CitizenUpdateCommand,
 } from '../models/citizen-registration';
 import type { LabelRecipient } from '../../labels/models/label-print';
 import type { TaskStatus } from '../../../core/models/task';
@@ -48,6 +50,8 @@ import type { RequestPatternManagementResult } from '../../requests/models/reque
 export interface CitizenDetailRepository {
   loadCitizenRegistration(): Promise<CitizenRegistrationConfiguration>;
   createCitizen(command: CitizenRegistrationCommand): Promise<CitizenRegistrationResult>;
+  loadCitizenForEdit(id: string): Promise<CitizenEditingData | null>;
+  updateCitizen(id: string, command: CitizenUpdateCommand): Promise<CitizenRegistrationResult>;
   listTaskLabels(): readonly TaskLabel[];
   loadTaskLabelManagement(query: string): Promise<TaskLabelManagementResult>;
   saveTaskLabel(id: string | null, draft: TaskLabelDraft): Promise<TaskLabel>;

@@ -35,12 +35,19 @@ export interface CitizenRegistrationConfiguration {
   readonly documentTypes: readonly { readonly value: string; readonly label: string }[];
 }
 
+export interface CitizenEditingData {
+  readonly draft: CitizenRegistrationDraft;
+  readonly photos: readonly CitizenPhoto[];
+  readonly referrer: CitizenSummary | null;
+}
+
 export interface CitizenDuplicateCandidate extends CitizenSummary {
   readonly reasons: readonly string[];
 }
 
 export type CitizenRegistrationResult =
   | { readonly kind: 'created'; readonly id: string }
+  | { readonly kind: 'updated'; readonly id: string }
   | {
       readonly kind: 'review';
       readonly token: string;
@@ -52,6 +59,13 @@ export interface CitizenRegistrationCommand {
   readonly draft: CitizenRegistrationDraft;
   readonly photos: readonly CitizenPhoto[];
   readonly review?: { readonly token: string; readonly reason: string };
+}
+
+export interface CitizenUpdateCommand {
+  readonly requestId: string;
+  readonly changes: Partial<CitizenRegistrationDraft>;
+  readonly photos?: readonly CitizenPhoto[];
+  readonly review?: CitizenRegistrationCommand['review'];
 }
 
 export const emptyCitizenDraft = (): CitizenRegistrationDraft => ({

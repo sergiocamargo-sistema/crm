@@ -20,9 +20,23 @@ export class MockCitizenRegistry {
   }
 
   add(citizen: CitizenDetail): void {
+    this.keepPhotoUrls(citizen);
+    this.citizens.update((people) => [...people, citizen]);
+  }
+
+  update(citizen: CitizenDetail): void {
+    this.keepPhotoUrls(citizen);
+    this.citizens.update((people) =>
+      people.map((person) => (person.id === citizen.id ? citizen : person)),
+    );
+    if (this.profileEdits()[citizen.id]) {
+      this.profileEdits.update(({ [citizen.id]: replaced, ...edits }) => edits);
+    }
+  }
+
+  private keepPhotoUrls(citizen: CitizenDetail): void {
     for (const photo of citizen.photos) {
       if (photo.src.startsWith('blob:')) this.photoUrls.add(photo.src);
     }
-    this.citizens.update((people) => [...people, citizen]);
   }
 }

@@ -5,6 +5,13 @@ const loadReferralTree = () =>
     (module) => module.ReferralTreeComponent,
   );
 
+const loadCitizenEditor = () =>
+  import('./features/citizens/pages/citizen-editor/citizen-editor.component').then(
+    (module) => module.CitizenEditorComponent,
+  );
+const canLeaveCitizenEditor = (component: { canLeave: () => boolean | Promise<boolean> }) =>
+  component.canLeave();
+
 export const routes: Routes = [
   {
     path: 'arvore',
@@ -67,13 +74,14 @@ export const routes: Routes = [
   {
     path: 'municipes/novo',
     title: 'Adicionar munícipe · Gabinete Sérgio Camargo',
-    canDeactivate: [
-      (component: { canLeave: () => boolean | Promise<boolean> }) => component.canLeave(),
-    ],
-    loadComponent: () =>
-      import('./features/citizens/pages/citizen-editor/citizen-editor.component').then(
-        (module) => module.CitizenEditorComponent,
-      ),
+    canDeactivate: [canLeaveCitizenEditor],
+    loadComponent: loadCitizenEditor,
+  },
+  {
+    path: 'municipes/:id/editar',
+    title: 'Editar munícipe · Gabinete Sérgio Camargo',
+    canDeactivate: [canLeaveCitizenEditor],
+    loadComponent: loadCitizenEditor,
   },
   {
     path: 'municipes/:id',

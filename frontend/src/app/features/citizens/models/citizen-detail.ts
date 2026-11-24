@@ -138,6 +138,7 @@ export interface NewCitizenInteraction {
 export interface CitizenDetail extends CitizenSummary {
   readonly addresses?: readonly {
     readonly street: string;
+    readonly number?: string;
     readonly complement: string;
     readonly neighborhood: string;
     readonly city: string;
