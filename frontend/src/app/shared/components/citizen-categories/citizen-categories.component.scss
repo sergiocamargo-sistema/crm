@@ -21,6 +21,9 @@
 .category-editor {
   width: min(520px, calc(100% - 32px));
 }
+.category-editor h2 {
+  font-size: var(--font-size-lg);
+}
 .citizen-categories > li {
   max-width: 100%;
   min-width: 0;

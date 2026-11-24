@@ -342,7 +342,7 @@
     <section class="record-panel" aria-labelledby="new-citizen-categories-title">
       <h2 id="new-citizen-categories-title">Categorias</h2>
       <app-citizen-categories
-        #categoryControl
+        #categoryPicker
         inputId="new-citizen-categories"
         [selected]="model().categories"
         [disabled]="state.saving() || !!state.createdId()"

@@ -68,7 +68,7 @@ export class CitizenEditorComponent {
   private readonly removeReferrerButton =
     viewChild<ElementRef<HTMLButtonElement>>('removeReferrerButton');
   private readonly addPhotosButton = viewChild<ElementRef<HTMLButtonElement>>('addPhotosButton');
-  protected readonly categoryControl = viewChild<CitizenCategoriesComponent>('categoryControl');
+  protected readonly categoryControl = viewChild<CitizenCategoriesComponent>('categoryPicker');
   private leaveResolver: ((discard: boolean) => void) | null = null;
   private leavePromise: Promise<boolean> | null = null;
   protected readonly model = signal(emptyCitizenDraft());
