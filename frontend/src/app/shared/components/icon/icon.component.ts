@@ -18,6 +18,7 @@ const PATHS = {
   settings:
     'M9 3h6l1 3 3 1 2 5-2 5-3 1-1 3H9l-1-3-3-1-2-5 2-5 3-1z M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0',
   workflow: 'M3 3h6v6H3z M15 3h6v6h-6z M15 15h6v6h-6z M9 6h6 M6 9v9h9',
+  tree: 'M9 3h6v5H9z M3 16h6v5H3z M15 16h6v5h-6z M12 8v4 M6 16v-4h12v4',
   search: 'M21 21l-5-5 M18 10a8 8 0 1 1-16 0 8 8 0 0 1 16 0',
   filter: 'M4 7h16 M7 12h10 M10 17h4',
   filterFunnel: 'M3 4h18l-7 8v7l-4 2v-9z',

@@ -1,0 +1,115 @@
+<div class="management-page layout-stack">
+  <header class="page-heading">
+    <a
+      class="icon-button"
+      [routerLink]="backLink()"
+      [attr.aria-label]="backLabel()"
+      [title]="backLabel()"
+    >
+      <app-icon name="back" />
+    </a>
+    <h1 #heading tabindex="-1">{{ current()?.name ?? 'Árvore' }}</h1>
+    @if (current(); as person) {
+      <a
+        class="icon-button profile-link"
+        [routerLink]="['/municipes', person.id]"
+        [attr.aria-label]="'Abrir ficha de ' + person.name"
+        title="Abrir ficha"
+      >
+        <app-icon name="user" />
+      </a>
+    }
+  </header>
+
+  @if (current(); as person) {
+    <nav aria-label="Caminho de indicações">
+      <ol class="breadcrumbs">
+        <li><a routerLink="/arvore">Pais</a></li>
+        @for (ancestor of ancestors(); track ancestor.id) {
+          <li>
+            <app-icon name="chevron" />
+            <a [routerLink]="['/arvore', ancestor.id]">{{ ancestor.name }}</a>
+          </li>
+        }
+        <li>
+          <app-icon name="chevron" />
+          <span aria-current="page">{{ person.name }}</span>
+        </li>
+      </ol>
+    </nav>
+  }
+
+  <section class="directory layout-stack" aria-label="Rede de indicações">
+    @if (state.loading()) {
+      <p class="muted" role="status">Carregando indicações…</p>
+    } @else if (state.error(); as error) {
+      <p role="alert">{{ error }}</p>
+      <button class="text-button recovery-action" type="button" (click)="retry()">
+        Tentar novamente
+      </button>
+    } @else if (state.branch(); as branch) {
+      @if (current(); as person) {
+        <div class="list-heading">
+          <h2>Filhos</h2>
+          <p class="muted">Pessoas indicadas diretamente por {{ person.name }}.</p>
+        </div>
+      } @else {
+        <div class="list-heading">
+          <h2>Pais</h2>
+          <p class="muted">Pessoas que indicaram alguém e não foram indicadas.</p>
+        </div>
+      }
+      @if (branch.entries.length) {
+        <ul class="people">
+          @for (person of branch.entries; track person.id) {
+            <li class="person">
+              <a
+                class="person-link"
+                [routerLink]="[person.childCount ? '/arvore' : '/municipes', person.id]"
+              >
+                <span class="avatar" aria-hidden="true">{{ person.initials }}</span>
+                <span class="person-details">
+                  <span class="person-name">
+                    <span class="sr-only">
+                      {{ person.childCount ? 'Ver indicações de' : 'Abrir ficha de' }}
+                    </span>
+                    {{ person.name }}
+                  </span>
+                  <span class="muted">
+                    @switch (person.childCount) {
+                      @case (0) {
+                        Sem indicações
+                      }
+                      @case (1) {
+                        1 indicação direta
+                      }
+                      @default {
+                        {{ person.childCount }} indicações diretas
+                      }
+                    }
+                  </span>
+                </span>
+                <app-icon name="chevron" />
+              </a>
+              @if (person.childCount) {
+                <a
+                  class="icon-button"
+                  [routerLink]="['/municipes', person.id]"
+                  [attr.aria-label]="'Abrir ficha de ' + person.name"
+                  title="Abrir ficha"
+                >
+                  <app-icon name="user" />
+                </a>
+              }
+            </li>
+          }
+        </ul>
+      } @else {
+        <p>{{ current() ? 'Nenhuma indicação registrada.' : 'Ainda não há pais na árvore.' }}</p>
+      }
+    } @else {
+      <p>Ramo não encontrado.</p>
+      <a class="text-button recovery-action" routerLink="/arvore">Voltar aos pais</a>
+    }
+  </section>
+</div>

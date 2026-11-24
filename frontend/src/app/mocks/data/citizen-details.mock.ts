@@ -195,17 +195,29 @@ const phone = (number: string, label: string, whatsapp = false): CitizenPhone =>
   };
 };
 
+// Cadeias fictícias para a demonstração da Árvore.
+const referrersByCitizenId = new Map([
+  ['cid-beatriz', 'cid-mariana'],
+  ['cid-joao', 'cid-mariana'],
+  ['cid-patricia', 'cid-beatriz'],
+  ['cid-roberto', 'cid-patricia'],
+  ['cid-carlos', 'cid-antonio'],
+]);
+const citizensById = new Map(MOCK_CITIZENS.map((citizen) => [citizen.id, citizen]));
+
 export const MOCK_CITIZEN_DETAILS: readonly CitizenDetail[] = MOCK_CITIZENS.map(
   (citizen, index) => {
     const profile = profiles[index];
     const [birthDay, birthMonth, birthYear] = profile.birth.split('/');
     const slug = citizen.id.replace('cid-', '');
     const photoBase = `https://images.unsplash.com/${portraits[index]}`;
+    const referrer = citizensById.get(referrersByCitizenId.get(citizen.id) ?? '');
     return {
       ...citizen,
       birthDate: `${birthYear}-${birthMonth}-${birthDay}`,
       cra: String(100001 + index),
       observations: profile.observations,
+      ...(referrer ? { referrerId: referrer.id } : {}),
       categories: ['Paróquia Sagrada Família', 'Ministro da Eucaristia', 'Pastoral Familiar'],
       phones: [
         phone(citizen.phone, 'Principal', true),
@@ -233,6 +245,7 @@ export const MOCK_CITIZEN_DETAILS: readonly CitizenDetail[] = MOCK_CITIZENS.map(
         { label: 'Data de nascimento', value: profile.birth },
         { label: 'Profissão', value: profile.occupation },
         { label: 'Canal preferencial', value: index === 5 ? 'Ligação' : 'WhatsApp' },
+        ...(referrer ? [{ label: 'Indicado por', value: referrer.name }] : []),
       ],
       // Retratos de exemplo da internet; não correspondem aos nomes fictícios.
       photos: [

@@ -12,6 +12,8 @@ import { CITIZEN_SEARCH_REPOSITORY } from '../core/repositories/citizen-search-r
 import { CITIZEN_DETAIL_REPOSITORY } from '../features/citizens/repositories/citizen-detail-repository';
 import { LABEL_PRINT_REPOSITORY } from '../features/labels/repositories/label-print-repository';
 import { HOME_MESSAGE_REPOSITORY } from '../features/home/repositories/home-message.repository';
+import { REFERRAL_TREE_REPOSITORY } from '../features/referral-tree/repositories/referral-tree.repository';
+import { MockReferralTreeRepository } from './repositories/mock-referral-tree';
 
 const users: readonly TeamUser[] = [
   { id: 'user-ana', name: 'Ana Martins', handle: 'ana.martins', initials: 'AM' },
@@ -23,6 +25,7 @@ export const MOCK_REPOSITORY_PROVIDERS: Provider[] = [
   { provide: AUTOMATION_REPOSITORY, useExisting: MockCitizenDetailRepository },
   { provide: CITIZEN_DETAIL_REPOSITORY, useExisting: MockCitizenDetailRepository },
   { provide: CITIZEN_SEARCH_REPOSITORY, useExisting: MockCitizenSearchRepository },
+  { provide: REFERRAL_TREE_REPOSITORY, useExisting: MockReferralTreeRepository },
   { provide: INBOX_REPOSITORY, useExisting: MockInboxRepository },
   { provide: LABEL_PRINT_REPOSITORY, useExisting: MockLabelPrintRepository },
   { provide: TEAM_REPOSITORY, useValue: { load: () => ({ actor: users[0], users }) } },

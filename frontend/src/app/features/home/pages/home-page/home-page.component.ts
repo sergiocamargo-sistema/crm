@@ -41,6 +41,7 @@ export class HomePageComponent {
     },
     { id: 'configuracoes', label: 'Configurações', icon: 'settings' },
     { id: 'automacoes', label: 'Automações', icon: 'workflow', route: '/automacoes' },
+    { id: 'arvore', label: 'Árvore', icon: 'tree', route: '/arvore' },
   ];
 
   constructor() {

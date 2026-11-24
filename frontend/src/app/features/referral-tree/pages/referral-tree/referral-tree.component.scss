@@ -1,0 +1,92 @@
+@use '../../../../shared/styles/management-catalog';
+
+.page-heading h1 {
+  overflow-wrap: anywhere;
+}
+
+.profile-link {
+  margin-inline-start: auto;
+}
+
+.breadcrumbs,
+.people {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.breadcrumbs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-1) var(--space-2);
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.breadcrumbs li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.breadcrumbs [aria-current] {
+  font-weight: var(--font-weight-semibold);
+}
+
+.list-heading {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.list-heading h2 {
+  font-size: var(--font-size-md);
+}
+
+.muted {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+  overflow-wrap: anywhere;
+}
+
+.person,
+.person-link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.person {
+  border-top: 1px solid var(--color-border);
+}
+
+.person-link {
+  flex: 1;
+  min-width: 0;
+  padding-block: var(--space-3);
+  text-decoration: none;
+}
+
+.person-details {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+  gap: var(--space-1);
+}
+
+.person-name {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  overflow-wrap: anywhere;
+}
+
+.person-link:hover .person-name,
+.person-link:focus-visible .person-name {
+  text-decoration: underline;
+}
+
+.recovery-action {
+  align-self: flex-start;
+}

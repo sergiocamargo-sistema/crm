@@ -1,6 +1,19 @@
 import type { Routes } from '@angular/router';
 
+const loadReferralTree = () =>
+  import('./features/referral-tree/pages/referral-tree/referral-tree.component').then(
+    (module) => module.ReferralTreeComponent,
+  );
+
 export const routes: Routes = [
+  {
+    path: 'arvore',
+    title: 'Árvore · Gabinete Sérgio Camargo',
+    children: [
+      { path: '', pathMatch: 'full', loadComponent: loadReferralTree },
+      { path: ':id', loadComponent: loadReferralTree },
+    ],
+  },
   {
     path: 'automacoes',
     title: 'Automações de tarefas · Gabinete Sérgio Camargo',
