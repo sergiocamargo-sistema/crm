@@ -2,6 +2,15 @@ import type { Routes } from '@angular/router';
 
 export const routes: Routes = [
   {
+    path: 'automacoes',
+    title: 'Automações de tarefas · Gabinete Sérgio Camargo',
+    canDeactivate: [(component: { canLeave: () => boolean }) => component.canLeave()],
+    loadComponent: () =>
+      import('./features/automations/pages/automations/automations.component').then(
+        (module) => module.AutomationsComponent,
+      ),
+  },
+  {
     path: 'relatorios/horas-trabalhadas',
     title: 'Horas trabalhadas · Gabinete Sérgio Camargo',
     loadComponent: () =>

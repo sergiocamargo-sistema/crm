@@ -1,3 +1,4 @@
+import { AUTOMATION_REPOSITORY } from '../features/automations/repositories/automation-repository';
 import type { Provider } from '@angular/core';
 import type { TeamUser } from '../core/models/collaboration';
 import { MockCitizenDetailRepository } from './repositories/mock-citizen-detail';
@@ -19,6 +20,7 @@ const users: readonly TeamUser[] = [
 ];
 
 export const MOCK_REPOSITORY_PROVIDERS: Provider[] = [
+  { provide: AUTOMATION_REPOSITORY, useExisting: MockCitizenDetailRepository },
   { provide: CITIZEN_DETAIL_REPOSITORY, useExisting: MockCitizenDetailRepository },
   { provide: CITIZEN_SEARCH_REPOSITORY, useExisting: MockCitizenSearchRepository },
   { provide: INBOX_REPOSITORY, useExisting: MockInboxRepository },

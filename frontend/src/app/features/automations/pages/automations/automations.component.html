@@ -1,0 +1,411 @@
+<div class="automations-page layout-stack">
+  <header class="page-heading">
+    <a routerLink="/" class="icon-button" aria-label="Voltar ao início" title="Voltar ao início"
+      ><app-icon name="back"
+    /></a>
+    <h1 #heading tabindex="-1">Automações de tarefas</h1>
+  </header>
+  <p role="status" aria-atomic="true">{{ status() }}</p>
+  @if (editor(); as edit) {
+    <section class="directory">
+      @switch (edit.kind) {
+        @case ('template') {
+          <app-template-editor
+            [record]="edit.record"
+            (cancelled)="closeEditor()"
+            (saved)="closeEditor(true)"
+          />
+        }
+        @case ('set') {
+          <app-set-editor
+            [record]="edit.record"
+            (cancelled)="closeEditor()"
+            (saved)="closeEditor(true)"
+          />
+        }
+        @case ('rule') {
+          <app-rule-editor
+            [record]="edit.record"
+            (cancelled)="closeEditor()"
+            (saved)="closeEditor(true)"
+          />
+        }
+      }
+    </section>
+  } @else {
+    <p class="intro">Transforme rotinas do gabinete em tarefas, com o próximo passo definido.</p>
+    <nav class="section-nav" aria-label="Configuração de automações">
+      @for (item of tabs; track item.id) {
+        <button
+          type="button"
+          class="text-button"
+          [attr.aria-current]="tab() === item.id ? 'page' : null"
+          (click)="changeTab(item.id)"
+        >
+          {{ item.label }}
+        </button>
+      }
+    </nav>
+    @if (tab() === 'rules') {
+      <ol class="explanation">
+        <li><strong>1. Tarefa modelo</strong><span>O que fazer e quem faz.</span></li>
+        <li><strong>2. Conjunto</strong><span>Quais tarefas e em que ordem.</span></li>
+        <li><strong>3. Automação</strong><span>Quando iniciar esse conjunto.</span></li>
+      </ol>
+    }
+    <section
+      class="directory layout-stack"
+      [attr.aria-busy]="state.loading()"
+      [attr.aria-label]="currentLabel()"
+    >
+      <div class="directory-heading">
+        <h2>{{ currentLabel() }}</h2>
+        @if (tab() !== 'runs') {
+          <button
+            #createButton
+            type="button"
+            class="button button--primary"
+            [disabled]="state.loading() || !!state.loadError() || state.saving()"
+            (click)="create(createButton)"
+          >
+            <app-icon name="plus" />{{
+              tab() === 'templates'
+                ? 'Nova tarefa modelo'
+                : tab() === 'sets'
+                  ? 'Novo conjunto'
+                  : 'Criar automação'
+            }}
+          </button>
+        }
+      </div>
+      @switch (tab()) {
+        @case ('templates') {
+          <p class="muted">
+            Guarde instruções, responsáveis, etiquetas e prazos para reutilizar em vários conjuntos.
+          </p>
+        }
+        @case ('sets') {
+          <p class="muted">
+            Combine tarefas do banco e defina quais nascem juntas ou após outras serem concluídas.
+          </p>
+        }
+        @case ('rules') {
+          <p class="muted">Escolha um padrão de solicitação e o conjunto que ele deve iniciar.</p>
+        }
+        @case ('runs') {
+          <p class="muted">
+            Acompanhe o que foi criado e o que ainda aguarda dependências, usando a configuração de
+            cada disparo.
+          </p>
+        }
+      }
+      <label
+        ><span class="form-label">Buscar em {{ currentLabel().toLocaleLowerCase('pt-BR') }}</span
+        ><input class="form-input form-input--compact" type="search" [formField]="searchForm.text"
+      /></label>
+      @if (state.loadError()) {
+        <p class="form-error" role="alert">{{ state.loadError() }}</p>
+        <button type="button" class="text-button" (click)="reload()">Tentar novamente</button>
+      } @else if (state.loading()) {
+        <p class="muted" role="status">Carregando...</p>
+      } @else {
+        @switch (tab()) {
+          @case ('rules') {
+            <ul class="record-list">
+              @for (rule of state.ruleResults(); track rule.id) {
+                <li class="record-row">
+                  <div class="record-copy">
+                    <div class="name-line">
+                      <h3>{{ rule.name }}</h3>
+                      <span class="badge">{{ rule.enabled ? 'Ativa' : 'Desativada' }}</span>
+                    </div>
+                    <p>
+                      Quando criar solicitação: <strong>{{ patternName(rule.patternId) }}</strong>
+                    </p>
+                    <p>
+                      Iniciar conjunto: <strong>{{ setName(rule.setId) }}</strong>
+                    </p>
+                  </div>
+                  <div class="record-actions">
+                    <button
+                      #editRule
+                      type="button"
+                      class="text-button"
+                      [disabled]="state.saving()"
+                      [attr.aria-label]="'Revisar ' + rule.name"
+                      (click)="open({ kind: 'rule', record: rule }, editRule)"
+                    >
+                      {{ rule.enabled ? 'Editar' : 'Revisar e ativar' }}
+                    </button>
+                    @if (rule.enabled) {
+                      <button
+                        type="button"
+                        class="text-button"
+                        [disabled]="state.saving()"
+                        [attr.aria-label]="'Desativar ' + rule.name"
+                        (click)="disable(rule)"
+                      >
+                        Desativar
+                      </button>
+                    } @else {
+                      <button
+                        #removeRule
+                        type="button"
+                        class="text-button"
+                        [disabled]="state.saving()"
+                        [attr.aria-label]="'Excluir ' + rule.name"
+                        (click)="
+                          askRemove(
+                            { kind: 'rule', id: rule.id, version: rule.version, name: rule.name },
+                            removeRule
+                          )
+                        "
+                      >
+                        Excluir
+                      </button>
+                    }
+                  </div>
+                </li>
+              } @empty {
+                <li class="empty">
+                  {{
+                    state.search().text
+                      ? 'Nenhuma automação corresponde à busca.'
+                      : 'Nenhuma automação cadastrada. Crie uma para iniciar um conjunto a partir de uma nova solicitação.'
+                  }}
+                </li>
+              }
+            </ul>
+          }
+          @case ('templates') {
+            <ul class="record-list">
+              @for (template of state.templateResults(); track template.id) {
+                <li class="record-row">
+                  <div class="record-copy">
+                    <h3>{{ template.title }}</h3>
+                    <app-rich-text [text]="template.description" />
+                    <p class="muted">
+                      {{ assignees(template.assigneeIds) }} · Prioridade
+                      {{ taskPriorityLabel(template.priority) }} ·
+                      {{
+                        template.dueInDays === null
+                          ? 'Sem prazo'
+                          : template.dueInDays + ' dia(s) após a criação'
+                      }}
+                    </p>
+                    <app-task-labels
+                      [labelIds]="template.labelIds"
+                      [catalog]="state.catalog().labels"
+                    />
+                  </div>
+                  <div class="record-actions">
+                    <button
+                      #editTemplate
+                      type="button"
+                      class="text-button"
+                      [disabled]="state.saving()"
+                      [attr.aria-label]="'Editar ' + template.title"
+                      (click)="open({ kind: 'template', record: template }, editTemplate)"
+                    >
+                      Editar</button
+                    ><button
+                      #removeTemplate
+                      type="button"
+                      class="text-button"
+                      [disabled]="state.saving()"
+                      [attr.aria-label]="'Excluir ' + template.title"
+                      (click)="
+                        askRemove(
+                          {
+                            kind: 'template',
+                            id: template.id,
+                            version: template.version,
+                            name: template.title,
+                          },
+                          removeTemplate
+                        )
+                      "
+                    >
+                      Excluir
+                    </button>
+                  </div>
+                </li>
+              } @empty {
+                <li class="empty">
+                  {{
+                    state.search().text
+                      ? 'Nenhuma tarefa modelo corresponde à busca.'
+                      : 'O banco está vazio. Cadastre a primeira tarefa modelo.'
+                  }}
+                </li>
+              }
+            </ul>
+          }
+          @case ('sets') {
+            <ul class="record-list">
+              @for (set of state.setResults(); track set.id) {
+                <li class="record-row">
+                  <div class="record-copy">
+                    <h3>{{ set.name }}</h3>
+                    <p class="muted">{{ set.steps.length }} tarefa(s) · Versão {{ set.version }}</p>
+                  </div>
+                  <div class="record-actions">
+                    <button
+                      #editSet
+                      type="button"
+                      class="text-button"
+                      [disabled]="state.saving()"
+                      [attr.aria-label]="'Ver fluxo e editar ' + set.name"
+                      (click)="open({ kind: 'set', record: set }, editSet)"
+                    >
+                      Ver fluxo e editar</button
+                    ><button
+                      #removeSet
+                      type="button"
+                      class="text-button"
+                      [disabled]="state.saving()"
+                      [attr.aria-label]="'Excluir ' + set.name"
+                      (click)="
+                        askRemove(
+                          { kind: 'set', id: set.id, version: set.version, name: set.name },
+                          removeSet
+                        )
+                      "
+                    >
+                      Excluir
+                    </button>
+                  </div>
+                </li>
+              } @empty {
+                <li class="empty">
+                  {{
+                    state.search().text
+                      ? 'Nenhum conjunto corresponde à busca.'
+                      : 'Nenhum conjunto cadastrado. Combine tarefas do banco para montar uma rotina.'
+                  }}
+                </li>
+              }
+            </ul>
+          }
+          @case ('runs') {
+            <ul class="record-list">
+              @for (run of state.runResults(); track run.id) {
+                <li class="run-row layout-stack" [id]="'automation-run-' + run.id" tabindex="-1">
+                  <div class="name-line">
+                    <h3>{{ run.ruleName }}</h3>
+                    <span class="badge">{{ runStatus(run) }}</span>
+                  </div>
+                  <a [routerLink]="['/solicitacoes', run.requestId]">{{ run.requestTitle }}</a>
+                  <p class="muted">
+                    {{ run.startedAt | date: 'dd/MM/yyyy HH:mm' : '-0300' }} · Iniciada por
+                    {{ run.actor }} · Regra v{{ run.ruleVersion }} · {{ run.setName }} v{{
+                      run.setVersion
+                    }}
+                  </p>
+                  <p>
+                    {{ created(run) }} de {{ run.steps.length }} tarefas criadas ·
+                    {{ completed(run) }} concluídas
+                  </p>
+                  <details [open]="targetRun() === run.id">
+                    <summary>Ver tarefas e dependências</summary>
+                    <ul class="run-steps">
+                      @for (step of run.steps; track step.id) {
+                        <li>
+                          @if (step.taskId) {
+                            <a routerLink="/kanban" [queryParams]="{ tarefa: step.taskId }">{{
+                              step.template.title
+                            }}</a><span class="muted"> · {{ taskStatus(step.taskId) }}</span>
+                          } @else {
+                            <strong>{{ step.template.title }}</strong>
+                            <p class="muted">
+                              Ainda não criada{{
+                                step.dependsOn.length
+                                  ? ' — aguarda: ' + pendingNames(run, step.dependsOn)
+                                  : ' — aguarda processamento'
+                              }}
+                            </p>
+                          }
+                        </li>
+                      }
+                    </ul>
+                  </details>
+                  @if (run.error) {
+                    <p class="form-error" role="alert">{{ run.error }}</p>
+                    <button
+                      type="button"
+                      class="text-button"
+                      [disabled]="state.saving()"
+                      (click)="retry(run.id)"
+                    >
+                      Retomar etapas pendentes
+                    </button>
+                  }
+                </li>
+              } @empty {
+                <li class="empty">
+                  {{
+                    state.search().text
+                      ? 'Nenhuma execução corresponde à busca.'
+                      : 'Nenhuma execução iniciada. Ative uma automação e crie uma solicitação com o padrão escolhido.'
+                  }}
+                </li>
+              }
+            </ul>
+          }
+        }
+      }
+      @if (state.actionError()) {
+        <p class="form-error" role="alert">{{ state.actionError() }}</p>
+      }
+    </section>
+  }
+</div>
+<dialog
+  #deleteDialog
+  class="dialog"
+  aria-labelledby="automation-delete-title"
+  (cancel)="cancelDialog($event)"
+  (close)="restoreDeleteFocus()"
+>
+  <div class="dialog__header">
+    <h2 id="automation-delete-title">Excluir configuração</h2>
+    <button
+      type="button"
+      class="icon-button"
+      aria-label="Fechar"
+      [disabled]="state.saving()"
+      (click)="cancelRemove()"
+    >
+      <app-icon name="close" />
+    </button>
+  </div>
+  <div class="dialog__body layout-stack">
+    <p>
+      Excluir <strong>{{ removal()?.name }}</strong>?
+    </p>
+    <p class="muted">
+      Registros em uso não podem ser excluídos. As execuções iniciadas preservam suas versões.
+    </p>
+    @if (state.actionError()) {
+      <p class="form-error" role="alert">{{ state.actionError() }}</p>
+    }
+  </div>
+  <div class="dialog__footer">
+    <button
+      type="button"
+      class="button"
+      autofocus
+      [disabled]="state.saving()"
+      (click)="cancelRemove()"
+    >
+      Cancelar</button
+    ><button
+      type="button"
+      class="button button--danger"
+      [disabled]="state.saving()"
+      (click)="remove()"
+    >
+      {{ state.saving() ? 'Excluindo...' : 'Excluir' }}
+    </button>
+  </div>
+</dialog>

@@ -22,6 +22,14 @@
   </div>
   <div class="dialog__body task-layout" [class.task-layout--new]="!taskId()">
     <div class="card-main">
+      @if (automationOrigin(); as origin) {
+        <p>
+          Criada pela automação
+          <a routerLink="/automacoes" [queryParams]="{ aba: 'runs', execucao: origin.runId }">{{
+            origin.ruleName
+          }}</a>
+        </p>
+      }
       <form (submit)="save($event)" novalidate class="task-fields">
         <label
           ><span class="form-label">Título</span

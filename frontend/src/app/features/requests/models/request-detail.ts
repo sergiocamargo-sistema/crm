@@ -77,6 +77,13 @@ export interface RequestAttachment {
   readonly taskId?: string | null;
 }
 export interface RequestWorkspace {
+  readonly automations: readonly {
+    readonly id: string;
+    readonly name: string;
+    readonly pendingCount: number;
+    readonly totalCount: number;
+    readonly error: string;
+  }[];
   readonly citizen: CitizenDetail | null;
   readonly awareness: readonly RequestAwarenessView[];
   readonly request: CitizenRequest;

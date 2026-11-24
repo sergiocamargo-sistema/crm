@@ -1,6 +1,7 @@
 import {
   afterNextRender,
   Component,
+  computed,
   ElementRef,
   inject,
   Injector,
@@ -75,6 +76,9 @@ export class TaskEditorComponent {
   private readonly comments = viewChild(TaskCommentsComponent);
   private trigger: HTMLElement | null = null;
   protected readonly taskId = signal<string | null>(null);
+  protected readonly automationOrigin = computed(
+    () => this.board.workspace().tasks.find((task) => task.id === this.taskId())?.automation,
+  );
   protected readonly model = signal<TaskDraft>(emptyTask(this.board.currentUserId));
   protected readonly editingDescription = signal(false);
   protected readonly saveStatus = signal('');

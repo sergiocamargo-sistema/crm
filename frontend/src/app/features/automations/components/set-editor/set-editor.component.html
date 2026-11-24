@@ -1,0 +1,111 @@
+<form class="editor" novalidate (submit)="save($event)" [attr.aria-busy]="state.saving()">
+  <h2 #heading tabindex="-1">{{ record() ? 'Editar conjunto' : 'Novo conjunto de tarefas' }}</h2>
+  <p class="muted">Monte a rotina com tarefas do banco e escolha quando cada uma será criada.</p>
+  <fieldset [disabled]="state.saving()" class="editor-fields">
+    <label
+      ><span class="form-label">Nome do conjunto</span
+      ><input class="form-input" [formField]="fields.name"
+    /></label>
+    <div class="inline-controls">
+      <label
+        ><span class="form-label">Adicionar tarefa do banco</span
+        ><select class="form-select form-input--compact" [formField]="selectionForm.templateId">
+          <option value="">Escolha uma tarefa modelo</option>
+          @for (template of available(); track template.id) {
+            <option [value]="template.id">{{ template.title }}</option>
+          }
+        </select></label
+      ><button
+        type="button"
+        class="text-button"
+        [disabled]="!selection().templateId || steps().length >= 50"
+        (click)="add()"
+      >
+        Adicionar ao conjunto
+      </button>
+    </div>
+    @if (!state.templates().length) {
+      <p class="muted">Cadastre uma tarefa no Banco de tarefas antes de montar o conjunto.</p>
+    }
+    <p class="hint">
+      Sem dependências: nasce no disparo. Com dependências: só nasce quando
+      <strong>todas</strong> as selecionadas estiverem concluídas. Tarefas liberadas juntas podem
+      ser feitas em paralelo.
+    </p>
+    <ol class="step-list">
+      @for (step of steps(); track step.id; let i = $index) {
+        <li class="step-row">
+          <div class="step-heading">
+            <strong>{{ i + 1 }}. {{ title(step.templateId) }}</strong
+            ><button
+              type="button"
+              class="icon-button"
+              [attr.aria-label]="'Remover ' + title(step.templateId) + ' do conjunto'"
+              (click)="remove(step.id)"
+            >
+              <app-icon name="close" />
+            </button>
+          </div>
+          <p class="muted">
+            {{
+              step.dependsOn.length
+                ? 'Após concluir: ' + dependencyNames(step)
+                : 'No início, junto das outras tarefas sem dependências.'
+            }}
+          </p>
+          <details>
+            <summary class="text-button">Alterar quando criar esta tarefa</summary>
+            <fieldset class="dependency-list">
+              <legend>
+                Para {{ title(step.templateId) }}:
+                {{
+                  step.dependsOn.length
+                    ? 'Criar depois de concluir todas estas tarefas:'
+                    : 'Criada no início. Para encadear, selecione dependências:'
+                }}
+              </legend>
+              @for (candidate of steps(); track candidate.id) {
+                @if (candidate.id !== step.id) {
+                  <label class="check"
+                    ><input
+                      type="checkbox"
+                      [checked]="step.dependsOn.includes(candidate.id)"
+                      (change)="toggle(step.id, candidate.id, $event)"
+                    />{{ title(candidate.templateId) }}</label
+                  >
+                }
+              }
+              @if (steps().length === 1) {
+                <p class="muted">Adicione mais tarefas para criar uma sequência.</p>
+              }
+            </fieldset>
+          </details>
+        </li>
+      } @empty {
+        <li class="muted">O conjunto ainda não tem tarefas.</li>
+      }
+    </ol>
+  </fieldset>
+  <p class="sr-only" role="status">{{ announcement() }}</p>
+  @if (steps().length) {
+    @if (graphError()) {
+      <p class="form-error" role="alert">{{ graphError() }}</p>
+    } @else {
+      <section class="layout-stack" aria-label="Prévia do conjunto">
+        <h3>Confira o fluxo</h3>
+        <app-task-set-flow [steps]="preview()" />
+      </section>
+    }
+  }
+  <p class="muted">Salvar o conjunto não ativa automações nem altera execuções iniciadas.</p>
+  @if (error() || state.actionError()) {
+    <p class="form-error" role="alert">{{ error() || state.actionError() }}</p>
+  }
+  <footer class="editor-footer">
+    <button type="button" class="button" [disabled]="state.saving()" (click)="cancelled.emit()">
+      Cancelar</button
+    ><button type="submit" class="button button--primary" [disabled]="state.saving()">
+      {{ state.saving() ? 'Salvando...' : 'Salvar conjunto' }}
+    </button>
+  </footer>
+</form>

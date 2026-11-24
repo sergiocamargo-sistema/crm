@@ -15,6 +15,14 @@ export type TaskStatus = (typeof TASK_STATUSES)[number]['value'];
 export type TaskPriority = (typeof TASK_PRIORITIES)[number]['value'];
 
 export interface Task {
+  readonly automation?: {
+    readonly runId: string;
+    readonly ruleId: string;
+    readonly ruleName: string;
+    readonly stepId: string;
+    readonly templateId: string;
+    readonly templateVersion: number;
+  };
   readonly id: string;
   readonly title: string;
   readonly description: string;

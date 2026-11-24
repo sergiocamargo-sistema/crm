@@ -75,9 +75,18 @@ import type {
   TaskLabelManagementResult,
 } from '../../core/models/task-label';
 import { MOCK_TASK_LABELS, MOCK_TASK_LABEL_DEFAULT_COLOR } from '../data/task-labels.mock';
+import { MockAutomationEngine } from './mock-automation-engine';
+import type { AutomationRepository } from '../../features/automations/repositories/automation-repository';
+import type {
+  AutomationCatalog,
+  TaskTemplateDraft,
+  TaskSetDraft,
+  AutomationRuleDraft,
+} from '../../features/automations/models/automation';
 
 @Service()
-export class MockCitizenDetailRepository implements CitizenDetailRepository {
+export class MockCitizenDetailRepository implements CitizenDetailRepository, AutomationRepository {
+  private readonly automation = new MockAutomationEngine();
   private readonly registry = inject(MockCitizenRegistry);
   private readonly citizens = this.registry.citizens;
   private readonly registration = inject(MockCitizenRegistration);
@@ -270,6 +279,7 @@ export class MockCitizenDetailRepository implements CitizenDetailRepository {
       ...values,
       assigneeIds: this.team.validateAssignees(values.assigneeIds),
       labelIds: this.validateTaskLabelIds(values.labelIds),
+      automation: existing?.automation,
       createdBy: existing?.createdBy ?? this.team.actor.name,
       customColumnId: customColumnId || null,
       id: existing?.id ?? `task-${crypto.randomUUID()}`,
@@ -334,6 +344,7 @@ export class MockCitizenDetailRepository implements CitizenDetailRepository {
       `${task.title}\n${task.description}`,
       { taskId: task.id, taskTitle: task.title },
     );
+    this.advanceAutomations(requestId);
     return task.id;
   }
 
@@ -738,6 +749,8 @@ export class MockCitizenDetailRepository implements CitizenDetailRepository {
       },
     }));
     this.requests.update((entries) => [{ citizenId, record }, ...entries]);
+    this.automation.start(id, record.title, request.patternId ?? null, this.team.actor.name);
+    this.advanceAutomations(id);
     return id;
   }
 
@@ -826,6 +839,15 @@ export class MockCitizenDetailRepository implements CitizenDetailRepository {
             ]
           : [];
       }),
+      automations: this.automation
+        .requestRuns(id)
+        .map((run) => ({
+          id: run.id,
+          name: run.ruleName,
+          pendingCount: run.steps.filter((step) => !step.taskId).length,
+          totalCount: run.steps.length,
+          error: run.error,
+        })),
       timeline: requestTimeline(detail.record, extras, detail.interactions),
     };
   }
@@ -912,6 +934,10 @@ export class MockCitizenDetailRepository implements CitizenDetailRepository {
   async deleteTaskLabel(id: string): Promise<void> {
     const labels = this.taskLabels();
     if (!labels.some((label) => label.id === id)) throw new Error('Etiqueta não encontrada.');
+    if (this.automation.usesLabel(id))
+      throw new Error(
+        'Esta etiqueta está em uma tarefa modelo ou etapa pendente de automação. Remova os vínculos antes de excluir.',
+      );
     if (this.loadKanbanWorkspace().tasks.some((task) => task.labelIds.includes(id))) {
       throw new Error(
         'Esta etiqueta está vinculada a tarefas. Remova os vínculos antes de excluir.',
@@ -1003,6 +1029,8 @@ export class MockCitizenDetailRepository implements CitizenDetailRepository {
   async deleteRequestPattern(id: string): Promise<void> {
     const patterns = this.requestPatterns();
     if (!patterns.some((pattern) => pattern.id === id)) throw new Error('Padrão não encontrado.');
+    if (this.automation.usesPattern(id))
+      throw new Error('Este padrão está em uma automação. Remova o vínculo antes de excluir.');
     if (Object.values(this.requestExtras()).some((extras) => extras.patternId === id)) {
       throw new Error(
         'Este padrão está vinculado a solicitações. Remova os vínculos antes de excluir.',
@@ -1249,44 +1277,148 @@ export class MockCitizenDetailRepository implements CitizenDetailRepository {
   }
 
   addRequestTask(requestId: string, task: NewRequestTask): string {
-    const labelIds = this.validateTaskLabelIds(task.labelIds);
+    return this.appendRequestTasks(requestId, [task])[0].id;
+  }
+
+  private appendRequestTasks(
+    requestId: string,
+    drafts: readonly (NewRequestTask & { automation?: Task['automation'] })[],
+  ): readonly Task[] {
     const now = new Date().toISOString();
-    const taskId = `task-${crypto.randomUUID()}`;
-    const status = task.status ?? 'todo';
-    this.updateRequest(requestId, (extras) => ({
-      ...extras,
-      tasks: [
-        ...extras.tasks,
-        {
-          ...task,
-          assigneeIds: this.team.validateAssignees(task.assigneeIds),
-          labelIds,
-          createdBy: this.team.actor.name,
-          id: taskId,
-          createdAt: now,
-          completedAt: status === 'completed' ? now : null,
-          status,
-          priority: task.priority ?? 'normal',
-          customColumnId: task.customColumnId ?? null,
-        },
-      ],
+    // Valida o lote completo antes de criar qualquer tarefa.
+    const tasks: readonly Task[] = drafts.map((draft) => ({
+      ...draft,
+      id: `task-${crypto.randomUUID()}`,
+      assigneeIds: this.team.validateAssignees(draft.assigneeIds),
+      labelIds: this.validateTaskLabelIds(draft.labelIds),
+      createdBy: this.team.actor.name,
+      createdAt: now,
+      completedAt: draft.status === 'completed' ? now : null,
+      status: draft.status ?? 'todo',
+      priority: draft.priority ?? 'normal',
+      customColumnId: draft.customColumnId ?? null,
     }));
-    const createdTask = this.requestExtras()[requestId].tasks.find((item) => item.id === taskId)!;
-    const event = taskHistoryEvent(
-      null,
-      createdTask,
-      this.team.actor,
-      this.team.users,
-      this.kanbanColumns(),
-      now,
-      this.taskLabels(),
-    );
-    if (event) this.taskHistory.update((events) => [...events, event]);
-    this.team.notifyMentions('', `${task.title}\n${task.description}`, {
-      taskId,
-      taskTitle: task.title,
+    const history = tasks.flatMap((task) => {
+      const event = taskHistoryEvent(
+        null,
+        task,
+        this.team.actor,
+        this.team.users,
+        this.kanbanColumns(),
+        now,
+        this.taskLabels(),
+      );
+      return event ? [event] : [];
     });
-    return taskId;
+    this.updateRequest(requestId, (extras) => ({ ...extras, tasks: [...extras.tasks, ...tasks] }));
+    this.taskHistory.update((events) => [...events, ...history]);
+    for (const task of tasks) {
+      this.team.notifyMentions('', `${task.title}\n${task.description}`, {
+        taskId: task.id,
+        taskTitle: task.title,
+      });
+    }
+    return tasks;
+  }
+
+  private automationCatalog(): AutomationCatalog {
+    return {
+      patterns: this.requestPatterns(),
+      users: this.team.users,
+      labels: this.taskLabels(),
+      defaultAssigneeIds: [this.team.actor.id],
+    };
+  }
+
+  async loadAutomationWorkspace(query: string) {
+    return this.automation.workspace(
+      query,
+      this.automationCatalog(),
+      this.loadKanbanWorkspace().tasks,
+    );
+  }
+  async saveAutomationTemplate(
+    id: string | null,
+    version: number | null,
+    draft: TaskTemplateDraft,
+  ) {
+    return this.automation.saveTemplate(id, version, draft, this.automationCatalog());
+  }
+  async deleteAutomationTemplate(id: string, version: number) {
+    this.automation.deleteTemplate(id, version);
+  }
+  async saveAutomationSet(id: string | null, version: number | null, draft: TaskSetDraft) {
+    return this.automation.saveSet(id, version, draft);
+  }
+  async deleteAutomationSet(id: string, version: number) {
+    this.automation.deleteSet(id, version);
+  }
+  async saveAutomationRule(id: string | null, version: number | null, draft: AutomationRuleDraft) {
+    return this.automation.saveRule(id, version, draft, this.automationCatalog());
+  }
+  async deleteAutomationRule(id: string, version: number) {
+    this.automation.deleteRule(id, version);
+  }
+  async retryAutomationRun(id: string) {
+    const run = this.automation.run(id);
+    this.advanceAutomations(run.requestId);
+    if (this.automation.run(id).error) throw new Error(this.automation.run(id).error);
+  }
+
+  private advanceAutomations(requestId: string): void {
+    for (const run of this.automation.requestRuns(requestId)) {
+      try {
+        const existingTasks = this.requestExtras()[requestId]?.tasks ?? [];
+        // Recupera a associação mesmo se houver falha após gravar as tarefas.
+        const existing = new Map(
+          existingTasks
+            .filter((task) => task.automation?.runId === run.id)
+            .map((task) => [task.automation!.stepId, task.id]),
+        );
+        this.automation.record(run.id, existing);
+        const ready = this.automation.ready(this.automation.run(run.id), existingTasks);
+        if (!ready.length) continue;
+        const drafts = ready.map((step) => {
+          let dueAt = '';
+          if (step.template.dueInDays !== null) {
+            const date = new Date();
+            date.setUTCDate(date.getUTCDate() + step.template.dueInDays);
+            // Prazo em dias corridos no calendário de São Paulo, contado da criação desta tarefa.
+            dueAt =
+              new Intl.DateTimeFormat('sv-SE', { timeZone: 'America/Sao_Paulo' }).format(date) +
+              'T23:59:00-03:00';
+          }
+          return {
+            title: step.template.title,
+            description: step.template.description,
+            assigneeIds: step.template.assigneeIds,
+            labelIds: step.template.labelIds,
+            priority: step.template.priority,
+            dueAt,
+            automation: {
+              runId: run.id,
+              ruleId: run.ruleId,
+              ruleName: run.ruleName,
+              stepId: step.id,
+              templateId: step.template.id,
+              templateVersion: step.template.version,
+            },
+          };
+        });
+        const tasks = this.appendRequestTasks(requestId, drafts);
+        this.automation.record(
+          run.id,
+          new Map(ready.map((step, index) => [step.id, tasks[index].id])),
+        );
+      } catch (error: unknown) {
+        // A solicitação ou conclusão já gravada continua válida. A execução pode ser retomada sem repetir etapas criadas.
+        this.automation.record(
+          run.id,
+          new Map(),
+          error instanceof Error ? error.message : 'Não foi possível criar as próximas tarefas.',
+        );
+      }
+    }
   }
 
   setRequestTaskCompleted(requestId: string, taskId: string, completed: boolean): void {
