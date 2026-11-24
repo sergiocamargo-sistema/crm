@@ -6,7 +6,8 @@
   title="Redes sociais e compartilhamento"
   [attr.aria-controls]="panelId()"
   [attr.aria-expanded]="expanded()"
-  (click)="toggle()"
+  [attr.popovertarget]="panelId()"
+  popovertargetaction="toggle"
 >
   <app-icon name="menu" />
 </button>
@@ -17,6 +18,7 @@
   [id]="panelId()"
   [style.top.px]="position().top"
   [style.left.px]="position().left"
+  (beforetoggle)="onBeforeToggle($event)"
   (toggle)="onToggle()"
   (keydown.escape)="close(); $event.preventDefault()"
 >

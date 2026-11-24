@@ -62,20 +62,11 @@ export class CitizenActionsComponent {
     });
   }
 
-  protected toggle(): void {
-    const panel = this.panel().nativeElement;
-    if (panel.matches(':popover-open')) {
-      this.close();
-      return;
-    }
+  protected onBeforeToggle(event: ToggleEvent): void {
+    if (event.newState !== 'open') return;
     clearTimeout(this.timer);
     this.status.set('');
     this.showLink.set(false);
-    panel.showPopover({ source: this.trigger().nativeElement });
-    this.document.addEventListener('scroll', this.onAncestorScroll, true);
-    this.expanded.set(true);
-    this.placePanel();
-    panel.querySelector<HTMLElement>('a, button')?.focus({ preventScroll: true });
   }
 
   private placePanel(): void {
@@ -107,9 +98,16 @@ export class CitizenActionsComponent {
   }
 
   protected onToggle(): void {
-    const expanded = this.panel().nativeElement.matches(':popover-open');
+    const panel = this.panel().nativeElement;
+    const expanded = panel.matches(':popover-open');
     this.expanded.set(expanded);
-    if (!expanded) this.document.removeEventListener('scroll', this.onAncestorScroll, true);
+    if (expanded) {
+      this.document.addEventListener('scroll', this.onAncestorScroll, true);
+      this.placePanel();
+      panel.querySelector<HTMLElement>('a, button')?.focus({ preventScroll: true });
+    } else {
+      this.document.removeEventListener('scroll', this.onAncestorScroll, true);
+    }
   }
 
   protected openLabels(): void {
