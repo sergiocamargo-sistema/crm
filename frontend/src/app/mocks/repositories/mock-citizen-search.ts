@@ -1,6 +1,6 @@
 import { inject, Service } from '@angular/core';
 import { MockCitizenRegistry } from './mock-citizen-registry';
-import type { CitizenSummary } from '../../core/models/citizen-summary';
+import type { CitizenSearchResult } from '../../core/models/citizen-summary';
 import type { CitizenSearchRepository } from '../../core/repositories/citizen-search-repository';
 
 const normalize = (value: string): string =>
@@ -12,7 +12,7 @@ const normalize = (value: string): string =>
 @Service()
 export class MockCitizenSearchRepository implements CitizenSearchRepository {
   private readonly registry = inject(MockCitizenRegistry);
-  search(query: string): readonly CitizenSummary[] {
+  search(query: string): readonly CitizenSearchResult[] {
     const value = normalize(query.trim());
     if (value.length < 2) return [];
     const terms = value.split(/\s+/);
@@ -39,12 +39,14 @@ export class MockCitizenSearchRepository implements CitizenSearchRepository {
           terms.every((term) => text.includes(term))
         );
       })
-      .map(({ id, name, initials, neighborhood, phone }) => ({
+      .map(({ id, name, initials, neighborhood, phone, phones, socialLinks }) => ({
         id,
         name,
         initials,
         neighborhood,
         phone,
+        whatsappUrl: phones.find((phone) => phone.whatsappUrl)?.whatsappUrl ?? '',
+        socialLinks,
       }));
   }
 }

@@ -1,7 +1,6 @@
 import { computed, inject, Service, type Signal } from '@angular/core';
 import { CITIZEN_SEARCH_REPOSITORY } from '../repositories/citizen-search-repository';
 import { CitizenSearchStore } from '../stores/citizen-search.store';
-import type { CitizenSummary } from '../models/citizen-summary';
 
 @Service()
 export class CitizenSearchService {

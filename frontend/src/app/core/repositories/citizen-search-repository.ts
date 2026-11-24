@@ -1,8 +1,8 @@
 import { InjectionToken } from '@angular/core';
-import type { CitizenSummary } from '../models/citizen-summary';
+import type { CitizenSearchResult } from '../models/citizen-summary';
 
 export interface CitizenSearchRepository {
-  search(query: string): readonly CitizenSummary[];
+  search(query: string): readonly CitizenSearchResult[];
 }
 
 export const CITIZEN_SEARCH_REPOSITORY = new InjectionToken<CitizenSearchRepository>(

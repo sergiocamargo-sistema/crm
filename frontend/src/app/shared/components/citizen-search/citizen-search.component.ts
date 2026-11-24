@@ -5,11 +5,13 @@ import {
   DestroyRef,
   DOCUMENT,
   computed,
+  effect,
   ElementRef,
   inject,
   input,
   output,
   signal,
+  untracked,
   viewChild,
   viewChildren,
 } from '@angular/core';
@@ -19,10 +21,11 @@ import { Router, RouterLink } from '@angular/router';
 import { CitizenSearchService } from '../../../core/services/citizen-search';
 import type { CitizenSummary } from '../../../core/models/citizen-summary';
 import { IconComponent } from '../icon/icon.component';
+import { CitizenActionsComponent } from '../../../features/citizens/components/citizen-actions/citizen-actions.component';
 
 @Component({
   selector: 'app-citizen-search',
-  imports: [IconComponent, FormField, RouterLink, NgTemplateOutlet],
+  imports: [IconComponent, FormField, RouterLink, NgTemplateOutlet, CitizenActionsComponent],
   templateUrl: './citizen-search.component.html',
   styleUrl: './citizen-search.component.scss',
   host: {
@@ -66,8 +69,14 @@ export class CitizenSearchComponent {
   private readonly mobileTrigger =
     viewChild.required<ElementRef<HTMLButtonElement>>('mobileTrigger');
   private readonly resultButtons = viewChildren<ElementRef<HTMLElement>>('resultButton');
+  private readonly resultActions = viewChildren(CitizenActionsComponent);
 
   constructor() {
+    effect(() => {
+      this.store().results();
+      this.resultsOpen();
+      untracked(() => this.closeResultActions());
+    });
     const media = this.mobileMedia;
     if (!media) return;
     const onChange = (event: MediaQueryListEvent): void => {
@@ -90,6 +99,7 @@ export class CitizenSearchComponent {
   }
 
   protected closeMobileSearch(restoreFocus = true): void {
+    this.closeResultActions();
     const panel = this.searchPanel().nativeElement;
     this.opened.set(false);
     this.mobileExpanded.set(false);
@@ -100,7 +110,10 @@ export class CitizenSearchComponent {
   protected onPanelToggle(): void {
     const expanded = this.mobile() && this.searchPanel().nativeElement.matches(':popover-open');
     this.mobileExpanded.set(expanded);
-    if (!expanded) this.opened.set(false);
+    if (!expanded) {
+      this.closeResultActions();
+      this.opened.set(false);
+    }
   }
 
   private focusSearch(select = false): void {
@@ -119,6 +132,7 @@ export class CitizenSearchComponent {
   }
 
   reset(): void {
+    this.closeResultActions();
     this.store().model.set({ query: '' });
     this.opened.set(false);
   }
@@ -133,8 +147,13 @@ export class CitizenSearchComponent {
   }
 
   protected selectCitizen(): void {
+    this.closeResultActions();
     this.opened.set(false);
     if (this.mobile()) this.closeMobileSearch(false);
+  }
+
+  private closeResultActions(): void {
+    for (const actions of this.resultActions()) actions.close(false);
   }
 
   protected chooseCitizen(citizen: CitizenSummary): void {

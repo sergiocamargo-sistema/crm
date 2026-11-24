@@ -9,16 +9,16 @@ import {
   inject,
   Injector,
   input,
+  output,
   signal,
   viewChild,
 } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { IconComponent } from '../../../../shared/components/icon/icon.component';
-import type { CitizenListItem } from '../../models/citizen-list';
-
-type CitizenActionsSummary = Pick<CitizenListItem, 'id' | 'name' | 'socialLinks' | 'whatsappUrl'>;
+import type { CitizenActionsSummary } from '../../../../core/models/citizen-summary';
 
 @Component({
-  imports: [IconComponent],
+  imports: [IconComponent, RouterLink],
   selector: 'app-citizen-actions',
   styleUrl: './citizen-actions.component.scss',
   templateUrl: './citizen-actions.component.html',
@@ -26,13 +26,15 @@ type CitizenActionsSummary = Pick<CitizenListItem, 'id' | 'name' | 'socialLinks'
 })
 export class CitizenActionsComponent {
   readonly citizen = input.required<CitizenActionsSummary>();
+  readonly idPrefix = input('list-citizen-actions');
+  readonly navigationRequested = output<void>();
   private readonly document = inject(DOCUMENT);
   private readonly location = inject(Location);
   private readonly injector = inject(Injector);
   private readonly panel = viewChild.required<ElementRef<HTMLElement>>('actionsPanel');
   private readonly trigger = viewChild.required<ElementRef<HTMLButtonElement>>('actionsTrigger');
   private readonly fallback = viewChild<ElementRef<HTMLInputElement>>('fallbackLink');
-  protected readonly panelId = computed(() => `list-citizen-actions-${this.citizen().id}`);
+  protected readonly panelId = computed(() => `${this.idPrefix()}-${this.citizen().id}`);
   protected readonly expanded = signal(false);
   protected readonly position = signal({ top: 0, left: 0 });
   protected readonly status = signal('');
@@ -46,11 +48,17 @@ export class CitizenActionsComponent {
   );
   private timer: ReturnType<typeof setTimeout> | undefined;
   private alive = true;
+  private readonly onAncestorScroll = (event: Event): void => {
+    // Rolagem dentro do próprio menu não deve fechá-lo.
+    if (event.target instanceof Node && this.panel().nativeElement.contains(event.target)) return;
+    this.close();
+  };
 
   constructor() {
     inject(DestroyRef).onDestroy(() => {
       this.alive = false;
       clearTimeout(this.timer);
+      this.document.removeEventListener('scroll', this.onAncestorScroll, true);
     });
   }
 
@@ -64,6 +72,7 @@ export class CitizenActionsComponent {
     this.status.set('');
     this.showLink.set(false);
     panel.showPopover({ source: this.trigger().nativeElement });
+    this.document.addEventListener('scroll', this.onAncestorScroll, true);
     this.expanded.set(true);
     this.placePanel();
     panel.querySelector<HTMLElement>('a, button')?.focus({ preventScroll: true });
@@ -87,17 +96,25 @@ export class CitizenActionsComponent {
     });
   }
 
-  protected close(): void {
+  close(restoreFocus = true): void {
+    this.document.removeEventListener('scroll', this.onAncestorScroll, true);
     const panel = this.panel().nativeElement;
     if (!panel.matches(':popover-open')) return;
     const hadFocus = panel.contains(this.document.activeElement);
     panel.hidePopover();
     this.expanded.set(false);
-    if (hadFocus) this.trigger().nativeElement.focus({ preventScroll: true });
+    if (hadFocus && restoreFocus) this.trigger().nativeElement.focus({ preventScroll: true });
   }
 
   protected onToggle(): void {
-    this.expanded.set(this.panel().nativeElement.matches(':popover-open'));
+    const expanded = this.panel().nativeElement.matches(':popover-open');
+    this.expanded.set(expanded);
+    if (!expanded) this.document.removeEventListener('scroll', this.onAncestorScroll, true);
+  }
+
+  protected openLabels(): void {
+    this.close();
+    this.navigationRequested.emit();
   }
 
   protected async copyLink(): Promise<void> {

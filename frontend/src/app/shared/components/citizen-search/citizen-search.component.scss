@@ -102,7 +102,18 @@ ul {
   margin: 0;
   list-style: none;
 }
+.citizen-result-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding-right: var(--space-2);
+}
+.result-actions {
+  flex: 0 0 auto;
+}
 .citizen-result {
+  flex: 1;
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -129,6 +140,7 @@ ul {
   min-width: 0;
 }
 .result-person strong {
+  overflow-wrap: anywhere;
   display: block;
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-semibold);

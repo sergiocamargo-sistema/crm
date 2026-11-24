@@ -50,6 +50,15 @@
         ><app-icon [name]="social.icon"
       /></a>
     }
+    <a
+      class="icon-button"
+      routerLink="/etiquetas"
+      [queryParams]="{ municipes: citizen().id }"
+      [attr.aria-label]="'Preparar etiqueta de ' + citizen().name"
+      title="Imprimir etiqueta"
+      (click)="openLabels()"
+      ><app-icon name="print"
+    /></a>
     <button
       type="button"
       class="icon-button"

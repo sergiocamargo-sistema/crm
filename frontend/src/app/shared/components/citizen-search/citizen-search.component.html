@@ -74,7 +74,7 @@
     @if (store().results().length > 0) {
       <ul>
         @for (citizen of store().results(); track citizen.id; let index = $index) {
-          <li>
+          <li class="citizen-result-row">
             <ng-template #person>
               <span class="avatar" aria-hidden="true">{{ citizen.initials }}</span>
               <span class="result-person">
@@ -114,6 +114,12 @@
                 <app-icon name="plus" />
               </button>
             }
+            <app-citizen-actions
+              class="result-actions"
+              [citizen]="citizen"
+              [idPrefix]="inputId() + '-actions'"
+              (navigationRequested)="selectCitizen()"
+            />
           </li>
         }
       </ul>
