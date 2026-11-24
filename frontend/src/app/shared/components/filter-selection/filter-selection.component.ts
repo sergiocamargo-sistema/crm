@@ -90,7 +90,7 @@ export class FilterSelectionComponent {
       afterNextRender(() => this.optionButtons()[0]?.nativeElement.focus(), {
         injector: this.injector,
       });
-    } else if (event.key === 'Escape') {
+    } else if (event.key === 'Escape' && this.opened()) {
       event.preventDefault();
       this.opened.set(false);
     }

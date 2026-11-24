@@ -1,10 +1,12 @@
-import type { VoteEstimate } from '../../core/models/vote-estimate';
+import { VOTE_ESTIMATE_LEVELS, type VoteEstimate } from '../../core/models/vote-estimate';
 import {
   AGE_RANGES,
+  BIRTHDAY_MONTHS,
+  type CitizenListFacetChoices,
   type CitizenListItem,
   type CitizenListQuery,
 } from '../../features/citizens/models/citizen-list';
-import { birthdayCombinationIsValid } from '../../features/citizens/models/citizen-birth-filters';
+import { birthdayFiltersAreCompatible } from '../../features/citizens/models/citizen-birth-filters';
 import { departmentScopeIds } from '../../features/requests/models/department-options';
 import type { Department } from '../../features/requests/models/request-detail';
 
@@ -27,6 +29,33 @@ const normalize = (value: string): string =>
     .toLocaleLowerCase('pt-BR');
 const onlyDigits = (value: string): string => value.replace(/\D/g, '');
 
+export function mockCitizenListFacetChoices(
+  citizens: readonly MockCitizenListRecord[],
+): CitizenListFacetChoices {
+  const neighborhoods = [...new Set(citizens.map((person) => person.neighborhood))];
+  return {
+    neighborhoods: neighborhoods
+      .filter((neighborhood) => neighborhood.trim())
+      .sort((a, b) => a.localeCompare(b, 'pt-BR'))
+      .map((neighborhood) => ({ value: neighborhood, label: neighborhood })),
+    voteEstimates: [
+      { value: 'unset', label: 'Sem estimativa' },
+      ...VOTE_ESTIMATE_LEVELS.map((level) => ({ value: String(level), label: `${level}%` })),
+    ],
+    ageRanges: AGE_RANGES.map(({ value, label }) => ({ value, label })),
+    birthdayDays: Array.from({ length: 31 }, (_, index) => {
+      const day = String(index + 1);
+      return { value: day, label: day };
+    }),
+    birthdayMonths: BIRTHDAY_MONTHS,
+    requestStatuses: [
+      { value: 'pending', label: 'Com solicitações pendentes' },
+      { value: 'completed', label: 'Com solicitações finalizadas' },
+      { value: 'none', label: 'Sem solicitações' },
+    ],
+  };
+}
+
 export function queryMockCitizens(
   citizens: readonly MockCitizenListRecord[],
   departments: readonly Department[],
@@ -35,19 +64,17 @@ export function queryMockCitizens(
 ): readonly MockCitizenListRecord[] {
   const includedDepartments = departmentScopeIds(departments, filters.includedDepartmentIds);
   const excludedDepartments = departmentScopeIds(departments, filters.excludedDepartmentIds);
-  if (!birthdayCombinationIsValid(filters.birthdayDay, filters.birthdayMonth)) return [];
+  if (!birthdayFiltersAreCompatible(filters.birthdayDays, filters.birthdayMonths)) return [];
   const query = normalize(filters.query.trim());
   const terms = query.split(/\s+/).filter(Boolean);
   const digits = onlyDigits(query);
   const numericQuery = /^[\d\s()+.-]+$/.test(query) && digits.length > 0;
   return citizens
     .filter((person) => {
-      if (
-        filters.voteEstimate &&
-        filters.voteEstimate !==
-          (person.voteEstimate === null ? 'unset' : String(person.voteEstimate))
-      )
+      const voteEstimate = person.voteEstimate === null ? 'unset' : String(person.voteEstimate);
+      if (filters.voteEstimates.length && !filters.voteEstimates.includes(voteEstimate)) {
         return false;
+      }
       const text = normalize(
         [
           person.name,
@@ -73,8 +100,13 @@ export function queryMockCitizens(
         person.categories.includes(category),
       );
       const matchingRequests = person.requests.filter(
-        (request) => !filters.requestStatus || request.status === filters.requestStatus,
+        (request) =>
+          !filters.requestStatuses.length || filters.requestStatuses.includes(request.status),
       );
+      const matchesRequestStatus =
+        !filters.requestStatuses.length ||
+        matchingRequests.length > 0 ||
+        (filters.requestStatuses.includes('none') && !person.requests.length);
       const includedDepartment =
         !filters.includedDepartmentIds.length ||
         matchingRequests.some((request) => includedDepartments.has(request.departmentId));
@@ -83,14 +115,13 @@ export function queryMockCitizens(
       );
       return (
         matchesQuery &&
-        (!filters.neighborhood || person.neighborhood === filters.neighborhood) &&
+        (!filters.neighborhoods.length || filters.neighborhoods.includes(person.neighborhood)) &&
         included &&
         !excluded &&
         includedDepartment &&
         !excludedDepartment &&
-        matchesCitizenBirthFilters(person.birthDate, filters, today) &&
-        (!filters.requestStatus ||
-          (filters.requestStatus === 'none' ? !person.requests.length : !!matchingRequests.length))
+        matchesRequestStatus &&
+        matchesCitizenBirthFilters(person.birthDate, filters, today)
       );
     })
     .sort((a, b) => compareCitizens(a, b, filters.order));
@@ -116,7 +147,8 @@ function matchesCitizenBirthFilters(
   filters: CitizenListQuery,
   today: string,
 ): boolean {
-  if (!filters.ageRange && !filters.birthdayDay && !filters.birthdayMonth) return true;
+  const { ageRanges, birthdayDays, birthdayMonths } = filters;
+  if (!ageRanges.length && !birthdayDays.length && !birthdayMonths.length) return true;
   if (!birthDate || !/^\d{4}-\d{2}-\d{2}$/.test(birthDate) || birthDate > today) return false;
   const [year, month, day] = birthDate.split('-').map(Number);
   const date = new Date(`${birthDate}T12:00:00Z`);
@@ -126,10 +158,11 @@ function matchesCitizenBirthFilters(
     date.getUTCDate() !== day
   )
     return false;
-  if (filters.birthdayDay && Number(filters.birthdayDay) !== day) return false;
-  if (filters.birthdayMonth && Number(filters.birthdayMonth) !== month) return false;
-  if (!filters.ageRange) return true;
+  if (birthdayDays.length && !birthdayDays.includes(String(day))) return false;
+  if (birthdayMonths.length && !birthdayMonths.includes(String(month))) return false;
+  if (!ageRanges.length) return true;
   const age = Number(today.slice(0, 4)) - year - (today.slice(5) < birthDate.slice(5) ? 1 : 0);
-  const range = AGE_RANGES.find((range) => range.value === filters.ageRange);
-  return !!range && age >= range.min && age <= range.max;
+  return AGE_RANGES.some(
+    (range) => ageRanges.includes(range.value) && age >= range.min && age <= range.max,
+  );
 }

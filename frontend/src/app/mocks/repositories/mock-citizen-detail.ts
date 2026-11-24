@@ -26,7 +26,11 @@ import type {
   CitizenListResult,
 } from '../../features/citizens/models/citizen-list';
 import { currentCitizenCalendarDate } from '../../features/citizens/models/citizen-birth-filters';
-import { queryMockCitizens, type MockCitizenListRecord } from './mock-citizen-list-query';
+import {
+  mockCitizenListFacetChoices,
+  queryMockCitizens,
+  type MockCitizenListRecord,
+} from './mock-citizen-list-query';
 import type { LabelRecipient } from '../../features/labels/models/label-print';
 import { TASK_STATUSES, taskStatusLabel, type Task, type TaskStatus } from '../../core/models/task';
 import type {
@@ -574,9 +578,7 @@ export class MockCitizenDetailRepository implements CitizenDetailRepository, Aut
         ({ birthDate, voteEstimate, observations, phoneNumbers, requests, ...item }) => item,
       ),
       total: citizens.length,
-      neighborhoods: [...new Set(citizens.map((person) => person.neighborhood))].sort((a, b) =>
-        a.localeCompare(b, 'pt-BR'),
-      ),
+      facetChoices: mockCitizenListFacetChoices(citizens),
       categories: [...this.listCategories()].sort((a, b) => a.localeCompare(b, 'pt-BR')),
       departments: departmentOptions(departments),
     };

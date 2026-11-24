@@ -40,14 +40,39 @@
           </button>
         }
       </div>
-      <label
-        ><span class="form-label">Ordenar por</span>
-        <select class="form-select" [formField]="filtersForm.order">
-          <option value="name-asc">Nome: A–Z</option>
-          <option value="name-desc">Nome: Z–A</option>
-          <option value="recent">Interação mais recente</option>
-        </select>
-      </label>
+      <fieldset class="single-choice">
+        <legend class="form-label">Ordenar por</legend>
+        <label>
+          <input
+            type="radio"
+            name="citizen-filter-order"
+            value="name-asc"
+            [checked]="list.model().order === 'name-asc'"
+            (change)="list.setOrder('name-asc')"
+          />
+          Nome: A–Z
+        </label>
+        <label>
+          <input
+            type="radio"
+            name="citizen-filter-order"
+            value="name-desc"
+            [checked]="list.model().order === 'name-desc'"
+            (change)="list.setOrder('name-desc')"
+          />
+          Nome: Z–A
+        </label>
+        <label>
+          <input
+            type="radio"
+            name="citizen-filter-order"
+            value="recent"
+            [checked]="list.model().order === 'recent'"
+            (change)="list.setOrder('recent')"
+          />
+          Interação mais recente
+        </label>
+      </fieldset>
     </section>
     <details class="sidebar-group" open>
       <summary>
@@ -55,65 +80,25 @@
         ><app-icon name="down" class="group-chevron" />
       </summary>
       <div class="group-fields">
-        <label
-          ><span class="form-label">Bairro</span>
-          <select class="form-select" [formField]="filtersForm.neighborhood">
-            <option value="">Todos os bairros</option>
-            @for (neighborhood of list.neighborhoods(); track neighborhood) {
-              <option [value]="neighborhood">{{ neighborhood }}</option>
-            }
-          </select>
-        </label>
-        <label>
-          <span class="form-label">{{ voteEstimateLabel }}</span>
-          <select class="form-select" [formField]="filtersForm.voteEstimate">
-            <option value="">Sem filtro de estimativa</option>
-            <option value="unset">Sem estimativa</option>
-            @for (level of voteEstimateLevels; track level) {
-              <option [value]="level.toString()">{{ level }}%</option>
-            }
-          </select>
-        </label>
-        <div class="birth-filters">
-          <label
-            ><span class="form-label">Faixa etária</span>
-            <select class="form-select" [formField]="filtersForm.ageRange">
-              <option value="">Todas as idades</option>
-              @for (range of ageRanges; track range.value) {
-                <option [value]="range.value">{{ range.label }}</option>
-              }
-            </select>
-          </label>
-          <label
-            ><span class="form-label">Dia do aniversário</span>
-            <select
-              class="form-select"
-              [formField]="filtersForm.birthdayDay"
-              [attr.aria-describedby]="
-                filtersForm.birthdayDay().invalid() ? 'birthday-filter-error' : null
-              "
-            >
-              <option value="">Todos os dias</option>
-              @for (day of birthdayDays; track day) {
-                <option [value]="day">{{ day }}</option>
-              }
-            </select>
-          </label>
-          <label
-            ><span class="form-label">Mês do aniversário</span>
-            <select class="form-select" [formField]="filtersForm.birthdayMonth">
-              <option value="">Todos os meses</option>
-              @for (month of birthdayMonths; track month.value) {
-                <option [value]="month.value">{{ month.label }}</option>
-              }
-            </select>
-          </label>
-          @if (filtersForm.birthdayDay().invalid()) {
-            <p class="form-error birthday-filter-error" id="birthday-filter-error" role="alert">
-              O mês selecionado não possui esse dia.
-            </p>
-          }
-        </div>
+        @for (filter of profileFilters; track filter.key) {
+          <app-filter-selection
+            [controlId]="'citizen-filter-' + filter.key"
+            [label]="filter.label"
+            [hint]="filter.hint"
+            [placeholder]="filter.placeholder"
+            [itemLabel]="filter.itemLabel"
+            [icon]="filter.icon"
+            [choices]="list.facetChoices()?.[filter.key] ?? []"
+            [selected]="list.model()[filter.key]"
+            (added)="list.setFacet(filter.key, $event, true)"
+            (removed)="list.setFacet(filter.key, $event, false)"
+          />
+        }
+        @if (hasInvalidBirthdayFilters()) {
+          <p class="form-error birthday-filter-error" role="alert">
+            Os dias e meses selecionados não formam uma data válida.
+          </p>
+        }
       </div>
     </details>
     <details class="sidebar-group">
@@ -143,13 +128,29 @@
           />
         </div>
         @if (list.model().includedCategories.length > 1) {
-          <label class="category-match"
-            ><span class="form-label">Combinar categorias incluídas</span>
-            <select class="form-select" [formField]="filtersForm.categoryMatch">
-              <option value="all">Ter todas as categorias</option>
-              <option value="any">Ter pelo menos uma categoria</option>
-            </select>
-          </label>
+          <fieldset class="single-choice">
+            <legend class="form-label">Combinar categorias incluídas</legend>
+            <label>
+              <input
+                type="radio"
+                name="citizen-filter-category-match"
+                value="all"
+                [checked]="list.model().categoryMatch === 'all'"
+                (change)="list.setCategoryMatch('all')"
+              />
+              Ter todas as categorias
+            </label>
+            <label>
+              <input
+                type="radio"
+                name="citizen-filter-category-match"
+                value="any"
+                [checked]="list.model().categoryMatch === 'any'"
+                (change)="list.setCategoryMatch('any')"
+              />
+              Ter pelo menos uma categoria
+            </label>
+          </fieldset>
         }
       </div>
     </details>
@@ -159,20 +160,23 @@
         ><app-icon name="down" class="group-chevron" />
       </summary>
       <div class="group-fields">
-        <label
-          ><span class="form-label">Solicitações</span>
-          <select class="form-select" [formField]="filtersForm.requestStatus">
-            <option value="">Todas as situações</option>
-            <option value="pending">Com solicitações pendentes</option>
-            <option value="completed">Com solicitações finalizadas</option>
-            <option value="none">Sem solicitações</option>
-          </select>
-        </label>
+        <app-filter-selection
+          controlId="citizen-filter-request-statuses"
+          label="Situação das solicitações"
+          hint="Mostra munícipes em qualquer situação escolhida."
+          placeholder="Buscar situação..."
+          itemLabel="situação"
+          icon="clipboard"
+          [choices]="list.facetChoices()?.requestStatuses ?? []"
+          [selected]="list.model().requestStatuses"
+          (added)="list.setFacet('requestStatuses', $event, true)"
+          (removed)="list.setFacet('requestStatuses', $event, false)"
+        />
         <div class="category-filters">
           <app-filter-selection
             controlId="included-departments"
             label="Incluir por departamento"
-            hint="Pelo menos uma solicitação nestes departamentos, na situação selecionada."
+            hint="Pelo menos uma solicitação nestes departamentos, em uma das situações selecionadas."
             placeholder="Buscar departamento..."
             itemLabel="departamento"
             icon="building"

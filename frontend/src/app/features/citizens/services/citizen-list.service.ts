@@ -2,6 +2,7 @@ import { DestroyRef, effect, inject, Service, signal, untracked } from '@angular
 import { CITIZEN_DETAIL_REPOSITORY } from '../repositories/citizen-detail-repository';
 import { currentCitizenCalendarDate } from '../models/citizen-birth-filters';
 import { CitizenListStore, initialQuery } from '../stores/citizen-list.store';
+import type { CitizenListFacet, CitizenListQuery } from '../models/citizen-list';
 import {
   updateDepartmentFilter,
   type DepartmentFilterMode,
@@ -19,7 +20,7 @@ export class CitizenListService {
   readonly selectedIds = this.store.selectedIds;
   readonly resultIds = this.store.resultIds;
   readonly selectedOutsideResultsCount = this.store.selectedOutsideResultsCount;
-  readonly neighborhoods = this.store.neighborhoods;
+  readonly facetChoices = this.store.facetChoices;
   readonly categories = this.store.categories;
   readonly categoryChoices = this.store.categoryChoices;
   readonly departmentChoices = this.store.departmentChoices;
@@ -81,6 +82,23 @@ export class CitizenListService {
   }
   clearFilters(): void {
     this.model.update((value) => ({ ...initialQuery(), query: value.query, order: value.order }));
+  }
+  setFacet(facet: CitizenListFacet, value: string, selected: boolean): void {
+    if (selected && !this.facetChoices()?.[facet].some((option) => option.value === value)) return;
+    this.model.update((query) => {
+      const current = query[facet];
+      if (current.includes(value) === selected) return query;
+      return {
+        ...query,
+        [facet]: selected ? [...current, value] : current.filter((item) => item !== value),
+      };
+    });
+  }
+  setOrder(order: CitizenListQuery['order']): void {
+    this.model.update((query) => ({ ...query, order }));
+  }
+  setCategoryMatch(categoryMatch: CitizenListQuery['categoryMatch']): void {
+    this.model.update((query) => ({ ...query, categoryMatch }));
   }
   addDepartmentFilter(mode: DepartmentFilterMode, id: string): void {
     if (!this.departmentChoices().some((department) => department.value === id)) return;

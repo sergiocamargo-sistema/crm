@@ -1,5 +1,4 @@
 import type { CitizenSummary } from '../../../core/models/citizen-summary';
-import type { VoteEstimate } from '../../../core/models/vote-estimate';
 import type { CitizenDetail, CitizenPhoto } from './citizen-detail';
 import type { DepartmentOption } from '../../requests/models/department-options';
 
@@ -18,24 +17,32 @@ export interface CitizenListItem extends CitizenSummary {
 export interface CitizenListResult {
   readonly items: readonly CitizenListItem[];
   readonly total: number;
-  readonly neighborhoods: readonly string[];
+  readonly facetChoices: CitizenListFacetChoices;
   readonly categories: readonly string[];
   readonly departments: readonly DepartmentOption[];
 }
 
-export interface CitizenListQuery {
+export const CITIZEN_LIST_FACETS = [
+  'neighborhoods',
+  'voteEstimates',
+  'ageRanges',
+  'birthdayDays',
+  'birthdayMonths',
+  'requestStatuses',
+] as const;
+
+export type CitizenListFacet = (typeof CITIZEN_LIST_FACETS)[number];
+export type CitizenListFacetChoices = Readonly<
+  Record<CitizenListFacet, readonly { readonly value: string; readonly label: string }[]>
+>;
+
+export interface CitizenListQuery extends Readonly<Record<CitizenListFacet, readonly string[]>> {
   readonly query: string;
-  readonly neighborhood: string;
-  readonly voteEstimate: '' | 'unset' | `${VoteEstimate}`;
   readonly includedCategories: readonly string[];
   readonly excludedCategories: readonly string[];
   readonly categoryMatch: 'all' | 'any';
   readonly includedDepartmentIds: readonly string[];
   readonly excludedDepartmentIds: readonly string[];
-  readonly ageRange: '' | (typeof AGE_RANGES)[number]['value'];
-  readonly birthdayDay: string;
-  readonly birthdayMonth: string;
-  readonly requestStatus: '' | 'pending' | 'completed' | 'none';
   readonly order: 'name-asc' | 'name-desc' | 'recent';
 }
 

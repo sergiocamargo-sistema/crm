@@ -67,6 +67,32 @@ h2 {
 .sidebar-section > .form-label {
   margin: 0;
 }
+.single-choice {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-4);
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.single-choice label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-block-size: var(--control-height-compact);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+}
+.single-choice input {
+  flex: 0 0 auto;
+  margin: 0;
+  accent-color: var(--color-primary);
+}
+.single-choice input:focus-visible {
+  outline: 2px solid var(--color-focus);
+  outline-offset: 3px;
+}
 .sidebar-search {
   position: relative;
 }
@@ -123,7 +149,6 @@ h2 {
 .group-fields {
   padding-bottom: var(--space-5);
 }
-.birth-filters,
 .category-filters {
   display: flex;
   flex-direction: column;

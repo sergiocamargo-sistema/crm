@@ -1,11 +1,61 @@
-import { Component, ElementRef, inject, viewChild } from '@angular/core';
-import { form, FormField, validate } from '@angular/forms/signals';
-import { VOTE_ESTIMATE_LABEL, VOTE_ESTIMATE_LEVELS } from '../../../../core/models/vote-estimate';
-import { IconComponent } from '../../../../shared/components/icon/icon.component';
+import { Component, computed, ElementRef, inject, viewChild } from '@angular/core';
+import { form, FormField } from '@angular/forms/signals';
+import { VOTE_ESTIMATE_LABEL } from '../../../../core/models/vote-estimate';
+import { IconComponent, type IconName } from '../../../../shared/components/icon/icon.component';
 import { FilterSelectionComponent } from '../../../../shared/components/filter-selection/filter-selection.component';
-import { AGE_RANGES, BIRTHDAY_MONTHS } from '../../models/citizen-list';
-import { birthdayCombinationIsValid } from '../../models/citizen-birth-filters';
+import { birthdayFiltersAreCompatible } from '../../models/citizen-birth-filters';
+import type { CitizenListFacet } from '../../models/citizen-list';
 import { CitizenListService } from '../../services/citizen-list.service';
+
+const PROFILE_FILTERS = [
+  {
+    key: 'neighborhoods',
+    label: 'Bairro',
+    hint: 'Mostra munícipes de qualquer bairro escolhido.',
+    placeholder: 'Buscar bairro...',
+    itemLabel: 'bairro',
+    icon: 'location',
+  },
+  {
+    key: 'voteEstimates',
+    label: VOTE_ESTIMATE_LABEL,
+    hint: 'Inclui qualquer nível escolhido, inclusive Sem estimativa.',
+    placeholder: 'Buscar estimativa...',
+    itemLabel: 'estimativa',
+    icon: 'chart',
+  },
+  {
+    key: 'ageRanges',
+    label: 'Faixa etária',
+    hint: 'Mostra munícipes em qualquer faixa escolhida.',
+    placeholder: 'Buscar faixa etária...',
+    itemLabel: 'faixa etária',
+    icon: 'user',
+  },
+  {
+    key: 'birthdayDays',
+    label: 'Dia do aniversário',
+    hint: 'Filtra por qualquer dia escolhido.',
+    placeholder: 'Buscar dia...',
+    itemLabel: 'dia',
+    icon: 'calendar',
+  },
+  {
+    key: 'birthdayMonths',
+    label: 'Mês do aniversário',
+    hint: 'Filtra por qualquer mês escolhido.',
+    placeholder: 'Buscar mês...',
+    itemLabel: 'mês',
+    icon: 'calendar',
+  },
+] satisfies readonly {
+  key: CitizenListFacet;
+  label: string;
+  hint: string;
+  placeholder: string;
+  itemLabel: string;
+  icon: IconName;
+}[];
 
 @Component({
   imports: [FormField, IconComponent, FilterSelectionComponent],
@@ -15,18 +65,12 @@ import { CitizenListService } from '../../services/citizen-list.service';
 })
 export class CitizenFiltersComponent {
   protected readonly list = inject(CitizenListService);
-  protected readonly filtersForm = form(this.list.model, (schema) => {
-    validate(schema.birthdayDay, ({ value, valueOf }) =>
-      birthdayCombinationIsValid(value(), valueOf(schema.birthdayMonth))
-        ? undefined
-        : { kind: 'birthday', message: 'O mês selecionado não possui esse dia.' },
-    );
+  protected readonly filtersForm = form(this.list.model);
+  protected readonly profileFilters = PROFILE_FILTERS;
+  protected readonly hasInvalidBirthdayFilters = computed(() => {
+    const { birthdayDays, birthdayMonths } = this.list.model();
+    return !birthdayFiltersAreCompatible(birthdayDays, birthdayMonths);
   });
-  protected readonly ageRanges = AGE_RANGES;
-  protected readonly voteEstimateLabel = VOTE_ESTIMATE_LABEL;
-  protected readonly voteEstimateLevels = VOTE_ESTIMATE_LEVELS;
-  protected readonly birthdayMonths = BIRTHDAY_MONTHS;
-  protected readonly birthdayDays = Array.from({ length: 31 }, (_, index) => String(index + 1));
   private readonly dialog = viewChild.required<ElementRef<HTMLDialogElement>>('sidebar');
   private readonly searchInput = viewChild.required<ElementRef<HTMLInputElement>>('searchInput');
   private trigger: HTMLElement | null = null;

@@ -1,19 +1,23 @@
 import { computed, signal } from '@angular/core';
-import type { CitizenListQuery, CitizenListResult } from '../models/citizen-list';
+import {
+  CITIZEN_LIST_FACETS,
+  type CitizenListQuery,
+  type CitizenListResult,
+} from '../models/citizen-list';
 
 export const initialQuery = (): CitizenListQuery => ({
   query: '',
-  neighborhood: '',
-  voteEstimate: '',
+  neighborhoods: [],
+  voteEstimates: [],
   includedCategories: [],
   excludedCategories: [],
   categoryMatch: 'all',
   includedDepartmentIds: [],
   excludedDepartmentIds: [],
-  ageRange: '',
-  birthdayDay: '',
-  birthdayMonth: '',
-  requestStatus: '',
+  ageRanges: [],
+  birthdayDays: [],
+  birthdayMonths: [],
+  requestStatuses: [],
   order: 'name-asc',
 });
 
@@ -26,7 +30,7 @@ export class CitizenListStore {
   readonly loading = computed(() => this.pending() || this.appliedQuery() !== this.model());
   readonly results = computed(() => this.response()?.items ?? []);
   readonly total = computed(() => this.response()?.total ?? 0);
-  readonly neighborhoods = computed(() => this.response()?.neighborhoods ?? []);
+  readonly facetChoices = computed(() => this.response()?.facetChoices);
   readonly categories = computed(() => this.response()?.categories ?? []);
   readonly categoryChoices = computed(() =>
     this.categories().map((name) => ({ value: name, label: name })),
@@ -49,26 +53,13 @@ export class CitizenListStore {
     return this.selectedIds().filter((id) => !ids.has(id)).length;
   });
   readonly activeFilterCount = computed(() => {
-    const {
-      neighborhood,
-      voteEstimate,
-      includedCategories,
-      excludedCategories,
-      requestStatus,
-      includedDepartmentIds,
-      excludedDepartmentIds,
-      ageRange,
-      birthdayDay,
-      birthdayMonth,
-    } = this.model();
+    const model = this.model();
     return (
-      [neighborhood, voteEstimate, requestStatus, ageRange, birthdayDay, birthdayMonth].filter(
-        Boolean,
-      ).length +
-      includedCategories.length +
-      excludedCategories.length +
-      includedDepartmentIds.length +
-      excludedDepartmentIds.length
+      CITIZEN_LIST_FACETS.reduce((count, facet) => count + model[facet].length, 0) +
+      model.includedCategories.length +
+      model.excludedCategories.length +
+      model.includedDepartmentIds.length +
+      model.excludedDepartmentIds.length
     );
   });
   readonly hasCriteria = computed(
