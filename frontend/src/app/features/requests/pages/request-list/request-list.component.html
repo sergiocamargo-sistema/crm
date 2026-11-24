@@ -149,15 +149,31 @@
         <option value="completed">Finalizada</option>
       </select>
     </label>
-    <label>
-      <span class="form-label">Departamento</span>
-      <select class="form-select" [formField]="filters.departmentId">
-        <option value="">Todos os departamentos</option>
-        @for (department of state.departments(); track department.id) {
-          <option [value]="department.id">{{ department.label }}</option>
-        }
-      </select>
-    </label>
+    <app-filter-selection
+      controlId="request-list-included-departments"
+      label="Incluir por departamento"
+      hint="Mostra solicitações dos departamentos selecionados e de seus setores."
+      placeholder="Buscar departamento..."
+      itemLabel="departamento"
+      icon="building"
+      [choices]="state.departmentChoices()"
+      [selected]="state.query().includedDepartmentIds"
+      (added)="setDepartmentFilter('include', $event, true)"
+      (removed)="setDepartmentFilter('include', $event, false)"
+    />
+    <app-filter-selection
+      controlId="request-list-excluded-departments"
+      label="Excluir por departamento"
+      hint="Oculta solicitações dos departamentos selecionados e de seus setores."
+      placeholder="Buscar departamento..."
+      itemLabel="departamento"
+      icon="building"
+      [choices]="state.departmentChoices()"
+      [selected]="state.query().excludedDepartmentIds"
+      [excluding]="true"
+      (added)="setDepartmentFilter('exclude', $event, true)"
+      (removed)="setDepartmentFilter('exclude', $event, false)"
+    />
     <label>
       <span class="form-label">Ordenar por abertura</span>
       <select class="form-select" [formField]="filters.order">

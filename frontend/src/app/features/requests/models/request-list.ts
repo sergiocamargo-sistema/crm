@@ -11,7 +11,8 @@ export interface RequestListItem extends Pick<
 export interface RequestListQuery {
   readonly text: string;
   readonly status: '' | CitizenRequest['status'];
-  readonly departmentId: string;
+  readonly includedDepartmentIds: readonly string[];
+  readonly excludedDepartmentIds: readonly string[];
   readonly order: 'recent' | 'oldest';
 }
 
@@ -23,6 +24,7 @@ export interface RequestListResult {
 export const initialRequestListQuery = (): RequestListQuery => ({
   text: '',
   status: '',
-  departmentId: '',
+  includedDepartmentIds: [],
+  excludedDepartmentIds: [],
   order: 'recent',
 });

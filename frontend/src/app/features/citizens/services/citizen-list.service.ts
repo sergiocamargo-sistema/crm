@@ -2,6 +2,10 @@ import { DestroyRef, effect, inject, Service, signal, untracked } from '@angular
 import { CITIZEN_DETAIL_REPOSITORY } from '../repositories/citizen-detail-repository';
 import { currentCitizenCalendarDate } from '../models/citizen-birth-filters';
 import { CitizenListStore, initialQuery } from '../stores/citizen-list.store';
+import {
+  updateDepartmentFilter,
+  type DepartmentFilterMode,
+} from '../../requests/models/department-options';
 
 @Service()
 export class CitizenListService {
@@ -78,32 +82,15 @@ export class CitizenListService {
   clearFilters(): void {
     this.model.update((value) => ({ ...initialQuery(), query: value.query, order: value.order }));
   }
-  addDepartmentFilter(mode: 'include' | 'exclude', id: string): void {
+  addDepartmentFilter(mode: DepartmentFilterMode, id: string): void {
     if (!this.departmentChoices().some((department) => department.value === id)) return;
     this.model.update((value) => ({
       ...value,
-      includedDepartmentIds:
-        mode === 'include'
-          ? [...new Set([...value.includedDepartmentIds, id])]
-          : value.includedDepartmentIds.filter((value) => value !== id),
-      excludedDepartmentIds:
-        mode === 'exclude'
-          ? [...new Set([...value.excludedDepartmentIds, id])]
-          : value.excludedDepartmentIds.filter((value) => value !== id),
+      ...updateDepartmentFilter(value, mode, id, true),
     }));
   }
-  removeDepartmentFilter(mode: 'include' | 'exclude', id: string): void {
-    this.model.update((value) =>
-      mode === 'include'
-        ? {
-            ...value,
-            includedDepartmentIds: value.includedDepartmentIds.filter((value) => value !== id),
-          }
-        : {
-            ...value,
-            excludedDepartmentIds: value.excludedDepartmentIds.filter((value) => value !== id),
-          },
-    );
+  removeDepartmentFilter(mode: DepartmentFilterMode, id: string): void {
+    this.model.update((value) => ({ ...value, ...updateDepartmentFilter(value, mode, id, false) }));
   }
   addCategoryFilter(mode: 'include' | 'exclude', name: string): void {
     if (!this.categories().includes(name)) return;

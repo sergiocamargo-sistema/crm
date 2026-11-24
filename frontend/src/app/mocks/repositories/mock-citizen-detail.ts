@@ -170,20 +170,23 @@ export class MockCitizenDetailRepository implements CitizenDetailRepository, Aut
     const requests = this.requests();
     const citizens = new Map(this.citizens().map(({ id, name }) => [id, { id, name }]));
     const extras = this.requestExtras();
-    const departments = new Map(
-      this.departments().map((department) => [department.id, department]),
-    );
+    const departmentCatalog = this.departments();
+    const departments = new Map(departmentCatalog.map((department) => [department.id, department]));
     const departmentLabels = terms.length
-      ? new Map(departmentOptions(this.departments()).map(({ id, label }) => [id, label]))
+      ? new Map(departmentOptions(departmentCatalog).map(({ id, label }) => [id, label]))
       : null;
-    const departmentScope = query.departmentId
-      ? departmentScopeIds(this.departments(), [query.departmentId])
+    const includedDepartments = query.includedDepartmentIds.length
+      ? departmentScopeIds(departmentCatalog, query.includedDepartmentIds)
+      : null;
+    const excludedDepartments = query.excludedDepartmentIds.length
+      ? departmentScopeIds(departmentCatalog, query.excludedDepartmentIds)
       : null;
     const items = requests.flatMap(({ record, citizenId }) => {
       const { id, title, description, protocol, status, createdAt } = record;
       const departmentId = extras[id]?.departmentId ?? '';
       if (query.status && status !== query.status) return [];
-      if (departmentScope && !departmentScope.has(departmentId)) return [];
+      if (excludedDepartments?.has(departmentId)) return [];
+      if (includedDepartments && !includedDepartments.has(departmentId)) return [];
       const department = departments.get(departmentId)?.name ?? record.department;
       const citizen = citizenId ? (citizens.get(citizenId) ?? null) : null;
       if (terms.length) {

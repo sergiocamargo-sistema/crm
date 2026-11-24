@@ -1,6 +1,10 @@
 import { computed, inject, Service, signal } from '@angular/core';
 import { CITIZEN_DETAIL_REPOSITORY } from '../../citizens/repositories/citizen-detail-repository';
-import { departmentOptions } from '../models/department-options';
+import {
+  departmentOptions,
+  updateDepartmentFilter,
+  type DepartmentFilterMode,
+} from '../models/department-options';
 import { initialRequestListQuery } from '../models/request-list';
 import { RequestListStore } from '../stores/request-list.store';
 
@@ -13,6 +17,15 @@ export class RequestListService {
     computed(() => this.repository.loadRequestList(this.query())),
     computed(() => departmentOptions(this.repository.listDepartments())),
   );
+
+  setDepartmentFilter(mode: DepartmentFilterMode, id: string, selected: boolean): void {
+    if (selected && !this.store.departmentChoices().some((department) => department.value === id))
+      return;
+    this.query.update((value) => ({
+      ...value,
+      ...updateDepartmentFilter(value, mode, id, selected),
+    }));
+  }
 
   reset(): void {
     this.query.set(initialRequestListQuery());

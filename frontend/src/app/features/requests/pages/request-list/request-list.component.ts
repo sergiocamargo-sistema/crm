@@ -3,10 +3,12 @@ import { afterNextRender, Component, ElementRef, inject, viewChild } from '@angu
 import { form, FormField } from '@angular/forms/signals';
 import { RouterLink } from '@angular/router';
 import { IconComponent } from '../../../../shared/components/icon/icon.component';
+import { FilterSelectionComponent } from '../../../../shared/components/filter-selection/filter-selection.component';
+import type { DepartmentFilterMode } from '../../models/department-options';
 import { RequestListService } from '../../services/request-list.service';
 
 @Component({
-  imports: [DatePipe, FormField, IconComponent, RouterLink],
+  imports: [DatePipe, FilterSelectionComponent, FormField, IconComponent, RouterLink],
   selector: 'app-request-list',
   templateUrl: './request-list.component.html',
   styleUrl: './request-list.component.scss',
@@ -28,5 +30,8 @@ export class RequestListComponent {
 
   protected resetFilters(): void {
     this.service.reset();
+  }
+  protected setDepartmentFilter(mode: DepartmentFilterMode, id: string, selected: boolean): void {
+    this.service.setDepartmentFilter(mode, id, selected);
   }
 }

@@ -4,6 +4,30 @@ export interface DepartmentOption extends Department {
   readonly label: string;
 }
 
+export type DepartmentFilterMode = 'include' | 'exclude';
+
+interface DepartmentFilterSelection {
+  readonly includedDepartmentIds: readonly string[];
+  readonly excludedDepartmentIds: readonly string[];
+}
+
+export function updateDepartmentFilter(
+  selection: DepartmentFilterSelection,
+  mode: DepartmentFilterMode,
+  id: string,
+  selected: boolean,
+): DepartmentFilterSelection {
+  const update = (ids: readonly string[], group: DepartmentFilterMode): readonly string[] => {
+    if (selected && group === mode) return ids.includes(id) ? ids : [...ids, id];
+    if (selected || group === mode) return ids.filter((value) => value !== id);
+    return ids;
+  };
+  return {
+    includedDepartmentIds: update(selection.includedDepartmentIds, 'include'),
+    excludedDepartmentIds: update(selection.excludedDepartmentIds, 'exclude'),
+  };
+}
+
 export function departmentOptions(departments: readonly Department[]): readonly DepartmentOption[] {
   const byParent = new Map<string | null, Department[]>();
   for (const department of departments) {
