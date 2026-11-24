@@ -1,5 +1,6 @@
 import { Component, ElementRef, inject, viewChild } from '@angular/core';
 import { form, FormField, validate } from '@angular/forms/signals';
+import { VOTE_ESTIMATE_LABEL, VOTE_ESTIMATE_LEVELS } from '../../../../core/models/vote-estimate';
 import { IconComponent } from '../../../../shared/components/icon/icon.component';
 import { FilterSelectionComponent } from '../../../../shared/components/filter-selection/filter-selection.component';
 import { AGE_RANGES, BIRTHDAY_MONTHS } from '../../models/citizen-list';
@@ -22,6 +23,8 @@ export class CitizenFiltersComponent {
     );
   });
   protected readonly ageRanges = AGE_RANGES;
+  protected readonly voteEstimateLabel = VOTE_ESTIMATE_LABEL;
+  protected readonly voteEstimateLevels = VOTE_ESTIMATE_LEVELS;
   protected readonly birthdayMonths = BIRTHDAY_MONTHS;
   protected readonly birthdayDays = Array.from({ length: 31 }, (_, index) => String(index + 1));
   private readonly dialog = viewChild.required<ElementRef<HTMLDialogElement>>('sidebar');

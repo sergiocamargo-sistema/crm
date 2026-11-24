@@ -64,6 +64,16 @@
             }
           </select>
         </label>
+        <label>
+          <span class="form-label">{{ voteEstimateLabel }}</span>
+          <select class="form-select" [formField]="filtersForm.voteEstimate">
+            <option value="">Sem filtro de estimativa</option>
+            <option value="unset">Sem estimativa</option>
+            @for (level of voteEstimateLevels; track level) {
+              <option [value]="level.toString()">{{ level }}%</option>
+            }
+          </select>
+        </label>
         <div class="birth-filters">
           <label
             ><span class="form-label">Faixa etária</span>

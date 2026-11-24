@@ -1,4 +1,5 @@
 import type { CitizenSummary } from '../../../core/models/citizen-summary';
+import type { VoteEstimate } from '../../../core/models/vote-estimate';
 import type { CitizenDetail, CitizenPhoto } from './citizen-detail';
 import type { DepartmentOption } from '../../requests/models/department-options';
 
@@ -25,6 +26,7 @@ export interface CitizenListResult {
 export interface CitizenListQuery {
   readonly query: string;
   readonly neighborhood: string;
+  readonly voteEstimate: '' | 'unset' | `${VoteEstimate}`;
   readonly includedCategories: readonly string[];
   readonly excludedCategories: readonly string[];
   readonly categoryMatch: 'all' | 'any';

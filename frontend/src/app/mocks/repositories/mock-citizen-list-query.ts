@@ -1,3 +1,4 @@
+import type { VoteEstimate } from '../../core/models/vote-estimate';
 import {
   AGE_RANGES,
   type CitizenListItem,
@@ -10,6 +11,7 @@ import type { Department } from '../../features/requests/models/request-detail';
 // Campos de consulta ficam no mock e não são enviados à listagem.
 export interface MockCitizenListRecord extends CitizenListItem {
   readonly birthDate: string | null;
+  readonly voteEstimate: VoteEstimate | null;
   readonly observations: string;
   readonly phoneNumbers: readonly string[];
   readonly requests: readonly {
@@ -40,6 +42,12 @@ export function queryMockCitizens(
   const numericQuery = /^[\d\s()+.-]+$/.test(query) && digits.length > 0;
   return citizens
     .filter((person) => {
+      if (
+        filters.voteEstimate &&
+        filters.voteEstimate !==
+          (person.voteEstimate === null ? 'unset' : String(person.voteEstimate))
+      )
+        return false;
       const text = normalize(
         [
           person.name,

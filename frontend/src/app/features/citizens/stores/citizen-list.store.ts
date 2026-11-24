@@ -4,6 +4,7 @@ import type { CitizenListQuery, CitizenListResult } from '../models/citizen-list
 export const initialQuery = (): CitizenListQuery => ({
   query: '',
   neighborhood: '',
+  voteEstimate: '',
   includedCategories: [],
   excludedCategories: [],
   categoryMatch: 'all',
@@ -50,6 +51,7 @@ export class CitizenListStore {
   readonly activeFilterCount = computed(() => {
     const {
       neighborhood,
+      voteEstimate,
       includedCategories,
       excludedCategories,
       requestStatus,
@@ -60,7 +62,9 @@ export class CitizenListStore {
       birthdayMonth,
     } = this.model();
     return (
-      [neighborhood, requestStatus, ageRange, birthdayDay, birthdayMonth].filter(Boolean).length +
+      [neighborhood, voteEstimate, requestStatus, ageRange, birthdayDay, birthdayMonth].filter(
+        Boolean,
+      ).length +
       includedCategories.length +
       excludedCategories.length +
       includedDepartmentIds.length +

@@ -570,7 +570,9 @@ export class MockCitizenDetailRepository implements CitizenDetailRepository, Aut
     const departments = this.departments();
     const matches = queryMockCitizens(citizens, departments, query, currentCitizenCalendarDate());
     return {
-      items: matches.map(({ birthDate, observations, phoneNumbers, requests, ...item }) => item),
+      items: matches.map(
+        ({ birthDate, voteEstimate, observations, phoneNumbers, requests, ...item }) => item,
+      ),
       total: citizens.length,
       neighborhoods: [...new Set(citizens.map((person) => person.neighborhood))].sort((a, b) =>
         a.localeCompare(b, 'pt-BR'),
@@ -585,6 +587,7 @@ export class MockCitizenDetailRepository implements CitizenDetailRepository, Aut
     const contacts = this.contacts();
     const requestExtras = this.requestExtras();
     return this.citizens().map((citizen) => {
+      const estimateEdit = edits[citizen.id]?.voteEstimate;
       const requests = this.requestsForCitizen(citizen.id);
       const interactions = contacts[citizen.id] ?? citizen.interactions;
       const lastInteractionAt = interactions
@@ -609,6 +612,7 @@ export class MockCitizenDetailRepository implements CitizenDetailRepository, Aut
         phone: citizen.phone,
         cra: citizen.cra,
         birthDate: citizen.birthDate,
+        voteEstimate: estimateEdit === undefined ? (citizen.voteEstimate ?? null) : estimateEdit,
         observations: edits[citizen.id]?.observations ?? citizen.observations,
         photo: original && thumbnail ? { src: thumbnail.toString(), label: original.label } : null,
         phoneNumbers: citizen.phones.map((phone) => phone.number),
