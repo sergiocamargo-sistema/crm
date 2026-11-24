@@ -37,15 +37,14 @@ service-account*.json
 serviceAccount*.json
 firebase-adminsdk*.json
 
-# Arquivos locais de editores e agentes; manter a configuração MCP do projeto
+# Arquivos locais de editores e agentes
 .idea/
 .history/
 .DS_Store
 Thumbs.db
 *.swp
 *.swo
-/.codex/*
-!/.codex/config.toml
+/.codex/
 
 # Planejamento e documentação de trabalho: somente local
 /docs/
