@@ -28,7 +28,7 @@ export class HomePageComponent {
   private noticeTimer: ReturnType<typeof setTimeout> | undefined;
   protected readonly modules: readonly HomeModule[] = [
     { id: 'municipes', label: 'Munícipes', icon: 'users', route: '/municipes' },
-    { id: 'kanban', label: 'Kanban', icon: 'kanban', route: '/kanban' },
+    { id: 'kanban', label: 'Tarefas', icon: 'kanban', route: '/kanban' },
     { id: 'solicitacoes', label: 'Solicitações', icon: 'clipboard', route: '/solicitacoes' },
     { id: 'conversas', label: 'Conversas', icon: 'message' },
     { id: 'projetos-de-lei', label: 'Projetos de lei', icon: 'filePen' },

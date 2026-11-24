@@ -3,7 +3,7 @@ import AxeBuilder from '@axe-core/playwright';
 
 const modules = [
   'Munícipes',
-  'Kanban',
+  'Tarefas',
   'Solicitações',
   'Conversas',
   'Projetos de lei',

@@ -29,7 +29,7 @@ export const routes: Routes = [
   },
   {
     path: 'kanban',
-    title: 'Kanban · Gabinete Sérgio Camargo',
+    title: 'Tarefas · Gabinete Sérgio Camargo',
     loadComponent: () =>
       import('./features/kanban/pages/kanban-board/kanban-board.component').then(
         (module) => module.KanbanBoardComponent,
