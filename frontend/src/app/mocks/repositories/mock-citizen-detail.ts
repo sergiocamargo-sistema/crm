@@ -528,6 +528,7 @@ export class MockCitizenDetailRepository implements CitizenDetailRepository {
         phone: person.phone,
         cra: person.cra ?? '',
         categories: this.profileEdits()[id]?.categories ?? person.categories,
+        observations: this.profileEdits()[id]?.observations ?? person.observations,
         birthDate: person.birthDate,
       };
     });

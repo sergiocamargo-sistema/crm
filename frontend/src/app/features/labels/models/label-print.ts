@@ -8,6 +8,7 @@ export const LABEL_FIELDS = [
   { value: 'phone', label: 'Telefone' },
   { value: 'cra', label: 'CRA' },
   { value: 'categories', label: 'Categorias' },
+  { value: 'observations', label: 'Observação' },
   { value: 'birthday', label: 'Aniversário' },
   { value: 'text', label: 'Texto fixo' },
 ] as const;
@@ -58,6 +59,7 @@ export interface LabelRecipient {
   readonly phone: string;
   readonly cra: string;
   readonly categories: readonly string[];
+  readonly observations: string;
   readonly birthDate: string | null;
 }
 export interface LabelJob {

@@ -127,6 +127,7 @@ export function labelFieldText(
     case 'complement':
     case 'neighborhood':
     case 'phone':
+    case 'observations':
       return recipient[field];
     default:
       return '';
