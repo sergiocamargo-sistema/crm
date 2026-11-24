@@ -4,6 +4,20 @@
   overflow-wrap: anywhere;
 }
 
+.branch-identity {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.vote-estimate-badge {
+  max-inline-size: 100%;
+  flex-wrap: wrap;
+  white-space: normal;
+}
+
 .profile-link {
   margin-inline-start: auto;
 }

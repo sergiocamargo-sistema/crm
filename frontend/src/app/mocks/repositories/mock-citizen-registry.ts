@@ -7,7 +7,9 @@ import { MOCK_CITIZEN_DETAILS } from '../data/citizen-details.mock';
 export class MockCitizenRegistry {
   readonly citizens = signal<readonly CitizenDetail[]>(MOCK_CITIZEN_DETAILS);
   readonly profileEdits = signal<
-    Readonly<Record<string, Partial<Pick<CitizenDetail, 'observations' | 'categories'>>>>
+    Readonly<
+      Record<string, Partial<Pick<CitizenDetail, 'observations' | 'categories' | 'voteEstimate'>>>
+    >
   >({});
   private readonly photoUrls = new Set<string>();
 

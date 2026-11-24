@@ -28,6 +28,7 @@ import { CitizenCategoriesComponent } from '../../../../shared/components/citize
 import { DictationButtonComponent } from '../../../../shared/components/dictation-button/dictation-button.component';
 import { SpeechToTextDirective } from '../../../../shared/directives/speech-to-text.directive';
 import { PhotoGalleryComponent } from '../../../../shared/components/photo-gallery/photo-gallery.component';
+import { VoteEstimateSliderComponent } from '../../../../shared/components/vote-estimate-slider/vote-estimate-slider.component';
 import {
   emptyCitizenDraft,
   validCitizenBirthDate,
@@ -48,6 +49,7 @@ import type { CitizenSummary } from '../../../../core/models/citizen-summary';
     DictationButtonComponent,
     SpeechToTextDirective,
     PhotoGalleryComponent,
+    VoteEstimateSliderComponent,
   ],
   providers: [CitizenRegistrationService],
   selector: 'app-citizen-editor',

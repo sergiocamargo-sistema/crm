@@ -1,0 +1,39 @@
+<div class="estimate-heading">
+  <label class="form-label" [for]="controlId()">{{ label }}</label>
+  @if (value() === null) {
+    <span class="estimate-unset">Sem estimativa</span>
+  } @else {
+    <span class="badge">{{ value() }}%</span>
+  }
+</div>
+
+<input
+  #slider
+  class="estimate-slider"
+  [class.estimate-slider--unset]="value() === null"
+  type="range"
+  [id]="controlId()"
+  min="0"
+  [attr.max]="levels.length"
+  step="1"
+  [value]="position().toString()"
+  [disabled]="disabled()"
+  [attr.aria-valuetext]="valueText()"
+  [attr.aria-describedby]="controlId() + '-hint'"
+  (input)="selectPosition(slider.valueAsNumber)"
+/>
+
+<div class="estimate-scale" aria-hidden="true">
+  <span>—</span>
+  @for (level of levels; track level) {
+    <span>{{ level }}%</span>
+  }
+</div>
+<span class="sr-only" [id]="controlId() + '-hint'">
+  Use as setas para escolher. A primeira posição deixa a estimativa em branco.
+</span>
+@if (value() !== null && !disabled()) {
+  <button type="button" class="text-button clear-estimate" (click)="clear()">
+    Limpar estimativa
+  </button>
+}

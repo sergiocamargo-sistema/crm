@@ -1,4 +1,5 @@
 import type { CitizenSummary } from '../../../core/models/citizen-summary';
+import type { VoteEstimate } from '../../../core/models/vote-estimate';
 import type { IconName } from '../../../shared/components/icon/icon.component';
 
 export const INTERACTION_TYPES = [
@@ -150,6 +151,7 @@ export interface CitizenDetail extends CitizenSummary {
     readonly issuer: string;
   }[];
   readonly referrerId?: string;
+  readonly voteEstimate: VoteEstimate | null;
   readonly creationReview?: {
     readonly reason: string;
     readonly candidateIds: readonly string[];

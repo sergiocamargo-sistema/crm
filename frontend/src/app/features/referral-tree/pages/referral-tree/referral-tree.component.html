@@ -8,7 +8,16 @@
     >
       <app-icon name="back" />
     </a>
-    <h1 #heading tabindex="-1">{{ current()?.name ?? 'Árvore' }}</h1>
+    <div class="branch-identity">
+      <h1 #heading tabindex="-1">{{ current()?.name ?? 'Árvore' }}</h1>
+      @if (current(); as person) {
+        @if (person.voteEstimate !== null) {
+          <span class="badge vote-estimate-badge">
+            {{ voteEstimateLabel }} <strong>{{ person.voteEstimate }}%</strong>
+          </span>
+        }
+      }
+    </div>
     @if (current(); as person) {
       <a
         class="icon-button profile-link"
@@ -75,6 +84,11 @@
                     </span>
                     {{ person.name }}
                   </span>
+                  @if (person.voteEstimate !== null) {
+                    <span class="badge vote-estimate-badge">
+                      {{ voteEstimateLabel }} <strong>{{ person.voteEstimate }}%</strong>
+                    </span>
+                  }
                   <span class="muted">
                     @switch (person.childCount) {
                       @case (0) {

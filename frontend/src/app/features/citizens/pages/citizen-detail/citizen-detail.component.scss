@@ -73,6 +73,9 @@ h1:focus {
   border-radius: var(--radius-card);
   box-shadow: var(--shadow-card);
 }
+.vote-estimate-save {
+  align-self: flex-start;
+}
 .card-heading {
   display: flex;
   align-items: center;

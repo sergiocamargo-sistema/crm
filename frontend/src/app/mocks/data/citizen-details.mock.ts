@@ -218,6 +218,7 @@ export const MOCK_CITIZEN_DETAILS: readonly CitizenDetail[] = MOCK_CITIZENS.map(
       cra: String(100001 + index),
       observations: profile.observations,
       ...(referrer ? { referrerId: referrer.id } : {}),
+      voteEstimate: null,
       categories: ['Paróquia Sagrada Família', 'Ministro da Eucaristia', 'Pastoral Familiar'],
       phones: [
         phone(citizen.phone, 'Principal', true),

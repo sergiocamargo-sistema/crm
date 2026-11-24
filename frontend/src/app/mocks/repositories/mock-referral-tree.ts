@@ -9,17 +9,27 @@ import { MockCitizenRegistry } from './mock-citizen-registry';
 
 const byName = new Intl.Collator('pt-BR');
 
-function toPerson({ id, name, initials }: ReferralTreePerson): ReferralTreePerson {
-  return { id, name, initials };
+function toPerson({ id, name, initials, voteEstimate }: ReferralTreePerson): ReferralTreePerson {
+  return { id, name, initials, voteEstimate };
 }
 
 @Service()
 export class MockReferralTreeRepository implements ReferralTreeRepository {
   private readonly registry = inject(MockCitizenRegistry);
   private readonly index = computed(() => {
+    const edits = this.registry.profileEdits();
     const people = this.registry
       .citizens()
-      .map(({ id, name, initials, referrerId }) => ({ id, name, initials, referrerId }))
+      .map(({ id, name, initials, referrerId, voteEstimate }) => {
+        const estimateEdit = edits[id]?.voteEstimate;
+        return {
+          id,
+          name,
+          initials,
+          referrerId,
+          voteEstimate: estimateEdit === undefined ? (voteEstimate ?? null) : estimateEdit,
+        };
+      })
       .sort((a, b) => byName.compare(a.name, b.name));
     const byId = new Map(people.map((person) => [person.id, person]));
     const children = new Map<string, ReferralTreePerson[]>();

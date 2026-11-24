@@ -10,11 +10,15 @@ import {
   inject,
   Injector,
   input,
+  linkedSignal,
   signal,
   viewChild,
 } from '@angular/core';
+import { form, FormField } from '@angular/forms/signals';
 import { RouterLink } from '@angular/router';
+import { VOTE_ESTIMATE_LABEL } from '../../../../core/models/vote-estimate';
 import { IconComponent } from '../../../../shared/components/icon/icon.component';
+import { VoteEstimateSliderComponent } from '../../../../shared/components/vote-estimate-slider/vote-estimate-slider.component';
 import { CitizenDetailService } from '../../services/citizen-detail';
 import { CitizenTimelineComponent } from '../../components/citizen-timeline/citizen-timeline.component';
 import { CitizenPhotoGalleryComponent } from '../../components/citizen-photo-gallery/citizen-photo-gallery.component';
@@ -38,6 +42,8 @@ const registrationFormatter = new Intl.DateTimeFormat('pt-BR', {
     NewInteractionComponent,
     CitizenNotesComponent,
     CitizenActivityShortcutsComponent,
+    FormField,
+    VoteEstimateSliderComponent,
   ],
   selector: 'app-citizen-detail',
   styleUrl: './citizen-detail.component.scss',
@@ -51,6 +57,7 @@ export class CitizenDetailComponent {
   private readonly injector = inject(Injector);
   private readonly destroyRef = inject(DestroyRef);
   private readonly pageTitle = viewChild<ElementRef<HTMLHeadingElement>>('pageTitle');
+  private readonly voteEstimateSlider = viewChild(VoteEstimateSliderComponent);
   private readonly actionsTrigger = viewChild<ElementRef<HTMLButtonElement>>('actionsTrigger');
   private readonly actionsPanel = viewChild<ElementRef<HTMLElement>>('actionsPanel');
   private readonly mobileMedia = this.document.defaultView?.matchMedia('(max-width: 600px)');
@@ -58,6 +65,18 @@ export class CitizenDetailComponent {
   protected readonly actionsExpanded = signal(false);
   private statusTimer: ReturnType<typeof setTimeout> | undefined;
   protected readonly citizen = this.service.observeCitizen(this.id).state;
+  protected readonly voteEstimateLabel = VOTE_ESTIMATE_LABEL;
+  private readonly savedVoteEstimate = computed(() => this.citizen()?.voteEstimate ?? null);
+  private readonly voteEstimateDraft = linkedSignal({
+    source: () => ({ id: this.id(), estimate: this.savedVoteEstimate() }),
+    computation: ({ estimate }) => ({ estimate }),
+  });
+  protected readonly voteEstimateForm = form(this.voteEstimateDraft);
+  protected readonly voteEstimateChanged = computed(
+    () => this.voteEstimateDraft().estimate !== this.savedVoteEstimate(),
+  );
+  protected readonly voteEstimateStatus = signal('');
+  protected readonly voteEstimateError = signal('');
   protected readonly addresses = computed(() => {
     const person = this.citizen();
     if (!person) return [];
@@ -79,6 +98,8 @@ export class CitizenDetailComponent {
     effect(() => {
       this.id();
       this.shareStatus.set('');
+      this.voteEstimateStatus.set('');
+      this.voteEstimateError.set('');
       this.closeActions();
       afterNextRender(
         () => {
@@ -110,6 +131,23 @@ export class CitizenDetailComponent {
       };
       media.addEventListener('change', onChange);
       this.destroyRef.onDestroy(() => media.removeEventListener('change', onChange));
+    }
+  }
+
+  protected saveVoteEstimate(event: SubmitEvent): void {
+    event.preventDefault();
+    if (!this.voteEstimateChanged()) return;
+    this.voteEstimateStatus.set('');
+    this.voteEstimateError.set('');
+    const { estimate } = this.voteEstimateDraft();
+    try {
+      this.service.saveVoteEstimate(this.id(), estimate);
+      this.voteEstimateStatus.set(estimate === null ? 'Estimativa removida.' : 'Estimativa salva.');
+      this.voteEstimateSlider()?.focus({ preventScroll: true });
+    } catch (error: unknown) {
+      this.voteEstimateError.set(
+        error instanceof Error ? error.message : 'Não foi possível salvar a estimativa.',
+      );
     }
   }
 

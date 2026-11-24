@@ -83,6 +83,29 @@
           />
         </div>
         <aside class="citizen-information" aria-label="Informações do munícipe">
+          <form
+            class="info-card layout-stack"
+            [attr.aria-label]="voteEstimateLabel"
+            (submit)="saveVoteEstimate($event)"
+          >
+            <app-vote-estimate-slider
+              controlId="citizen-vote-estimate"
+              [formField]="voteEstimateForm.estimate"
+            />
+            <button
+              class="button button--primary vote-estimate-save"
+              type="submit"
+              [disabled]="!voteEstimateChanged()"
+            >
+              Salvar estimativa
+            </button>
+            @if (voteEstimateError(); as error) {
+              <p class="form-error" role="alert">{{ error }}</p>
+            }
+            <p role="status" [class.sr-only]="voteEstimateChanged() || !voteEstimateStatus()">
+              {{ voteEstimateChanged() ? '' : voteEstimateStatus() }}
+            </p>
+          </form>
           <section class="info-card" aria-labelledby="address-title">
             <div class="card-heading">
               <span><app-icon name="location" /></span>

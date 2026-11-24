@@ -1,6 +1,7 @@
 import { inject, Service } from '@angular/core';
 import { TeamCollaborationService } from '../../core/services/team-collaboration.service';
 import type { CitizenDetail } from '../../features/citizens/models/citizen-detail';
+import { isVoteEstimate } from '../../core/models/vote-estimate';
 import {
   citizenPhoneIdentity,
   validCitizenBirthDate,
@@ -179,6 +180,7 @@ export class MockCitizenRegistration {
       addresses,
       documents: draft.documents.map(({ key, ...doc }) => doc),
       referrerId: draft.referrerId || undefined,
+      voteEstimate: draft.voteEstimate,
       categories: draft.categories,
       socialLinks: [],
       personalData: [
@@ -229,6 +231,7 @@ export class MockCitizenRegistration {
       cra: trim(input.cra),
       occupation: trim(input.occupation),
       observations: trim(input.observations),
+      voteEstimate: input.voteEstimate ?? null,
       phones: input.phones
         .filter((phone) => phone.number.trim() || phone.label.trim())
         .map((phone) => ({ ...phone, number: trim(phone.number), label: trim(phone.label) })),
@@ -330,6 +333,8 @@ export class MockCitizenRegistration {
       throw new Error('Uma das categorias selecionadas não está disponível.');
     if (draft.referrerId && !this.registry.citizens().some(({ id }) => id === draft.referrerId))
       throw new Error('O munícipe indicado não foi encontrado.');
+    if (draft.voteEstimate !== null && !isVoteEstimate(draft.voteEstimate))
+      throw new Error('Selecione um nível válido para a estimativa de voto.');
     return draft;
   }
 }

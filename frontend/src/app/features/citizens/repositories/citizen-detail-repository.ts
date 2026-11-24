@@ -12,6 +12,7 @@ import type {
 } from '../models/citizen-registration';
 import type { LabelRecipient } from '../../labels/models/label-print';
 import type { TaskStatus } from '../../../core/models/task';
+import type { VoteEstimate } from '../../../core/models/vote-estimate';
 import type {
   TaskLabel,
   TaskLabelDraft,
@@ -95,6 +96,7 @@ export interface CitizenDetailRepository {
   setRequestTaskCompleted(requestId: string, taskId: string, completed: boolean): void;
   registerContact(citizenId: string, contact: NewCitizenInteraction): void;
   saveObservations(citizenId: string, text: string): void;
+  saveVoteEstimate(citizenId: string, estimate: VoteEstimate | null): void;
   loadCitizenCategories(): Promise<readonly string[]>;
   createCitizenCategory(name: string): Promise<string>;
   addCategory(citizenId: string, name: string): Promise<string>;

@@ -10,6 +10,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { VOTE_ESTIMATE_LABEL } from '../../../../core/models/vote-estimate';
 import { IconComponent } from '../../../../shared/components/icon/icon.component';
 import { ReferralTreeService } from '../../services/referral-tree.service';
 
@@ -22,6 +23,7 @@ import { ReferralTreeService } from '../../services/referral-tree.service';
 export class ReferralTreeComponent {
   readonly id = input<string>();
   protected readonly state = inject(ReferralTreeService).observeBranch(this.id);
+  protected readonly voteEstimateLabel = VOTE_ESTIMATE_LABEL;
   private readonly injector = inject(Injector);
   private readonly heading = viewChild.required<ElementRef<HTMLHeadingElement>>('heading');
 

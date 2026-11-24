@@ -1,5 +1,6 @@
 import { ReadStore } from '../../../core/stores/read-store';
 import { computed, type Signal, inject, Service } from '@angular/core';
+import type { VoteEstimate } from '../../../core/models/vote-estimate';
 import { CITIZEN_DETAIL_REPOSITORY } from '../repositories/citizen-detail-repository';
 import type {
   CitizenDetail,
@@ -47,6 +48,10 @@ export class CitizenDetailService {
   saveObservations(citizenId: string, text: string): void {
     if (text.length > 5000) throw new Error('A observação deve ter até 5.000 caracteres.');
     this.repository.saveObservations(citizenId, text.trim());
+  }
+
+  saveVoteEstimate(citizenId: string, estimate: VoteEstimate | null): void {
+    this.repository.saveVoteEstimate(citizenId, estimate);
   }
 
   registerInteraction(citizenId: string, interaction: NewConversationInteraction): void {

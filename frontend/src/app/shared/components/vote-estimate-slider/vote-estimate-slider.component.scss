@@ -1,0 +1,47 @@
+:host {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+}
+
+.estimate-heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  min-block-size: var(--space-8);
+}
+
+.estimate-heading .form-label {
+  margin: 0;
+}
+
+.estimate-unset,
+.estimate-scale {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
+}
+
+.estimate-slider {
+  inline-size: 100%;
+  min-block-size: var(--space-8);
+  margin: 0;
+  accent-color: var(--color-primary);
+}
+
+.estimate-slider--unset {
+  accent-color: var(--color-text-muted);
+}
+
+.estimate-scale {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-1);
+  font-variant-numeric: tabular-nums;
+}
+
+.clear-estimate {
+  justify-self: start;
+  min-block-size: var(--space-8);
+}

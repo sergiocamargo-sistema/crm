@@ -7,6 +7,7 @@ import { MOCK_DEPARTMENTS } from '../data/sjc-departments.mock';
 import { inject, Service, signal } from '@angular/core';
 import { TeamCollaborationService } from '../../core/services/team-collaboration.service';
 import type { TextReference } from '../../core/models/collaboration';
+import { isVoteEstimate, type VoteEstimate } from '../../core/models/vote-estimate';
 import { MockCitizenRegistry } from './mock-citizen-registry';
 import { MockCitizenRegistration } from './mock-citizen-registration';
 import type { CitizenRegistrationCommand } from '../../features/citizens/models/citizen-registration';
@@ -1525,6 +1526,17 @@ export class MockCitizenDetailRepository implements CitizenDetailRepository, Aut
     this.profileEdits.update((edits) => ({
       ...edits,
       [citizenId]: { ...edits[citizenId], observations: text },
+    }));
+  }
+
+  saveVoteEstimate(citizenId: string, estimate: VoteEstimate | null): void {
+    if (!this.citizens().some(({ id }) => id === citizenId))
+      throw new Error('Munícipe não encontrado.');
+    if (estimate !== null && !isVoteEstimate(estimate))
+      throw new Error('Selecione um nível válido para a estimativa de voto.');
+    this.profileEdits.update((edits) => ({
+      ...edits,
+      [citizenId]: { ...edits[citizenId], voteEstimate: estimate },
     }));
   }
 
