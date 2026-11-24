@@ -70,7 +70,7 @@ export interface CitizenDetailRepository {
   createRequest(citizenId: string | null, request: NewCitizenRequest): string;
   loadRequestWorkspace(id: string): RequestWorkspace | null;
   listRequestAutomationPlans(
-    patternId: string,
+    patternId: string | null,
     requestId?: string,
   ): readonly RequestAutomationPlan[];
   startRequestAutomation(requestId: string, ruleId: string): void;

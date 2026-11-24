@@ -73,7 +73,9 @@ export class RequestDetailService {
     return new ReadStore(
       computed(() => {
         const pattern = patternId();
-        return pattern ? this.repository.listRequestAutomationPlans(pattern, requestId?.()) : [];
+        return pattern === undefined
+          ? []
+          : this.repository.listRequestAutomationPlans(pattern, requestId?.());
       }),
     );
   }

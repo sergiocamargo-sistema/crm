@@ -65,8 +65,8 @@
                     >
                   </div>
                   <p class="muted">
-                    Ao criar solicitação de <strong>{{ patternName(rule.patternId) }}</strong>,
-                    iniciar <strong>{{ setName(rule.setId) }}</strong>.
+                    {{ triggerLabel(rule.trigger) }} · Iniciar
+                    <strong>{{ setName(rule.setId) }}</strong>
                   </p>
                 </div>
                 <div class="record-actions">
@@ -247,7 +247,15 @@
                     >{{ runStatus(run) }}</span
                   >
                 </div>
-                <a [routerLink]="['/solicitacoes', run.requestId]">{{ run.requestTitle }}</a>
+                <p>
+                  <span class="muted"
+                    >{{ run.source.kind === 'request-created' ? 'Solicitação' : 'Interação' }} ·
+                  </span>
+                  <a [routerLink]="sourceRoute(run.source)">{{ run.source.title }}</a>
+                </p>
+                @if (run.source.kind === 'interaction-created' && run.requestId) {
+                  <a [routerLink]="['/solicitacoes', run.requestId]">Ver solicitação vinculada</a>
+                }
                 <p class="muted">
                   {{ run.startedAt | date: 'dd/MM/yyyy HH:mm' : '-0300' }} · {{ run.actor }}
                 </p>
@@ -298,7 +306,7 @@
                 {{
                   state.search().text
                     ? 'Nenhuma execução corresponde à busca.'
-                    : 'Nenhuma execução iniciada. Ative uma automação e crie uma solicitação com o padrão escolhido.'
+                    : 'Nenhuma execução iniciada. Ative uma regra e crie um registro que corresponda ao gatilho.'
                 }}
               </li>
             }

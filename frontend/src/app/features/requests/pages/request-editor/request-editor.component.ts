@@ -84,7 +84,7 @@ export class RequestEditorComponent {
     maxLength(schema.description, 5000);
   });
   private readonly automationPlans = inject(RequestDetailService).observeAutomationPlans(
-    computed(() => (this.id() ? null : this.model().patternId)),
+    computed(() => (this.id() ? undefined : this.model().patternId || null)),
   ).state;
   protected readonly automationSummary = computed(() => {
     const plans = this.automationPlans();

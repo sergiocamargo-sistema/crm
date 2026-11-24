@@ -14,7 +14,14 @@ export class AutomationStore {
   readonly runs = computed(() => this.response()?.runs ?? []);
   readonly catalog = computed(
     () =>
-      this.response()?.catalog ?? { patterns: [], users: [], labels: [], defaultAssigneeIds: [] },
+      this.response()?.catalog ?? {
+        patterns: [],
+        interactionTypes: [],
+        interactionChannels: [],
+        users: [],
+        labels: [],
+        defaultAssigneeIds: [],
+      },
   );
   readonly templateResults = computed(() =>
     this.templates().filter((item) => this.response()?.templateResultIds.includes(item.id)),

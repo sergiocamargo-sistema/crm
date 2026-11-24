@@ -10,12 +10,14 @@ import type { TextReference } from '../../core/models/collaboration';
 import { MockCitizenRegistry } from './mock-citizen-registry';
 import { MockCitizenRegistration } from './mock-citizen-registration';
 import type { CitizenRegistrationCommand } from '../../features/citizens/models/citizen-registration';
-import type {
-  CitizenDetail,
-  CitizenRequest,
-  NewCitizenRequest,
-  CitizenInteraction,
-  NewCitizenInteraction,
+import {
+  INTERACTION_CHANNELS,
+  INTERACTION_TYPES,
+  type CitizenDetail,
+  type CitizenRequest,
+  type NewCitizenRequest,
+  type CitizenInteraction,
+  type NewCitizenInteraction,
 } from '../../features/citizens/models/citizen-detail';
 import type { CitizenDetailRepository } from '../../features/citizens/repositories/citizen-detail-repository';
 import type {
@@ -80,6 +82,7 @@ import { MockAutomationEngine } from './mock-automation-engine';
 import type { AutomationRepository } from '../../features/automations/repositories/automation-repository';
 import type {
   AutomationCatalog,
+  AutomationEvent,
   TaskTemplateDraft,
   TaskSetDraft,
   AutomationRuleDraft,
@@ -310,6 +313,7 @@ export class MockCitizenDetailRepository implements CitizenDetailRepository, Aut
         `${task.title}\n${task.description}`,
         { taskId: task.id, taskTitle: task.title },
       );
+      this.advanceAfterCompletion(existing ?? null, task);
       return task.id;
     }
     if (!existing) throw new Error('Tarefa não encontrada.');
@@ -345,7 +349,7 @@ export class MockCitizenDetailRepository implements CitizenDetailRepository, Aut
       `${task.title}\n${task.description}`,
       { taskId: task.id, taskTitle: task.title },
     );
-    this.advanceAutomations(requestId);
+    this.advanceAfterCompletion(existing, task);
     return task.id;
   }
 
@@ -758,8 +762,12 @@ export class MockCitizenDetailRepository implements CitizenDetailRepository, Aut
       },
     }));
     this.requests.update((entries) => [{ citizenId, record }, ...entries]);
-    this.automation.start(id, record.title, request.patternId ?? null, this.team.actor.name);
-    this.advanceAutomations(id);
+    this.startAutomations({
+      kind: 'request-created',
+      id,
+      title: record.title,
+      patternId: request.patternId ?? null,
+    });
     return id;
   }
 
@@ -1284,14 +1292,15 @@ export class MockCitizenDetailRepository implements CitizenDetailRepository, Aut
       ...items,
       [requestId]: [interaction, ...(items[requestId] ?? [])],
     }));
+    this.startInteractionAutomations(interaction);
   }
 
   addRequestTask(requestId: string, task: NewRequestTask): string {
-    return this.appendRequestTasks(requestId, [task])[0].id;
+    return this.appendTasks(requestId, [task])[0].id;
   }
 
-  private appendRequestTasks(
-    requestId: string,
+  private appendTasks(
+    requestId: string | null,
     drafts: readonly (NewRequestTask & { automation?: Task['automation'] })[],
   ): readonly Task[] {
     const now = new Date().toISOString();
@@ -1320,7 +1329,14 @@ export class MockCitizenDetailRepository implements CitizenDetailRepository, Aut
       );
       return event ? [event] : [];
     });
-    this.updateRequest(requestId, (extras) => ({ ...extras, tasks: [...extras.tasks, ...tasks] }));
+    if (requestId === null) {
+      this.independentTasks.update((items) => [...items, ...tasks]);
+    } else {
+      this.updateRequest(requestId, (extras) => ({
+        ...extras,
+        tasks: [...extras.tasks, ...tasks],
+      }));
+    }
     this.taskHistory.update((events) => [...events, ...history]);
     for (const task of tasks) {
       this.team.notifyMentions('', `${task.title}\n${task.description}`, {
@@ -1334,6 +1350,10 @@ export class MockCitizenDetailRepository implements CitizenDetailRepository, Aut
   private automationCatalog(): AutomationCatalog {
     return {
       patterns: this.requestPatterns(),
+      interactionTypes: INTERACTION_TYPES.flatMap(({ value, label }) =>
+        value === 'request' ? [] : [{ value, label }],
+      ),
+      interactionChannels: INTERACTION_CHANNELS,
       users: this.team.users,
       labels: this.taskLabels(),
       defaultAssigneeIds: [this.team.actor.id],
@@ -1341,7 +1361,7 @@ export class MockCitizenDetailRepository implements CitizenDetailRepository, Aut
   }
 
   listRequestAutomationPlans(
-    patternId: string,
+    patternId: string | null,
     requestId?: string,
   ): readonly RequestAutomationPlan[] {
     if (requestId !== undefined && this.requestExtras()[requestId]?.patternId !== patternId) {
@@ -1354,14 +1374,15 @@ export class MockCitizenDetailRepository implements CitizenDetailRepository, Aut
     const entry = this.requests().find(({ record }) => record.id === requestId);
     const extras = this.requestExtras()[requestId];
     if (!entry || !extras) throw new Error('Solicitação não encontrada.');
-    const [run] = this.automation.start(
-      requestId,
-      entry.record.title,
-      extras.patternId,
-      this.team.actor.name,
+    this.startAutomations(
+      {
+        kind: 'request-created',
+        id: requestId,
+        title: entry.record.title,
+        patternId: extras.patternId,
+      },
       ruleId,
     );
-    if (run) this.advanceAutomations(requestId, run.id);
   }
 
   async loadAutomationWorkspace(query: string) {
@@ -1394,65 +1415,91 @@ export class MockCitizenDetailRepository implements CitizenDetailRepository, Aut
     this.automation.deleteRule(id, version);
   }
   async retryAutomationRun(id: string) {
-    const run = this.automation.run(id);
-    this.advanceAutomations(run.requestId);
-    if (this.automation.run(id).error) throw new Error(this.automation.run(id).error);
+    this.advanceAutomation(id);
+    const { error } = this.automation.run(id);
+    if (error) throw new Error(error);
   }
 
-  private advanceAutomations(requestId: string, runId?: string): void {
-    for (const run of this.automation.requestRuns(requestId)) {
-      if (runId !== undefined && run.id !== runId) continue;
-      try {
-        const existingTasks = this.requestExtras()[requestId]?.tasks ?? [];
-        // Recupera a associação mesmo se houver falha após gravar as tarefas.
-        const existing = new Map(
-          existingTasks
-            .filter((task) => task.automation?.runId === run.id)
-            .map((task) => [task.automation!.stepId, task.id]),
-        );
-        this.automation.record(run.id, existing);
-        const ready = this.automation.ready(this.automation.run(run.id), existingTasks);
-        if (!ready.length) continue;
-        const drafts = ready.map((step) => {
-          let dueAt = '';
-          if (step.template.dueInDays !== null) {
-            const date = new Date();
-            date.setUTCDate(date.getUTCDate() + step.template.dueInDays);
-            // Prazo em dias corridos no calendário de São Paulo, contado da criação desta tarefa.
-            dueAt =
-              new Intl.DateTimeFormat('sv-SE', { timeZone: 'America/Sao_Paulo' }).format(date) +
-              'T23:59:00-03:00';
-          }
-          return {
-            title: step.template.title,
-            description: step.template.description,
-            assigneeIds: step.template.assigneeIds,
-            labelIds: step.template.labelIds,
-            priority: step.template.priority,
-            dueAt,
-            automation: {
-              runId: run.id,
-              ruleId: run.ruleId,
-              ruleName: run.ruleName,
-              stepId: step.id,
-              templateId: step.template.id,
-              templateVersion: step.template.version,
-            },
-          };
-        });
-        const tasks = this.appendRequestTasks(requestId, drafts);
-        this.automation.record(
-          run.id,
-          new Map(ready.map((step, index) => [step.id, tasks[index].id])),
-        );
-      } catch (error: unknown) {
-        // A solicitação ou conclusão já gravada continua válida. A execução pode ser retomada sem repetir etapas criadas.
-        this.automation.record(
-          run.id,
-          new Map(),
-          error instanceof Error ? error.message : 'Não foi possível criar as próximas tarefas.',
-        );
-      }
+  private startAutomations(event: AutomationEvent, ruleId?: string): void {
+    for (const run of this.automation.start(event, this.team.actor.name, ruleId)) {
+      this.advanceAutomation(run.id);
+    }
+  }
+
+  private startInteractionAutomations(interaction: CitizenInteraction): void {
+    if (interaction.type === 'request') return;
+    this.startAutomations({
+      kind: 'interaction-created',
+      id: interaction.id,
+      title: interaction.title,
+      interactionType: interaction.type,
+      channel: interaction.channel ?? null,
+      requestId: interaction.requestId ?? null,
+    });
+  }
+
+  private advanceAfterCompletion(before: Task | null, task: Task): void {
+    if (task.automation && before?.status !== 'completed' && task.status === 'completed') {
+      this.advanceAutomation(task.automation.runId);
+    }
+  }
+
+  private advanceAutomation(runId: string): void {
+    const run = this.automation.run(runId);
+    const requestId = run.requestId;
+    try {
+      const existingTasks =
+        requestId === null
+          ? this.independentTasks()
+          : (this.requestExtras()[requestId]?.tasks ?? []);
+      // Recupera a associação mesmo se houver falha após gravar as tarefas.
+      const existing = new Map(
+        existingTasks
+          .filter((task) => task.automation?.runId === run.id)
+          .map((task) => [task.automation!.stepId, task.id]),
+      );
+      this.automation.record(run.id, existing);
+      const ready = this.automation.ready(this.automation.run(run.id), existingTasks);
+      if (!ready.length) return;
+      const drafts = ready.map((step) => {
+        let dueAt = '';
+        if (step.template.dueInDays !== null) {
+          const date = new Date();
+          date.setUTCDate(date.getUTCDate() + step.template.dueInDays);
+          // Prazo em dias corridos no calendário de São Paulo, contado da criação desta tarefa.
+          dueAt =
+            new Intl.DateTimeFormat('sv-SE', { timeZone: 'America/Sao_Paulo' }).format(date) +
+            'T23:59:00-03:00';
+        }
+        return {
+          title: step.template.title,
+          description: step.template.description,
+          assigneeIds: step.template.assigneeIds,
+          labelIds: step.template.labelIds,
+          priority: step.template.priority,
+          dueAt,
+          automation: {
+            runId: run.id,
+            ruleId: run.ruleId,
+            ruleName: run.ruleName,
+            stepId: step.id,
+            templateId: step.template.id,
+            templateVersion: step.template.version,
+          },
+        };
+      });
+      const tasks = this.appendTasks(requestId, drafts);
+      this.automation.record(
+        run.id,
+        new Map(ready.map((step, index) => [step.id, tasks[index].id])),
+      );
+    } catch (error: unknown) {
+      // A solicitação ou conclusão já gravada continua válida. A execução pode ser retomada sem repetir etapas criadas.
+      this.automation.record(
+        run.id,
+        new Map(),
+        error instanceof Error ? error.message : 'Não foi possível criar as próximas tarefas.',
+      );
     }
   }
 
@@ -1545,6 +1592,7 @@ export class MockCitizenDetailRepository implements CitizenDetailRepository, Aut
       ...contacts,
       [citizenId]: [interaction, ...(contacts[citizenId] ?? citizen.interactions)],
     }));
+    this.startInteractionAutomations(interaction);
   }
   private createInteractionRecord(contact: NewCitizenInteraction): CitizenInteraction {
     return {

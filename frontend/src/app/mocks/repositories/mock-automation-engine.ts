@@ -1,11 +1,14 @@
 import { signal } from '@angular/core';
 import { TASK_PRIORITIES, type Task } from '../../core/models/task';
 import {
+  automationTriggerLabel,
   taskSetGraphError,
   type AutomationCatalog,
+  type AutomationEvent,
   type AutomationRule,
   type AutomationRuleDraft,
   type AutomationRun,
+  type AutomationTrigger,
   type AutomationWorkspace,
   type TaskSet,
   type TaskSetDraft,
@@ -27,7 +30,48 @@ const normalize = (text: string): string =>
     .trim()
     .replace(/\s+/gu, ' ');
 
-const requestCreatedEventId = (requestId: string): string => `request-created:${requestId}`;
+const eventKey = (kind: AutomationEvent['kind'], id: string): string => `${kind}:${id}`;
+
+function matchesRequest(trigger: AutomationTrigger, patternId: string | null): boolean {
+  return (
+    trigger.kind === 'request-created' ||
+    (trigger.kind === 'request-with-pattern' && trigger.patternId === patternId)
+  );
+}
+
+function matchesEvent(trigger: AutomationTrigger, event: AutomationEvent): boolean {
+  if (event.kind === 'request-created') return matchesRequest(trigger, event.patternId);
+  return (
+    trigger.kind === 'interaction-created' ||
+    (trigger.kind === 'interaction-with-type' &&
+      trigger.interactionType === event.interactionType &&
+      (trigger.channel === null || trigger.channel === event.channel))
+  );
+}
+
+function validateTrigger(trigger: AutomationTrigger, catalog: AutomationCatalog): void {
+  switch (trigger.kind) {
+    case 'request-created':
+    case 'interaction-created':
+      return;
+    case 'request-with-pattern':
+      if (!catalog.patterns.some(({ id }) => id === trigger.patternId))
+        throw new Error('Selecione um padrão de solicitação válido.');
+      return;
+    case 'interaction-with-type':
+      if (!catalog.interactionTypes.some(({ value }) => value === trigger.interactionType))
+        throw new Error('Selecione um tipo de interação válido.');
+      if (
+        trigger.channel !== null &&
+        (trigger.interactionType !== 'conversation' ||
+          !catalog.interactionChannels.some(({ value }) => value === trigger.channel))
+      )
+        throw new Error('Selecione um canal válido para conversas.');
+      return;
+    default:
+      throw new Error('Selecione um gatilho válido.');
+  }
+}
 
 /** Dados e regras do backend simulado; não cria uma segunda coleção de tarefas. */
 export class MockAutomationEngine {
@@ -67,12 +111,12 @@ export class MockAutomationEngine {
         .map(({ id }) => id),
       setResultIds: sets.filter((item) => matches(item.name)).map(({ id }) => id),
       ruleResultIds: rules
-        .filter((item) =>
-          matches(item.name + ' ' + catalog.patterns.find(({ id }) => id === item.patternId)?.name),
+        .filter(({ name, trigger }) =>
+          matches(`${name} ${automationTriggerLabel(trigger, catalog)}`),
         )
         .map(({ id }) => id),
       runResultIds: runs
-        .filter((item) => matches(item.ruleName + ' ' + item.requestTitle))
+        .filter(({ ruleName, source }) => matches(`${ruleName} ${source.title}`))
         .map(({ id }) => id),
     };
   }
@@ -181,18 +225,17 @@ export class MockAutomationEngine {
   ): AutomationRule {
     const existing = this.checkVersion(this.rules(), id, version);
     const name = this.name(draft.name, this.rules(), id);
-    if (!catalog.patterns.some((item) => item.id === draft.patternId))
-      throw new Error('Selecione um padrão de solicitação válido.');
+    validateTrigger(draft.trigger, catalog);
     const set = this.sets().find((item) => item.id === draft.setId);
     if (!set) throw new Error('Selecione um conjunto de tarefas válido.');
     const error = taskSetGraphError(set.steps);
     if (error) throw new Error(error);
     const rule: AutomationRule = {
       ...draft,
+      trigger: structuredClone(draft.trigger),
       name,
       id: id ?? `automation-${crypto.randomUUID()}`,
       version: (existing?.version ?? 0) + 1,
-      trigger: 'request-created',
     };
     this.rules.update((items) =>
       existing ? items.map((item) => (item.id === id ? rule : item)) : [...items, rule],
@@ -208,7 +251,9 @@ export class MockAutomationEngine {
     this.rules.update((items) => items.filter((item) => item.id !== id));
   }
   usesPattern(id: string): boolean {
-    return this.rules().some((rule) => rule.patternId === id);
+    return this.rules().some(
+      ({ trigger }) => trigger.kind === 'request-with-pattern' && trigger.patternId === id,
+    );
   }
   usesLabel(id: string): boolean {
     return (
@@ -218,19 +263,14 @@ export class MockAutomationEngine {
       )
     );
   }
-  private requestRules(patternId: string | null): readonly AutomationRule[] {
-    return this.rules().filter(
-      (rule) => rule.trigger === 'request-created' && rule.patternId === patternId,
-    );
-  }
-
   private hasRun(ruleId: string, eventId: string): boolean {
     return this.runs().some((run) => run.ruleId === ruleId && run.eventId === eventId);
   }
 
-  requestPlans(patternId: string, requestId?: string): readonly RequestAutomationPlan[] {
-    const eventId = requestId === undefined ? null : requestCreatedEventId(requestId);
-    return this.requestRules(patternId).flatMap((rule) => {
+  requestPlans(patternId: string | null, requestId?: string): readonly RequestAutomationPlan[] {
+    const eventId = requestId === undefined ? null : eventKey('request-created', requestId);
+    return this.rules().flatMap((rule) => {
+      if (!matchesRequest(rule.trigger, patternId)) return [];
       if (eventId && this.hasRun(rule.id, eventId)) return [];
       const set = this.sets().find((item) => item.id === rule.setId);
       if (!set) return [];
@@ -247,22 +287,20 @@ export class MockAutomationEngine {
     });
   }
 
-  start(
-    requestId: string,
-    requestTitle: string,
-    patternId: string | null,
-    actor: string,
-    ruleId?: string,
-  ): readonly AutomationRun[] {
-    const rules = this.requestRules(patternId).filter(
-      (rule) => rule.enabled && (ruleId === undefined || rule.id === ruleId),
+  start(event: AutomationEvent, actor: string, ruleId?: string): readonly AutomationRun[] {
+    const rules = this.rules().filter(
+      (rule) =>
+        rule.enabled &&
+        (ruleId === undefined || rule.id === ruleId) &&
+        matchesEvent(rule.trigger, event),
     );
     if (ruleId !== undefined && !rules.length) {
-      throw new Error('Esta automação não está ativa para o padrão da solicitação.');
+      throw new Error('Esta automação não está ativa para este registro.');
     }
 
     // A execução escolhida manualmente usa a mesma chave do disparo no cadastro.
-    const eventId = requestCreatedEventId(requestId);
+    const eventId = eventKey(event.kind, event.id);
+    const requestId = event.kind === 'request-created' ? event.id : event.requestId;
     const started = rules.flatMap((rule): AutomationRun[] => {
       if (this.hasRun(rule.id, eventId)) return [];
       const set = this.sets().find((item) => item.id === rule.setId);
@@ -281,7 +319,7 @@ export class MockAutomationEngine {
           setName: set.name,
           setVersion: set.version,
           requestId,
-          requestTitle,
+          source: structuredClone(event),
           eventId,
           startedAt: new Date().toISOString(),
           actor,

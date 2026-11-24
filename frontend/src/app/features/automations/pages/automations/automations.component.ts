@@ -18,7 +18,15 @@ import { IconComponent } from '../../../../shared/components/icon/icon.component
 import { TaskLabelsComponent } from '../../../../shared/components/task-labels/task-labels.component';
 import { taskPriorityLabel } from '../../../../core/models/task';
 import { AutomationService } from '../../services/automation.service';
-import type { AutomationRule, AutomationRun, TaskSet, TaskTemplate } from '../../models/automation';
+import {
+  automationTriggerLabel,
+  type AutomationEvent,
+  type AutomationRule,
+  type AutomationRun,
+  type AutomationTrigger,
+  type TaskSet,
+  type TaskTemplate,
+} from '../../models/automation';
 import { TemplateEditorComponent } from '../../components/template-editor/template-editor.component';
 import { SetEditorComponent } from '../../components/set-editor/set-editor.component';
 import { RuleEditorComponent } from '../../components/rule-editor/rule-editor.component';
@@ -229,10 +237,12 @@ export class AutomationsComponent {
     if (result && !this.destroyRef.destroyed)
       this.status.set('Automação desativada. As sequências iniciadas continuarão.');
   }
-  protected patternName(id: string): string {
-    return (
-      this.state.catalog().patterns.find((item) => item.id === id)?.name ?? 'Padrão indisponível'
-    );
+  protected triggerLabel(trigger: AutomationTrigger): string {
+    return automationTriggerLabel(trigger, this.state.catalog());
+  }
+  protected sourceRoute(source: AutomationEvent): readonly [string, string] {
+    if (source.kind === 'request-created') return ['/solicitacoes', source.id];
+    return [source.interactionType === 'conversation' ? '/conversas' : '/interacoes', source.id];
   }
   protected setName(id: string): string {
     return this.state.sets().find((item) => item.id === id)?.name ?? 'Conjunto indisponível';

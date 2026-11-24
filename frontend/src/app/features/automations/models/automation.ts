@@ -1,6 +1,7 @@
 import type { Task, TaskPriority } from '../../../core/models/task';
 import type { TaskLabel } from '../../../core/models/task-label';
 import type { TeamUser } from '../../../core/models/collaboration';
+import type { InteractionChannel, InteractionType } from '../../citizens/models/citizen-detail';
 
 export interface TaskTemplateDraft {
   readonly title: string;
@@ -27,16 +28,40 @@ export interface TaskSet extends TaskSetDraft {
   readonly id: string;
   readonly version: number;
 }
+export type AutomationInteractionType = Exclude<InteractionType, 'request'>;
+
+export type AutomationTrigger =
+  | { readonly kind: 'request-created' }
+  | { readonly kind: 'request-with-pattern'; readonly patternId: string }
+  | { readonly kind: 'interaction-created' }
+  | {
+      readonly kind: 'interaction-with-type';
+      readonly interactionType: AutomationInteractionType;
+      readonly channel: InteractionChannel | null;
+    };
+
+export type AutomationEvent = {
+  readonly id: string;
+  readonly title: string;
+} & (
+  | { readonly kind: 'request-created'; readonly patternId: string | null }
+  | {
+      readonly kind: 'interaction-created';
+      readonly requestId: string | null;
+      readonly interactionType: AutomationInteractionType;
+      readonly channel: InteractionChannel | null;
+    }
+);
+
 export interface AutomationRuleDraft {
   readonly name: string;
-  readonly patternId: string;
+  readonly trigger: AutomationTrigger;
   readonly setId: string;
   readonly enabled: boolean;
 }
 export interface AutomationRule extends AutomationRuleDraft {
   readonly id: string;
   readonly version: number;
-  readonly trigger: 'request-created';
 }
 export interface AutomationRunStep {
   readonly id: string;
@@ -51,8 +76,8 @@ export interface AutomationRun {
   readonly ruleVersion: number;
   readonly setName: string;
   readonly setVersion: number;
-  readonly requestId: string;
-  readonly requestTitle: string;
+  readonly source: AutomationEvent;
+  readonly requestId: string | null;
   readonly eventId: string;
   readonly startedAt: string;
   readonly actor: string;
@@ -61,9 +86,40 @@ export interface AutomationRun {
 }
 export interface AutomationCatalog {
   readonly patterns: readonly { readonly id: string; readonly name: string }[];
+  readonly interactionTypes: readonly {
+    readonly value: AutomationInteractionType;
+    readonly label: string;
+  }[];
+  readonly interactionChannels: readonly {
+    readonly value: InteractionChannel;
+    readonly label: string;
+  }[];
   readonly users: readonly TeamUser[];
   readonly labels: readonly TaskLabel[];
   readonly defaultAssigneeIds: readonly string[];
+}
+
+export function automationTriggerLabel(
+  trigger: AutomationTrigger,
+  catalog: AutomationCatalog,
+): string {
+  switch (trigger.kind) {
+    case 'request-created':
+      return 'Qualquer solicitação';
+    case 'request-with-pattern':
+      return `Solicitação com padrão ${catalog.patterns.find(({ id }) => id === trigger.patternId)?.name ?? 'indisponível'}`;
+    case 'interaction-created':
+      return 'Qualquer interação';
+    case 'interaction-with-type': {
+      const type = catalog.interactionTypes.find(
+        ({ value }) => value === trigger.interactionType,
+      )?.label;
+      const channel = catalog.interactionChannels.find(
+        ({ value }) => value === trigger.channel,
+      )?.label;
+      return channel ? `${type ?? 'Interação'} · ${channel}` : (type ?? 'Interação específica');
+    }
+  }
 }
 export interface AutomationWorkspace {
   readonly templates: readonly TaskTemplate[];

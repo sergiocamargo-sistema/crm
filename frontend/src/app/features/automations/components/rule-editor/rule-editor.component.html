@@ -15,26 +15,92 @@
       </label>
 
       <label>
-        <span class="form-label">Quando criar uma solicitação com o padrão</span>
+        <span class="form-label">Quando</span>
         <select
-          #patternInput
+          #triggerInput
           class="form-select"
-          [formField]="fields.patternId"
-          [attr.aria-describedby]="errors().pattern ? 'automation-rule-pattern-error' : null"
+          [formField]="fields.triggerKind"
+          [attr.aria-describedby]="errors().trigger ? 'automation-rule-trigger-error' : null"
         >
-          <option value="">
-            {{
-              state.catalog().patterns.length ? 'Selecione o padrão' : 'Nenhum padrão cadastrado'
-            }}
+          <option value="">Selecione o gatilho</option>
+          <option value="request-created">Ao criar qualquer solicitação</option>
+          <option value="request-with-pattern">Ao criar uma solicitação com padrão</option>
+          <option value="interaction-created">Ao registrar qualquer interação</option>
+          <option value="interaction-with-type">
+            Ao registrar uma interação de um tipo específico
           </option>
-          @for (pattern of state.catalog().patterns; track pattern.id) {
-            <option [value]="pattern.id">{{ pattern.name }}</option>
-          }
         </select>
-        @if (errors().pattern) {
-          <span class="form-error" id="automation-rule-pattern-error">{{ errors().pattern }}</span>
+        @if (errors().trigger) {
+          <span class="form-error" id="automation-rule-trigger-error">{{ errors().trigger }}</span>
         }
       </label>
+
+      @if (draft().triggerKind === 'request-with-pattern') {
+        <label>
+          <span class="form-label">Padrão da solicitação</span>
+          <select
+            #patternInput
+            class="form-select"
+            [formField]="fields.patternId"
+            [attr.aria-describedby]="errors().pattern ? 'automation-rule-pattern-error' : null"
+          >
+            <option value="">
+              {{
+                state.catalog().patterns.length ? 'Selecione o padrão' : 'Nenhum padrão cadastrado'
+              }}
+            </option>
+            @for (pattern of state.catalog().patterns; track pattern.id) {
+              <option [value]="pattern.id">{{ pattern.name }}</option>
+            }
+          </select>
+          @if (errors().pattern) {
+            <span class="form-error" id="automation-rule-pattern-error">{{
+              errors().pattern
+            }}</span>
+          }
+        </label>
+      }
+
+      @if (draft().triggerKind === 'interaction-with-type') {
+        <label>
+          <span class="form-label">Tipo de interação</span>
+          <select
+            #typeInput
+            class="form-select"
+            [formField]="fields.interactionType"
+            [attr.aria-describedby]="errors().type ? 'automation-rule-type-error' : null"
+          >
+            <option value="">Selecione o tipo</option>
+            @for (type of state.catalog().interactionTypes; track type.value) {
+              <option [value]="type.value">{{ type.label }}</option>
+            }
+          </select>
+          @if (errors().type) {
+            <span class="form-error" id="automation-rule-type-error">{{ errors().type }}</span>
+          }
+        </label>
+        @if (draft().interactionType === 'conversation') {
+          <label>
+            <span class="form-label">Canal da conversa (opcional)</span>
+            <select
+              #channelInput
+              class="form-select"
+              [formField]="fields.channel"
+              [attr.aria-describedby]="errors().channel ? 'automation-rule-channel-error' : null"
+            >
+              <option value="">Qualquer canal</option>
+              @for (channel of state.catalog().interactionChannels; track channel.value) {
+                <option [value]="channel.value">{{ channel.label }}</option>
+              }
+            </select>
+            @if (errors().channel) {
+              <span class="form-error" id="automation-rule-channel-error">{{
+                errors().channel
+              }}</span>
+            }
+          </label>
+        }
+      }
 
       <div class="inline-controls">
         <label>
@@ -70,6 +136,9 @@
       @if (selectedSet()) {
         <app-task-set-flow [steps]="preview()" />
       }
+      @if (isInteraction()) {
+        <p class="muted">As tarefas aparecem no Kanban e na solicitação, quando houver vínculo.</p>
+      }
 
       <label class="check">
         <input
@@ -80,10 +149,10 @@
         Ativar automação
       </label>
       <p id="automation-rule-toggle-hint" class="muted">
-        Vale para novas solicitações. As execuções em andamento continuam ao desativar.
+        Afeta novos registros. As execuções em andamento continuam ao desativar.
       </p>
       @if (hasOtherEnabledRule()) {
-        <p class="muted">As outras automações ativas para este padrão também serão executadas.</p>
+        <p class="muted">Outras regras ativas podem disparar para o mesmo registro.</p>
       }
     </fieldset>
     @if (state.actionError()) {
