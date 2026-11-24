@@ -1,6 +1,11 @@
 :host {
   display: block;
 }
+.addresses-list,
+.address-entry {
+  display: grid;
+  gap: var(--space-3);
+}
 .detail-page {
   max-width: var(--layout-width);
   margin: 0 auto;

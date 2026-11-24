@@ -61,8 +61,8 @@
     }
   </div>
   <p class="sr-only" [id]="hintId()">
-    Busque por nome ou telefone, com pelo menos dois caracteres. Use Tab ou seta para baixo para
-    acessar os resultados.
+    Digite pelo menos dois caracteres para buscar. Use Tab ou seta para baixo para acessar os
+    resultados.
   </p>
   <section
     [id]="resultsId()"
@@ -111,10 +111,22 @@
     } @else {
       <div class="empty-search">
         <app-icon name="search" /><strong>Nenhum munícipe encontrado</strong>
-        <p>Tente outro nome ou telefone.</p>
+        <p>Tente outra busca.</p>
       </div>
     }
-    <p class="results-footer">Busca por nome ou telefone</p>
+    <div class="results-footer">
+      <span>Encontre um munícipe</span>
+      @if (isHeader()) {
+        <a
+          class="icon-button icon-button--primary"
+          routerLink="/municipes/novo"
+          aria-label="Adicionar munícipe"
+          title="Adicionar munícipe"
+          (click)="selectCitizen()"
+          ><app-icon name="plus"
+        /></a>
+      }
+    </div>
   </section>
   <p class="sr-only" role="status">
     {{ resultsOpen() ? store().results().length + ' resultados de munícipes.' : '' }}

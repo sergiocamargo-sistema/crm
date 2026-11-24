@@ -43,6 +43,17 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'municipes/novo',
+    title: 'Adicionar munícipe · Gabinete Sérgio Camargo',
+    canDeactivate: [
+      (component: { canLeave: () => boolean | Promise<boolean> }) => component.canLeave(),
+    ],
+    loadComponent: () =>
+      import('./features/citizens/pages/citizen-editor/citizen-editor.component').then(
+        (module) => module.CitizenEditorComponent,
+      ),
+  },
+  {
     path: 'municipes/:id',
     title: 'Ficha do munícipe · Gabinete Sérgio Camargo',
     loadComponent: () =>

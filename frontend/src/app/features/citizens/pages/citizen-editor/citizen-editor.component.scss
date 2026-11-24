@@ -1,0 +1,97 @@
+@use '../../../../shared/styles/record-detail';
+
+.editor-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+.wide {
+  grid-column: 1 / -1;
+}
+.editor-grid label,
+.record-panel > label {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+.editor-grid .checkbox-label {
+  flex-direction: row;
+  align-items: center;
+}
+.field-hint {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+}
+.collection-item {
+  position: relative;
+  display: grid;
+  gap: var(--space-3);
+  min-width: 0;
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+}
+.collection-item legend {
+  padding-inline: var(--space-2);
+  padding-right: var(--space-8);
+  font-size: var(--font-size-sm);
+}
+.item-remove {
+  position: absolute;
+  top: -20px;
+  right: var(--space-2);
+}
+.plain-fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.editor-actions,
+.photo-files li {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-3);
+}
+.photo-files li {
+  justify-content: space-between;
+}
+.photo-files,
+.duplicate-list,
+.error-list {
+  display: grid;
+  gap: var(--space-3);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.photo-files span,
+.duplicate-list {
+  overflow-wrap: anywhere;
+  font-size: var(--font-size-sm);
+}
+.duplicate-list li {
+  display: grid;
+  gap: var(--space-1);
+}
+.duplicate-list span {
+  color: var(--color-text-muted);
+}
+.duplicate-panel {
+  border-color: var(--color-primary);
+}
+.record-panel[hidden] {
+  display: none;
+}
+.error-list button {
+  text-align: left;
+  white-space: normal;
+}
+@media (max-width: 600px) {
+  .editor-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

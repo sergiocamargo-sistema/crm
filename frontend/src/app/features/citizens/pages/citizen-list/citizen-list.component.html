@@ -87,13 +87,23 @@
               <a class="person-profile" [routerLink]="['/municipes', person.id]">
                 <span class="avatar portrait" aria-hidden="true">
                   @if (person.photo && !failedPhotos().has(person.id)) {
-                    <img
-                      [ngSrc]="person.photo.src"
-                      width="48"
-                      height="48"
-                      alt=""
-                      (error)="imageFailed(person.id)"
-                    />
+                    @if (person.photo.src.startsWith('blob:')) {
+                      <img
+                        [src]="person.photo.src"
+                        width="48"
+                        height="48"
+                        alt=""
+                        (error)="imageFailed(person.id)"
+                      />
+                    } @else {
+                      <img
+                        [ngSrc]="person.photo.src"
+                        width="48"
+                        height="48"
+                        alt=""
+                        (error)="imageFailed(person.id)"
+                      />
+                    }
                   } @else {
                     {{ person.initials }}
                   }

@@ -149,6 +149,10 @@ ul {
   color: var(--color-primary);
 }
 .results-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
   padding: 10px 16px;
   font-size: 11px;
   color: var(--color-text-muted);

@@ -86,17 +86,44 @@
           <section class="info-card" aria-labelledby="address-title">
             <div class="card-heading">
               <span><app-icon name="location" /></span>
-              <h2 id="address-title">Endereço</h2>
+              <h2 id="address-title">{{ addresses().length > 1 ? 'Endereços' : 'Endereço' }}</h2>
             </div>
-            <address>
-              <strong>{{ person.address.street }}</strong><span
-                >{{ person.address.complement }} · {{ person.neighborhood }}</span
-              ><span>{{ person.address.city }} / {{ person.address.state }}</span
-              ><span>CEP {{ person.address.postalCode }}</span>
-            </address>
-            <div class="address-reference">
-              <span>Referência</span>
-              <p>{{ person.address.reference }}</p>
+            <div class="addresses-list">
+              @for (address of addresses(); track $index; let index = $index) {
+                <div class="address-entry">
+                  @if (addresses().length > 1 && index === 0) {
+                    <span class="contact-label">Principal · usado nas etiquetas</span>
+                  }
+                  <address>
+                    @if (address.street) {
+                      <strong>{{ address.street }}</strong>
+                    }
+                    @if (address.complement) {
+                      <span>{{ address.complement }}</span>
+                    }
+                    @if (address.neighborhood) {
+                      <span>{{ address.neighborhood }}</span>
+                    }
+                    @if (address.city || address.state) {
+                      <span
+                        >{{ address.city }}{{ address.city && address.state ? ' / ' : ''
+                        }}{{ address.state }}</span
+                      >
+                    }
+                    @if (address.postalCode) {
+                      <span>CEP {{ address.postalCode }}</span>
+                    }
+                  </address>
+                  @if (address.reference) {
+                    <div class="address-reference">
+                      <span>Referência</span>
+                      <p>{{ address.reference }}</p>
+                    </div>
+                  }
+                </div>
+              } @empty {
+                <p>Endereço não informado.</p>
+              }
             </div>
           </section>
 
@@ -145,6 +172,8 @@
                     /></a>
                   }
                 </li>
+              } @empty {
+                <li>Não informado.</li>
               }
             </ul>
             <h3 class="contact-group-heading">E-mails</h3>
@@ -164,6 +193,8 @@
                     ><app-icon name="mail"
                   /></a>
                 </li>
+              } @empty {
+                <li>Não informado.</li>
               }
             </ul>
           </section>

@@ -1,0 +1,518 @@
+<div class="activity-page layout-stack" [attr.aria-busy]="state.loading() || state.saving()">
+  <header class="record-navigation">
+    <a
+      class="icon-button"
+      routerLink="/municipes"
+      aria-label="Voltar aos munícipes"
+      title="Voltar aos munícipes"
+      ><app-icon name="back"
+    /></a>
+    <h1 #pageTitle tabindex="-1">Adicionar munícipe</h1>
+  </header>
+  @if (state.loading()) {
+    <p role="status">Preparando cadastro...</p>
+  } @else if (state.loadError(); as error) {
+    <section class="record-panel">
+      <p role="alert">{{ error }}</p>
+      <button class="button" type="button" (click)="service.load()">Tentar novamente</button>
+    </section>
+  } @else if (state.configuration(); as configuration) {
+    <div
+      class="record-panel"
+      #errorSummary
+      tabindex="-1"
+      [hidden]="!(attempted() && fields().invalid()) && !state.error()"
+    >
+      @if (attempted() && fields().invalid()) {
+        <h2>Revise os campos indicados</h2>
+        <ul class="error-list">
+          @for (error of fields().errorSummary(); track $index) {
+            <li>
+              <button
+                class="text-button"
+                type="button"
+                (click)="error.fieldTree().focusBoundControl()"
+              >
+                {{ error.message || 'Revise o campo informado.' }}
+              </button>
+            </li>
+          }
+        </ul>
+      }
+      @if (state.error(); as error) {
+        <p class="form-error" role="alert">{{ error }}</p>
+      }
+    </div>
+    <form id="citizen-registration" class="layout-stack" novalidate (submit)="save($event)">
+      <section class="record-panel" aria-labelledby="citizen-identity-title">
+        <h2 id="citizen-identity-title">Dados pessoais</h2>
+        <p class="field-hint">Somente o nome é obrigatório.</p>
+        <div class="editor-grid">
+          <label class="wide"
+            ><span class="form-label">Nome completo *</span
+            ><input class="form-input" autocomplete="name" [formField]="fields.name"
+          /></label>
+          <label
+            ><span class="form-label">Data de nascimento</span
+            ><input
+              type="date"
+              class="form-input"
+              autocomplete="bday"
+              [formField]="fields.birthDate"
+          /></label>
+          <label
+            ><span class="form-label">Sexo</span
+            ><select class="form-select" [formField]="fields.gender">
+              <option value="">Não informado</option>
+              @for (option of configuration.genders; track option.value) {
+                <option [value]="option.value">{{ option.label }}</option>
+              }
+            </select></label
+          >
+          <label
+            ><span class="form-label">Profissão</span
+            ><input class="form-input" [formField]="fields.occupation"
+          /></label>
+          <label
+            ><span class="form-label">CRA (Secretaria de Saúde)</span
+            ><input class="form-input" [formField]="fields.cra"
+          /></label>
+        </div>
+      </section>
+      <section class="record-panel" aria-labelledby="citizen-phones-title">
+        <div class="record-heading-row">
+          <h2 id="citizen-phones-title">Telefones</h2>
+          <button
+            class="icon-button add-item"
+            type="button"
+            aria-label="Adicionar telefone"
+            title="Adicionar telefone"
+            [disabled]="state.saving() || model().phones.length >= 20"
+            (click)="addPhone()"
+          >
+            <app-icon name="plus" />
+          </button>
+        </div>
+        @for (phone of model().phones; track phone.key; let index = $index) {
+          <fieldset class="collection-item" data-editor-group="phone">
+            <legend>Telefone {{ index + 1 }}{{ index === 0 ? ' · principal' : '' }}</legend>
+            <div class="editor-grid">
+              <label
+                ><span class="form-label">Número com DDD</span
+                ><input
+                  type="tel"
+                  autocomplete="tel"
+                  class="form-input"
+                  [formField]="fields.phones[index].number"
+              /></label>
+              <label
+                ><span class="form-label">Descrição ou relação</span
+                ><input
+                  class="form-input"
+                  placeholder="Ex.: telefone da família"
+                  [formField]="fields.phones[index].label"
+              /></label>
+              <label class="checkbox-label"
+                ><input type="checkbox" [formField]="fields.phones[index].whatsapp" />Tem
+                WhatsApp</label
+              >
+            </div>
+            <button
+              #removePhone
+              class="icon-button item-remove"
+              type="button"
+              [attr.aria-label]="'Remover telefone ' + (index + 1)"
+              [disabled]="state.saving()"
+              (click)="removeItem('phones', phone.key, removePhone)"
+            >
+              <app-icon name="close" />
+            </button>
+          </fieldset>
+        } @empty {
+          <p class="field-hint">Nenhum telefone adicionado.</p>
+        }
+      </section>
+      <section class="record-panel" aria-labelledby="citizen-emails-title">
+        <div class="record-heading-row">
+          <h2 id="citizen-emails-title">E-mails</h2>
+          <button
+            class="icon-button add-item"
+            type="button"
+            aria-label="Adicionar e-mail"
+            title="Adicionar e-mail"
+            [disabled]="state.saving() || model().emails.length >= 20"
+            (click)="addEmail()"
+          >
+            <app-icon name="plus" />
+          </button>
+        </div>
+        @for (item of model().emails; track item.key; let index = $index) {
+          <fieldset class="collection-item" data-editor-group="email">
+            <legend>E-mail {{ index + 1 }}{{ index === 0 ? ' · principal' : '' }}</legend>
+            <div class="editor-grid">
+              <label
+                ><span class="form-label">Endereço de e-mail</span
+                ><input
+                  type="email"
+                  autocomplete="email"
+                  class="form-input"
+                  [formField]="fields.emails[index].address"
+              /></label>
+              <label
+                ><span class="form-label">Descrição ou relação</span
+                ><input class="form-input" [formField]="fields.emails[index].label"
+              /></label>
+            </div>
+            <button
+              #removeEmail
+              class="icon-button item-remove"
+              type="button"
+              [attr.aria-label]="'Remover e-mail ' + (index + 1)"
+              [disabled]="state.saving()"
+              (click)="removeItem('emails', item.key, removeEmail)"
+            >
+              <app-icon name="close" />
+            </button>
+          </fieldset>
+        } @empty {
+          <p class="field-hint">Nenhum e-mail adicionado.</p>
+        }
+      </section>
+      <section class="record-panel" aria-labelledby="citizen-addresses-title">
+        <div class="record-heading-row">
+          <h2 id="citizen-addresses-title">Endereços</h2>
+          <button
+            class="icon-button add-item"
+            type="button"
+            aria-label="Adicionar endereço"
+            title="Adicionar endereço"
+            [disabled]="state.saving() || model().addresses.length >= 20"
+            (click)="addAddress()"
+          >
+            <app-icon name="plus" />
+          </button>
+        </div>
+        @for (address of model().addresses; track address.key; let index = $index) {
+          <fieldset class="collection-item" data-editor-group="address">
+            <legend>
+              Endereço {{ index + 1 }}{{ index === 0 ? ' · principal, usado nas etiquetas' : '' }}
+            </legend>
+            <div class="editor-grid">
+              <label
+                ><span class="form-label">Logradouro</span
+                ><input
+                  class="form-input"
+                  autocomplete="address-line1"
+                  [formField]="fields.addresses[index].street"
+              /></label>
+              <label
+                ><span class="form-label">Número</span
+                ><input class="form-input" [formField]="fields.addresses[index].number"
+              /></label>
+              <label
+                ><span class="form-label">Complemento</span
+                ><input
+                  class="form-input"
+                  autocomplete="address-line2"
+                  [formField]="fields.addresses[index].complement"
+              /></label>
+              <label
+                ><span class="form-label">Bairro</span
+                ><input class="form-input" [formField]="fields.addresses[index].neighborhood"
+              /></label>
+              <label
+                ><span class="form-label">Cidade</span
+                ><input
+                  class="form-input"
+                  autocomplete="address-level2"
+                  [formField]="fields.addresses[index].city"
+              /></label>
+              <label
+                ><span class="form-label">UF</span
+                ><input
+                  class="form-input"
+                  autocomplete="address-level1"
+                  [formField]="fields.addresses[index].state"
+              /></label>
+              <label
+                ><span class="form-label">CEP</span
+                ><input
+                  class="form-input"
+                  inputmode="numeric"
+                  autocomplete="postal-code"
+                  [formField]="fields.addresses[index].postalCode"
+              /></label>
+              <label class="wide"
+                ><span class="form-label">Referência</span
+                ><input class="form-input" [formField]="fields.addresses[index].reference"
+              /></label>
+            </div>
+            @if (index > 0) {
+              <button
+                class="text-button"
+                type="button"
+                [disabled]="state.saving()"
+                (click)="primaryAddress(address.key)"
+              >
+                Usar como principal
+              </button>
+            }
+            <button
+              #removeAddress
+              class="icon-button item-remove"
+              type="button"
+              [attr.aria-label]="'Remover endereço ' + (index + 1)"
+              [disabled]="state.saving()"
+              (click)="removeItem('addresses', address.key, removeAddress)"
+            >
+              <app-icon name="close" />
+            </button>
+          </fieldset>
+        } @empty {
+          <p class="field-hint">Nenhum endereço adicionado.</p>
+        }
+      </section>
+      <section class="record-panel" aria-labelledby="citizen-documents-title">
+        <div class="record-heading-row">
+          <h2 id="citizen-documents-title">Documentos</h2>
+          <button
+            class="icon-button add-item"
+            type="button"
+            aria-label="Adicionar documento"
+            title="Adicionar documento"
+            [disabled]="state.saving() || model().documents.length >= 20"
+            (click)="addDocument()"
+          >
+            <app-icon name="plus" />
+          </button>
+        </div>
+        @for (doc of model().documents; track doc.key; let index = $index) {
+          <fieldset class="collection-item" data-editor-group="document">
+            <legend>Documento {{ index + 1 }}</legend>
+            <div class="editor-grid">
+              <label
+                ><span class="form-label">Tipo</span
+                ><select class="form-select" [formField]="fields.documents[index].type">
+                  @for (type of configuration.documentTypes; track type.value) {
+                    <option [value]="type.value">{{ type.label }}</option>
+                  }
+                </select></label
+              >
+              <label
+                ><span class="form-label">Número</span
+                ><input class="form-input" [formField]="fields.documents[index].value"
+              /></label>
+              <label
+                ><span class="form-label">Órgão emissor</span
+                ><input class="form-input" [formField]="fields.documents[index].issuer"
+              /></label>
+            </div>
+            <button
+              #removeDocument
+              class="icon-button item-remove"
+              type="button"
+              [attr.aria-label]="'Remover documento ' + (index + 1)"
+              [disabled]="state.saving()"
+              (click)="removeItem('documents', doc.key, removeDocument)"
+            >
+              <app-icon name="close" />
+            </button>
+          </fieldset>
+        } @empty {
+          <p class="field-hint">Nenhum documento adicionado.</p>
+        }
+      </section>
+      <section class="record-panel" aria-labelledby="citizen-notes-title">
+        <div class="record-heading-row">
+          <h2 id="citizen-notes-title">Observações</h2>
+          <app-dictation-button [target]="dictation" controlId="new-citizen-observations" />
+        </div>
+        <label class="sr-only" for="new-citizen-observations">Observações sobre o munícipe</label>
+        <textarea
+          id="new-citizen-observations"
+          class="form-input"
+          rows="6"
+          appSpeechToText
+          #dictation="speechToText"
+          [formField]="fields.observations"
+          aria-describedby="new-citizen-observations-dictation-status"
+        ></textarea>
+      </section>
+    </form>
+    <section class="record-panel" aria-label="Categorias do munícipe">
+      <fieldset class="plain-fieldset" [disabled]="state.saving() || !!state.createdId()">
+        <app-filter-selection
+          controlId="new-citizen-categories"
+          label="Categorias"
+          hint="Selecione as categorias que se aplicam ao cadastro."
+          [choices]="state.categoryChoices()"
+          [selected]="model().categories"
+          (added)="addCategory($event)"
+          (removed)="removeCategory($event)"
+        />
+      </fieldset>
+    </section>
+    <section class="record-panel" aria-labelledby="citizen-referrer-title">
+      <h2 id="citizen-referrer-title">Indicado por</h2>
+      <fieldset class="plain-fieldset" [disabled]="state.saving() || !!state.createdId()">
+        @if (referrer(); as person) {
+          <div class="record-heading-row">
+            <span>{{ person.name }}</span
+            ><button
+              class="icon-button"
+              type="button"
+              #removeReferrerButton
+              aria-label="Remover indicação"
+              (click)="removeReferrer()"
+            >
+              <app-icon name="close" />
+            </button>
+          </div>
+        } @else {
+          <app-citizen-search
+            #referrerPicker
+            mode="picker"
+            inputId="new-citizen-referrer"
+            (citizenSelected)="selectReferrer($event)"
+          />
+        }
+      </fieldset>
+    </section>
+    <section class="record-panel" aria-labelledby="citizen-photos-title">
+      <div class="record-heading-row">
+        <h2 id="citizen-photos-title">Fotos</h2>
+        <button
+          class="icon-button"
+          type="button"
+          #addPhotosButton
+          aria-label="Adicionar fotos"
+          title="Adicionar fotos"
+          [disabled]="state.saving() || !!state.createdId()"
+          (click)="photoInput.click()"
+        >
+          <app-icon name="plus" />
+        </button>
+      </div>
+      <input
+        #photoInput
+        type="file"
+        hidden
+        multiple
+        [accept]="service.photoAccept"
+        (change)="addPhotos($event)"
+      />
+      <p class="field-hint">Até 20 MB por foto. A primeira será a principal.</p>
+      <app-photo-gallery
+        galleryId="new-citizen-photos"
+        title="Fotos do cadastro"
+        [photos]="state.photos()"
+      />
+      <ul class="photo-files">
+        @for (photo of state.photos(); track photo.src; let index = $index) {
+          <li>
+            <span>{{ photo.label }}{{ index === 0 ? ' · principal' : '' }}</span>
+            <div class="icon-toolbar">
+              @if (index > 0) {
+                <button
+                  class="text-button"
+                  type="button"
+                  [disabled]="state.saving()"
+                  (click)="primaryPhoto(photo.src)"
+                >
+                  Tornar principal
+                </button>
+              }
+              <button
+                class="icon-button"
+                type="button"
+                [attr.aria-label]="'Remover foto ' + photo.label"
+                [disabled]="state.saving()"
+                (click)="removePhoto(photo.src)"
+              >
+                <app-icon name="close" />
+              </button>
+            </div>
+          </li>
+        }
+      </ul>
+    </section>
+    @if (state.review(); as review) {
+      <section
+        class="record-panel duplicate-panel"
+        #reviewPanel
+        tabindex="-1"
+        aria-labelledby="citizen-duplicates-title"
+      >
+        <h2 id="citizen-duplicates-title">Confira os cadastros encontrados</h2>
+        <p>
+          Há dados em comum com outros munícipes. Confira as fichas antes de criar um novo cadastro.
+        </p>
+        <ul class="duplicate-list">
+          @for (person of review.candidates; track person.id) {
+            <li>
+              <a [routerLink]="['/municipes', person.id]" target="_blank" rel="noopener"
+                >{{ person.name }}<span class="sr-only"> · abrir ficha em nova aba</span></a
+              ><span>{{ person.reasons.join(' · ') }}</span
+              ><span
+                >{{ person.phone
+                }}{{ person.neighborhood ? ' · ' + person.neighborhood : '' }}</span
+              >
+            </li>
+          }
+        </ul>
+        <label
+          ><span class="form-label">Por que este é outro munícipe?</span
+          ><textarea class="form-input" rows="2" [formField]="reasonForm.text"></textarea>
+        </label>
+        @if (reasonForm.text().touched() && reasonForm.text().invalid()) {
+          <p class="form-error" role="alert">Informe uma justificativa de 3 a 500 caracteres.</p>
+        }
+        <button
+          class="button"
+          type="button"
+          [disabled]="state.saving()"
+          (click)="confirmDistinct()"
+        >
+          Confirmar pessoa distinta e cadastrar
+        </button>
+      </section>
+    }
+    <div class="editor-actions">
+      <a class="button" routerLink="/municipes">Cancelar</a>
+      <button
+        class="button button--primary"
+        type="submit"
+        form="citizen-registration"
+        [disabled]="state.saving() || !!state.createdId()"
+      >
+        {{ state.saving() ? 'Salvando...' : 'Salvar munícipe' }}
+      </button>
+    </div>
+  }
+  <dialog
+    #discardDialog
+    class="dialog"
+    aria-labelledby="discard-citizen-title"
+    (close)="resolveLeave()"
+  >
+    <div class="dialog__header">
+      <h2 id="discard-citizen-title">Sair do cadastro?</h2>
+      <button
+        class="icon-button"
+        type="button"
+        aria-label="Continuar cadastrando"
+        (click)="discardDialog.close('keep')"
+      >
+        <app-icon name="close" />
+      </button>
+    </div>
+    <div class="dialog__body"><p>As alterações ainda não foram salvas.</p></div>
+    <div class="dialog__footer">
+      <button autofocus class="button" type="button" (click)="discardDialog.close('keep')">
+        Continuar cadastrando</button
+      ><button class="button" type="button" (click)="discardDialog.close('discard')">
+        Descartar e sair
+      </button>
+    </div>
+  </dialog>
+</div>

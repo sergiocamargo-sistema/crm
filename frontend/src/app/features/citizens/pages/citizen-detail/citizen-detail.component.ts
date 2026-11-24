@@ -58,6 +58,13 @@ export class CitizenDetailComponent {
   protected readonly actionsExpanded = signal(false);
   private statusTimer: ReturnType<typeof setTimeout> | undefined;
   protected readonly citizen = this.service.observeCitizen(this.id).state;
+  protected readonly addresses = computed(() => {
+    const person = this.citizen();
+    if (!person) return [];
+    return (person.addresses ?? [{ ...person.address, neighborhood: person.neighborhood }]).filter(
+      (address) => Object.values(address).some(Boolean),
+    );
+  });
   protected readonly timeline = this.service.observeTimeline(this.id).state;
   protected readonly primaryWhatsapp = computed(
     () => this.citizen()?.phones.find((phone) => phone.whatsappUrl)?.whatsappUrl ?? '',

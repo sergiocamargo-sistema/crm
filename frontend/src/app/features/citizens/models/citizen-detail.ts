@@ -135,6 +135,27 @@ export interface NewCitizenInteraction {
 }
 
 export interface CitizenDetail extends CitizenSummary {
+  readonly addresses?: readonly {
+    readonly street: string;
+    readonly complement: string;
+    readonly neighborhood: string;
+    readonly city: string;
+    readonly state: string;
+    readonly postalCode: string;
+    readonly reference: string;
+  }[];
+  readonly documents?: readonly {
+    readonly type: string;
+    readonly value: string;
+    readonly issuer: string;
+  }[];
+  readonly referrerId?: string;
+  readonly creationReview?: {
+    readonly reason: string;
+    readonly candidateIds: readonly string[];
+    readonly author: string;
+    readonly at: string;
+  };
   readonly birthDate: string | null;
   readonly cra: string | null;
   readonly observations: string;

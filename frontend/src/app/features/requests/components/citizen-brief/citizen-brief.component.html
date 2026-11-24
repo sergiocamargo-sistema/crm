@@ -1,9 +1,13 @@
 <section class="citizen-brief" aria-label="Resumo do munícipe">
   <div class="brief-row">
     @if (citizen().photos[0]; as photo) {
-      <a [routerLink]="['/municipes', citizen().id]" aria-label="Abrir ficha do munícipe"
-        ><img [ngSrc]="photo.src" width="52" height="52" alt=""
-      /></a>
+      <a [routerLink]="['/municipes', citizen().id]" aria-label="Abrir ficha do munícipe">
+        @if (photo.src.startsWith('blob:')) {
+          <img [src]="photo.src" width="52" height="52" alt="" />
+        } @else {
+          <img [ngSrc]="photo.src" width="52" height="52" alt="" />
+        }
+      </a>
     }
     <div class="brief-data">
       <a class="brief-name" [routerLink]="['/municipes', citizen().id]" [title]="citizen().name">{{

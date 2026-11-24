@@ -7,7 +7,9 @@ import { MOCK_DEPARTMENTS } from '../data/sjc-departments.mock';
 import { inject, Service, signal } from '@angular/core';
 import { TeamCollaborationService } from '../../core/services/team-collaboration.service';
 import type { TextReference } from '../../core/models/collaboration';
-import { MOCK_CITIZEN_DETAILS } from '../data/citizen-details.mock';
+import { MockCitizenRegistry } from './mock-citizen-registry';
+import { MockCitizenRegistration } from './mock-citizen-registration';
+import type { CitizenRegistrationCommand } from '../../features/citizens/models/citizen-registration';
 import type {
   CitizenDetail,
   CitizenRequest,
@@ -60,7 +62,6 @@ import { MOCK_TASK_COMMENTS, MOCK_TASK_ATTACHMENTS } from '../data/task-collabor
 import { MOCK_REQUEST_PATTERNS, initialRequestExtras } from '../data/request-extras.mock';
 import { REQUEST_PRIORITIES } from '../../features/requests/models/request-detail';
 import { requestTimeline } from '../../features/requests/models/request-timeline';
-import { MOCK_CITIZENS } from '../data/citizens.mock';
 import { MOCK_GENERAL_REQUEST, MOCK_GENERAL_REQUEST_EXTRAS } from '../data/general-requests.mock';
 
 import type {
@@ -77,6 +78,9 @@ import { MOCK_TASK_LABELS, MOCK_TASK_LABEL_DEFAULT_COLOR } from '../data/task-la
 
 @Service()
 export class MockCitizenDetailRepository implements CitizenDetailRepository {
+  private readonly registry = inject(MockCitizenRegistry);
+  private readonly citizens = this.registry.citizens;
+  private readonly registration = inject(MockCitizenRegistration);
   private readonly taskLabels = signal<readonly TaskLabel[]>(MOCK_TASK_LABELS);
   private readonly requestPatterns = signal<readonly RequestPattern[]>(MOCK_REQUEST_PATTERNS);
   private readonly taskHistory = signal<readonly TaskHistoryEvent[]>([]);
@@ -98,14 +102,14 @@ export class MockCitizenDetailRepository implements CitizenDetailRepository {
       readonly record: CitizenRequest;
     }[]
   >([
-    ...MOCK_CITIZEN_DETAILS.flatMap(({ id, requests }) =>
+    ...this.citizens().flatMap(({ id, requests }) =>
       requests.map((record) => ({ citizenId: id, record })),
     ),
     { citizenId: null, record: MOCK_GENERAL_REQUEST },
   ]);
   private readonly requestExtras = signal<Readonly<Record<string, RequestExtras>>>({
     ...Object.fromEntries(
-      MOCK_CITIZEN_DETAILS.flatMap((citizen) =>
+      this.citizens().flatMap((citizen) =>
         citizen.requests.map((request) => [
           request.id,
           initialRequestExtras(request.id, request.status === 'completed'),
@@ -118,12 +122,10 @@ export class MockCitizenDetailRepository implements CitizenDetailRepository {
   private readonly requestContacts = signal<
     Readonly<Record<string, readonly CitizenInteraction[]>>
   >({});
-  private readonly profileEdits = signal<
-    Readonly<Record<string, Partial<Pick<CitizenDetail, 'observations' | 'categories'>>>>
-  >({});
+  private readonly profileEdits = this.registry.profileEdits;
   private readonly categoryCatalog = signal<readonly string[]>([
     ...new Set([
-      ...MOCK_CITIZEN_DETAILS.flatMap((citizen) => citizen.categories),
+      ...this.citizens().flatMap((citizen) => citizen.categories),
       'Associação de moradores',
       'Voluntariado',
       'Extrema Direita',
@@ -140,12 +142,20 @@ export class MockCitizenDetailRepository implements CitizenDetailRepository {
     );
   }
 
+  loadCitizenRegistration() {
+    return this.registration.configuration(this.listCategories());
+  }
+
+  createCitizen(command: CitizenRegistrationCommand) {
+    return this.registration.create(command, this.listCategories());
+  }
+
   loadRequestList(query: RequestListQuery): RequestListResult {
     const normalize = (value: string): string =>
       value.normalize('NFD').replace(/\p{M}/gu, '').toLocaleLowerCase('pt-BR');
     const terms = normalize(query.text).trim().split(/\s+/u).filter(Boolean);
     const requests = this.requests();
-    const citizens = new Map(MOCK_CITIZEN_DETAILS.map(({ id, name }) => [id, { id, name }]));
+    const citizens = new Map(this.citizens().map(({ id, name }) => [id, { id, name }]));
     const extras = this.requestExtras();
     const departments = new Map(
       this.departments().map((department) => [department.id, department]),
@@ -205,7 +215,7 @@ export class MockCitizenDetailRepository implements CitizenDetailRepository {
       citizen,
     });
     const requests = this.requests().map(({ record, citizenId }) => {
-      const citizen = MOCK_CITIZEN_DETAILS.find(({ id }) => id === citizenId);
+      const citizen = this.citizens().find(({ id }) => id === citizenId);
       return requestChoice(record, citizen ? { id: citizen.id, name: citizen.name } : null);
     });
     return {
@@ -394,7 +404,7 @@ export class MockCitizenDetailRepository implements CitizenDetailRepository {
         title: request.title,
         href: `/solicitacoes/${encodeURIComponent(request.id)}`,
       })),
-      ...MOCK_CITIZEN_DETAILS.flatMap((citizen): TextReference[] => [
+      ...this.citizens().flatMap((citizen): TextReference[] => [
         { id: citizen.id, kind: 'citizen', title: citizen.name, href: `/municipes/${citizen.id}` },
         ...(this.contacts()[citizen.id] ?? citizen.interactions).map(
           (interaction): TextReference => ({
@@ -512,7 +522,7 @@ export class MockCitizenDetailRepository implements CitizenDetailRepository {
   prepareLabelRecipients(citizenIds: readonly string[]): readonly LabelRecipient[] {
     const ids = [...new Set(citizenIds)];
     if (ids.length > 5000) throw new Error('Selecione até 5.000 munícipes por geração.');
-    const people = new Map(MOCK_CITIZEN_DETAILS.map((person) => [person.id, person]));
+    const people = new Map(this.citizens().map((person) => [person.id, person]));
     return ids.map((id) => {
       const person = people.get(id);
       if (!person) throw new Error('Um dos munícipes selecionados não foi encontrado.');
@@ -554,7 +564,7 @@ export class MockCitizenDetailRepository implements CitizenDetailRepository {
     const edits = this.profileEdits();
     const contacts = this.contacts();
     const requestExtras = this.requestExtras();
-    return MOCK_CITIZEN_DETAILS.map((citizen) => {
+    return this.citizens().map((citizen) => {
       const requests = this.requestsForCitizen(citizen.id);
       const interactions = contacts[citizen.id] ?? citizen.interactions;
       const lastInteractionAt = interactions
@@ -566,7 +576,7 @@ export class MockCitizenDetailRepository implements CitizenDetailRepository {
         );
       const original = citizen.photos[0];
       const thumbnail = original ? new URL(original.src) : null;
-      if (thumbnail) {
+      if (thumbnail && !original?.src.startsWith('blob:')) {
         thumbnail.searchParams.set('w', '120');
         thumbnail.searchParams.set('h', '120');
         thumbnail.searchParams.set('q', '70');
@@ -597,7 +607,7 @@ export class MockCitizenDetailRepository implements CitizenDetailRepository {
   }
 
   loadDetail(citizenId: string): CitizenDetail | null {
-    const citizen = MOCK_CITIZEN_DETAILS.find((citizen) => citizen.id === citizenId);
+    const citizen = this.citizens().find((citizen) => citizen.id === citizenId);
     if (!citizen) return null;
     const contacts = this.contacts()[citizenId];
     return {
@@ -687,7 +697,7 @@ export class MockCitizenDetailRepository implements CitizenDetailRepository {
   }
 
   createRequest(citizenId: string | null, request: NewCitizenRequest): string {
-    if (citizenId && !MOCK_CITIZEN_DETAILS.some(({ id }) => id === citizenId))
+    if (citizenId && !this.citizens().some(({ id }) => id === citizenId))
       throw new Error('Munícipe não encontrado.');
     if (request.patternId && !this.requestPatterns().some(({ id }) => id === request.patternId))
       throw new Error('Padrão não encontrado.');
@@ -746,7 +756,7 @@ export class MockCitizenDetailRepository implements CitizenDetailRepository {
           [],
       };
     }
-    for (const summary of MOCK_CITIZEN_DETAILS) {
+    for (const summary of this.citizens()) {
       const citizen = this.loadDetail(summary.id)!;
       if (kind === 'appointment') {
         const record = citizen.appointments.find((item) => item.id === id);
@@ -800,8 +810,21 @@ export class MockCitizenDetailRepository implements CitizenDetailRepository {
       request: detail.record,
       extras,
       awareness: extras.awareness.flatMap((link) => {
-        const person = MOCK_CITIZENS.find((item) => item.id === link.citizenId);
-        return person ? [{ ...link, citizen: person }] : [];
+        const person = this.citizens().find((item) => item.id === link.citizenId);
+        return person
+          ? [
+              {
+                ...link,
+                citizen: {
+                  id: person.id,
+                  name: person.name,
+                  initials: person.initials,
+                  neighborhood: person.neighborhood,
+                  phone: person.phone,
+                },
+              },
+            ]
+          : [];
       }),
       timeline: requestTimeline(detail.record, extras, detail.interactions),
     };
@@ -1155,7 +1178,7 @@ export class MockCitizenDetailRepository implements CitizenDetailRepository {
   addRequestAwareness(requestId: string, citizenId: string): void {
     const detail = this.loadRequestWorkspace(requestId);
     if (!detail) throw new Error('Solicitação não encontrada.');
-    const citizen = MOCK_CITIZENS.find((item) => item.id === citizenId);
+    const citizen = this.citizens().find((item) => item.id === citizenId);
     if (!citizen) throw new Error('Munícipe não encontrado.');
     if (detail.citizen?.id === citizenId)
       throw new Error('O solicitante já está vinculado à solicitação.');
@@ -1185,7 +1208,7 @@ export class MockCitizenDetailRepository implements CitizenDetailRepository {
     this.updateRequest(requestId, (extras) => {
       const link = extras.awareness.find((item) => item.id === awarenessId);
       if (!link) throw new Error('Vínculo de ciência não encontrado.');
-      const citizen = MOCK_CITIZENS.find((item) => item.id === link.citizenId);
+      const citizen = this.citizens().find((item) => item.id === link.citizenId);
       return {
         ...extras,
         awareness: extras.awareness.filter((item) => item.id !== awarenessId),
@@ -1326,7 +1349,7 @@ export class MockCitizenDetailRepository implements CitizenDetailRepository {
 
   registerContact(citizenId: string, contact: NewCitizenInteraction): void {
     if (contact.type === 'request') throw new Error('Use a criação de solicitação.');
-    const citizen = MOCK_CITIZEN_DETAILS.find((citizen) => citizen.id === citizenId);
+    const citizen = this.citizens().find((citizen) => citizen.id === citizenId);
     if (!citizen) {
       throw new Error('Munícipe não encontrado.');
     }
