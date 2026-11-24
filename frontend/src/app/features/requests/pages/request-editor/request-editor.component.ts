@@ -18,6 +18,7 @@ import { IconComponent } from '../../../../shared/components/icon/icon.component
 import { CitizenBriefComponent } from '../../components/citizen-brief/citizen-brief.component';
 import { REQUEST_PRIORITIES, type RequestEditorDraft } from '../../models/request-detail';
 import { RequestEditorService } from '../../services/request-editor.service';
+import { RequestDetailService } from '../../services/request-detail.service';
 
 type EditorForm = Omit<RequestEditorDraft, 'citizenId' | 'patternId'> & {
   citizenId: string;
@@ -81,6 +82,23 @@ export class RequestEditorComponent {
     maxLength(schema.title, 120);
     required(schema.description);
     maxLength(schema.description, 5000);
+  });
+  private readonly automationPlans = inject(RequestDetailService).observeAutomationPlans(
+    computed(() => (this.id() ? null : this.model().patternId)),
+  ).state;
+  protected readonly automationSummary = computed(() => {
+    const plans = this.automationPlans();
+    if (!plans.length) return null;
+    return plans.reduce(
+      (summary, plan) =>
+        plan.enabled
+          ? {
+              initial: summary.initial + plan.initialTaskCount,
+              dependent: summary.dependent + plan.dependentTaskCount,
+            }
+          : summary,
+      { initial: 0, dependent: 0 },
+    );
   });
   protected readonly citizen = this.service.observeCitizen(computed(() => this.model().citizenId))
     .state;

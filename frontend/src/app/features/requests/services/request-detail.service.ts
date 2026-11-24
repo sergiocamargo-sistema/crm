@@ -69,6 +69,19 @@ export class RequestDetailService {
     return new ReadStore(computed(() => this.loadDetail(id())));
   }
 
+  observeAutomationPlans(patternId: Signal<string | null | undefined>, requestId?: Signal<string>) {
+    return new ReadStore(
+      computed(() => {
+        const pattern = patternId();
+        return pattern ? this.repository.listRequestAutomationPlans(pattern, requestId?.()) : [];
+      }),
+    );
+  }
+
+  startAutomation(id: string, ruleId: string): void {
+    this.repository.startRequestAutomation(id, ruleId);
+  }
+
   loadDetail(id: string) {
     return this.repository.loadRequestWorkspace(id);
   }

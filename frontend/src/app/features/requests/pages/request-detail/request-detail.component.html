@@ -110,7 +110,7 @@
 
         <section class="record-panel" aria-labelledby="request-tasks-title">
           <div class="record-heading-row">
-            <h2 id="request-tasks-title">
+            <h2 #tasksHeading id="request-tasks-title" tabindex="-1">
               Tarefas
               <span class="task-count"
                 >{{ completedTasks() }}/{{ detail.extras.tasks.length }}</span
@@ -127,6 +127,19 @@
               <app-icon name="plus" />
             </button>
           </div>
+          @for (plan of availableAutomations(); track plan.id) {
+            <div>
+              <button type="button" class="text-button" (click)="startAutomation(plan.id)">
+                <app-icon name="workflow" /> Gerar tarefas · {{ plan.name }}
+              </button>
+              <p class="task-meta">
+                {{ plan.initialTaskCount }} no início
+                @if (plan.dependentTaskCount) {
+                  · {{ plan.dependentTaskCount }} após outras tarefas
+                }
+              </p>
+            </div>
+          }
           @for (run of detail.automations; track run.id) {
             <p>
               <a routerLink="/automacoes" [queryParams]="{ aba: 'runs', execucao: run.id }">{{

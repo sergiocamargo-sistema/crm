@@ -54,6 +54,6 @@ export const MOCK_AUTOMATION_RULES: readonly AutomationRule[] = [
     trigger: 'request-created',
     patternId: 'pattern-buraco',
     setId: 'set-tapa-buraco',
-    enabled: false,
+    enabled: true,
   },
 ];

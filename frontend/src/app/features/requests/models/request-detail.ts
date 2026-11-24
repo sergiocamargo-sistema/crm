@@ -29,6 +29,13 @@ export interface RequestPattern {
   readonly departmentId: string;
 }
 export type RequestPatternDraft = Omit<RequestPattern, 'id'>;
+export interface RequestAutomationPlan {
+  readonly id: string;
+  readonly name: string;
+  readonly enabled: boolean;
+  readonly initialTaskCount: number;
+  readonly dependentTaskCount: number;
+}
 export type RequestTask = Task;
 export interface RequestComment {
   readonly id: string;

@@ -12,6 +12,7 @@ import {
   type TaskTemplate,
   type TaskTemplateDraft,
 } from '../../features/automations/models/automation';
+import type { RequestAutomationPlan } from '../../features/requests/models/request-detail';
 import {
   MOCK_AUTOMATION_RULES,
   MOCK_TASK_SETS,
@@ -25,6 +26,8 @@ const normalize = (text: string): string =>
     .toLocaleLowerCase('pt-BR')
     .trim()
     .replace(/\s+/gu, ' ');
+
+const requestCreatedEventId = (requestId: string): string => `request-created:${requestId}`;
 
 /** Dados e regras do backend simulado; não cria uma segunda coleção de tarefas. */
 export class MockAutomationEngine {
@@ -215,21 +218,61 @@ export class MockAutomationEngine {
       )
     );
   }
-  start(requestId: string, requestTitle: string, patternId: string | null, actor: string): void {
-    for (const rule of this.rules().filter(
-      (rule) => rule.enabled && rule.patternId === patternId,
-    )) {
-      const eventId = `request-created:${requestId}`;
-      if (this.runs().some((run) => run.ruleId === rule.id && run.eventId === eventId)) continue;
+  private requestRules(patternId: string | null): readonly AutomationRule[] {
+    return this.rules().filter(
+      (rule) => rule.trigger === 'request-created' && rule.patternId === patternId,
+    );
+  }
+
+  private hasRun(ruleId: string, eventId: string): boolean {
+    return this.runs().some((run) => run.ruleId === ruleId && run.eventId === eventId);
+  }
+
+  requestPlans(patternId: string, requestId?: string): readonly RequestAutomationPlan[] {
+    const eventId = requestId === undefined ? null : requestCreatedEventId(requestId);
+    return this.requestRules(patternId).flatMap((rule) => {
+      if (eventId && this.hasRun(rule.id, eventId)) return [];
       const set = this.sets().find((item) => item.id === rule.setId);
-      if (!set) continue;
+      if (!set) return [];
+      const initialTaskCount = set.steps.filter((step) => !step.dependsOn.length).length;
+      return [
+        {
+          id: rule.id,
+          name: rule.name,
+          enabled: rule.enabled,
+          initialTaskCount,
+          dependentTaskCount: set.steps.length - initialTaskCount,
+        },
+      ];
+    });
+  }
+
+  start(
+    requestId: string,
+    requestTitle: string,
+    patternId: string | null,
+    actor: string,
+    ruleId?: string,
+  ): readonly AutomationRun[] {
+    const rules = this.requestRules(patternId).filter(
+      (rule) => rule.enabled && (ruleId === undefined || rule.id === ruleId),
+    );
+    if (ruleId !== undefined && !rules.length) {
+      throw new Error('Esta automação não está ativa para o padrão da solicitação.');
+    }
+
+    // A execução escolhida manualmente usa a mesma chave do disparo no cadastro.
+    const eventId = requestCreatedEventId(requestId);
+    const started = rules.flatMap((rule): AutomationRun[] => {
+      if (this.hasRun(rule.id, eventId)) return [];
+      const set = this.sets().find((item) => item.id === rule.setId);
+      if (!set) return [];
       const steps = set.steps.map((step) => {
         const template = this.templates().find((item) => item.id === step.templateId);
         if (!template) throw new Error('Tarefa modelo não encontrada.');
         return { ...structuredClone(step), template: structuredClone(template), taskId: null };
       });
-      this.runs.update((runs) => [
-        ...runs,
+      return [
         {
           id: `run-${crypto.randomUUID()}`,
           ruleId: rule.id,
@@ -245,8 +288,10 @@ export class MockAutomationEngine {
           steps,
           error: '',
         },
-      ]);
-    }
+      ];
+    });
+    if (started.length) this.runs.update((runs) => [...runs, ...started]);
+    return started;
   }
   requestRuns(requestId: string): readonly AutomationRun[] {
     return this.runs().filter((run) => run.requestId === requestId);

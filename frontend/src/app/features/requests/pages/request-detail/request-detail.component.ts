@@ -54,9 +54,17 @@ export class RequestDetailComponent {
   private readonly location = inject(Location);
   private readonly injector = inject(Injector);
   private readonly heading = viewChild<ElementRef<HTMLHeadingElement>>('pageTitle');
+  private readonly tasksHeading = viewChild<ElementRef<HTMLHeadingElement>>('tasksHeading');
   private readonly composer = viewChild(RequestComposerComponent);
   private readonly fragment = toSignal(inject(ActivatedRoute).fragment);
   protected readonly workspace = this.service.observeRequest(this.id).state;
+  private readonly automationPlans = this.service.observeAutomationPlans(
+    computed(() => this.workspace()?.extras.patternId),
+    this.id,
+  ).state;
+  protected readonly availableAutomations = computed(() =>
+    this.automationPlans().filter((plan) => plan.enabled),
+  );
   protected readonly patternLabel = computed(
     () =>
       this.service.catalog
@@ -107,6 +115,20 @@ export class RequestDetailComponent {
     } catch (error: unknown) {
       this.failure.set(
         error instanceof Error ? error.message : 'Não foi possível atualizar a tarefa.',
+      );
+    }
+  }
+  protected startAutomation(ruleId: string): void {
+    this.failure.set('');
+    try {
+      this.service.startAutomation(this.id(), ruleId);
+      this.announce('Automação iniciada.');
+      afterNextRender(() => this.tasksHeading()?.nativeElement.focus({ preventScroll: true }), {
+        injector: this.injector,
+      });
+    } catch (error: unknown) {
+      this.failure.set(
+        error instanceof Error ? error.message : 'Não foi possível iniciar a automação.',
       );
     }
   }

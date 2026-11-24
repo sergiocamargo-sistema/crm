@@ -98,6 +98,23 @@
             <input class="form-input" type="datetime-local" [formField]="fields.dueAt" />
           </label>
         </div>
+        @if (automationSummary(); as automation) {
+          <p class="form-hint" role="status">
+            @if (automation.initial) {
+              Ao cadastrar,
+              {{
+                automation.initial === 1
+                  ? '1 tarefa será criada'
+                  : automation.initial + ' tarefas serão criadas'
+              }}.
+              @if (automation.dependent) {
+                As demais entram conforme suas dependências são concluídas.
+              }
+            } @else {
+              As automações deste padrão estão desativadas.
+            }
+          </p>
+        }
         @if (suggestedDepartment(); as department) {
           <button
             type="button"

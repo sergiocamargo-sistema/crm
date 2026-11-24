@@ -33,6 +33,7 @@ import type {
   RequestPatternDraft,
   RequestWorkspace,
   RequestEditorDraft,
+  RequestAutomationPlan,
   NewRequestComment,
   NewRequestTask,
   RequestAttachment,
@@ -68,6 +69,11 @@ export interface CitizenDetailRepository {
   saveRequest(id: string | null, draft: RequestEditorDraft): string;
   createRequest(citizenId: string | null, request: NewCitizenRequest): string;
   loadRequestWorkspace(id: string): RequestWorkspace | null;
+  listRequestAutomationPlans(
+    patternId: string,
+    requestId?: string,
+  ): readonly RequestAutomationPlan[];
+  startRequestAutomation(requestId: string, ruleId: string): void;
   loadCitizenTimeline(citizenId: string): readonly TimelineEntry[];
   listDepartments(): readonly Department[];
   searchDepartments(query: string): readonly DepartmentOption[];

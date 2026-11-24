@@ -56,6 +56,7 @@ import type {
   NewRequestComment,
   NewRequestTask,
   RequestAttachment,
+  RequestAutomationPlan,
   RequestComment,
 } from '../../features/requests/models/request-detail';
 import { MOCK_TASK_COMMENTS, MOCK_TASK_ATTACHMENTS } from '../data/task-collaboration.mock';
@@ -1339,6 +1340,30 @@ export class MockCitizenDetailRepository implements CitizenDetailRepository, Aut
     };
   }
 
+  listRequestAutomationPlans(
+    patternId: string,
+    requestId?: string,
+  ): readonly RequestAutomationPlan[] {
+    if (requestId !== undefined && this.requestExtras()[requestId]?.patternId !== patternId) {
+      return [];
+    }
+    return this.automation.requestPlans(patternId, requestId);
+  }
+
+  startRequestAutomation(requestId: string, ruleId: string): void {
+    const entry = this.requests().find(({ record }) => record.id === requestId);
+    const extras = this.requestExtras()[requestId];
+    if (!entry || !extras) throw new Error('Solicitação não encontrada.');
+    const [run] = this.automation.start(
+      requestId,
+      entry.record.title,
+      extras.patternId,
+      this.team.actor.name,
+      ruleId,
+    );
+    if (run) this.advanceAutomations(requestId, run.id);
+  }
+
   async loadAutomationWorkspace(query: string) {
     return this.automation.workspace(
       query,
@@ -1374,8 +1399,9 @@ export class MockCitizenDetailRepository implements CitizenDetailRepository, Aut
     if (this.automation.run(id).error) throw new Error(this.automation.run(id).error);
   }
 
-  private advanceAutomations(requestId: string): void {
+  private advanceAutomations(requestId: string, runId?: string): void {
     for (const run of this.automation.requestRuns(requestId)) {
+      if (runId !== undefined && run.id !== runId) continue;
       try {
         const existingTasks = this.requestExtras()[requestId]?.tasks ?? [];
         // Recupera a associação mesmo se houver falha após gravar as tarefas.
