@@ -2,7 +2,7 @@ import { inject, Service } from '@angular/core';
 import { TeamCollaborationService } from '../../core/services/team-collaboration.service';
 import type { CitizenDetail } from '../../features/citizens/models/citizen-detail';
 import {
-  citizenPhoneDigits,
+  citizenPhoneIdentity,
   validCitizenBirthDate,
   validCitizenPhone,
   type CitizenRegistrationCommand,
@@ -57,7 +57,7 @@ export class MockCitizenRegistration {
       if (
         draft.phones.some(({ number }) =>
           person.phones.some(
-            (phone) => citizenPhoneDigits(number) === citizenPhoneDigits(phone.number),
+            (phone) => citizenPhoneIdentity(number) === citizenPhoneIdentity(phone.number),
           ),
         )
       )
@@ -134,8 +134,7 @@ export class MockCitizenRegistration {
     const now = new Date().toISOString();
     const id = crypto.randomUUID();
     const phones = draft.phones.map((phone) => {
-      const digits = citizenPhoneDigits(phone.number);
-      const international = digits.length === 10 || digits.length === 11 ? `55${digits}` : digits;
+      const international = citizenPhoneIdentity(phone.number);
       return {
         number: phone.number,
         label: phone.label,
@@ -283,7 +282,7 @@ export class MockCitizenRegistration {
         'Revise os telefones: informe de 8 a 15 dígitos e uma descrição de até 120 caracteres.',
       );
     if (
-      new Set(draft.phones.map(({ number }) => citizenPhoneDigits(number))).size !==
+      new Set(draft.phones.map(({ number }) => citizenPhoneIdentity(number))).size !==
       draft.phones.length
     )
       throw new Error('Há um telefone repetido neste cadastro.');

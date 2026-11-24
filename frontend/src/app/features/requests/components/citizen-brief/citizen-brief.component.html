@@ -13,10 +13,7 @@
       <a class="brief-name" [routerLink]="['/municipes', citizen().id]" [title]="citizen().name">{{
         citizen().name
       }}</a>
-      <span class="brief-address"
-        >{{ citizen().address.street }} · {{ citizen().neighborhood }} ·
-        {{ citizen().address.city }}/{{ citizen().address.state }}</span
-      >
+      <span class="brief-address">{{ address() || 'Endereço não informado' }}</span>
       <span
         >CRA <strong>{{ citizen().cra ?? 'Não informado' }}</strong></span
       >

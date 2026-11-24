@@ -79,7 +79,16 @@
               <span class="avatar" aria-hidden="true">{{ citizen.initials }}</span>
               <span class="result-person">
                 <strong>{{ citizen.name }}</strong>
-                <small>{{ citizen.neighborhood }}<span>·</span>{{ citizen.phone }}</small>
+                <small>
+                  {{ citizen.neighborhood }}
+                  @if (citizen.neighborhood && citizen.phone) {
+                    <span>·</span>
+                  }
+                  {{ citizen.phone }}
+                  @if (!citizen.neighborhood && !citizen.phone) {
+                    Contato não informado
+                  }
+                </small>
               </span>
             </ng-template>
             @if (isHeader()) {

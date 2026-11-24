@@ -1,5 +1,5 @@
 import { NgOptimizedImage } from '@angular/common';
-import { Component, input, linkedSignal } from '@angular/core';
+import { Component, computed, input, linkedSignal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import type { CitizenDetail } from '../../../citizens/models/citizen-detail';
 
@@ -11,6 +11,16 @@ import type { CitizenDetail } from '../../../citizens/models/citizen-detail';
 })
 export class CitizenBriefComponent {
   readonly citizen = input.required<CitizenDetail>();
+  protected readonly address = computed(() => {
+    const person = this.citizen();
+    return [
+      person.address.street,
+      person.neighborhood,
+      [person.address.city, person.address.state].filter(Boolean).join(' / '),
+    ]
+      .filter(Boolean)
+      .join(' · ');
+  });
   protected readonly expanded = linkedSignal({
     source: () => this.citizen().id,
     computation: () => false,

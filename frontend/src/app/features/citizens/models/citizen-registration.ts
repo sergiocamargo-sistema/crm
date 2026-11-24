@@ -77,9 +77,16 @@ export function validCitizenBirthDate(value: string, today: string): boolean {
 
 export const citizenPhoneDigits = (value: string): string => value.replace(/\D/gu, '');
 
+export function citizenPhoneIdentity(value: string): string {
+  const digits = citizenPhoneDigits(value);
+  return !value.trim().startsWith('+') && (digits.length === 10 || digits.length === 11)
+    ? `55${digits}`
+    : digits;
+}
+
 export function validCitizenPhone(value: string): boolean {
   return (
     !value.trim() ||
-    (/^[+\d\s().-]+$/u.test(value) && /^\d{8,15}$/u.test(citizenPhoneDigits(value)))
+    (/^\+?[\d\s().-]+$/u.test(value) && /^\d{8,15}$/u.test(citizenPhoneDigits(value)))
   );
 }

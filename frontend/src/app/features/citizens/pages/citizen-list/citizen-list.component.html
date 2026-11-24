@@ -131,7 +131,9 @@
               </div>
             </div>
             <span class="person-contact">
-              <span class="phone-number"><app-icon name="phone" />{{ person.phone }}</span>
+              <span class="phone-number"
+                ><app-icon name="phone" />{{ person.phone || 'Não informado' }}</span
+              >
               <span class="cra">CRA {{ person.cra ?? 'não informado' }}</span>
             </span>
             <span class="person-categories">
