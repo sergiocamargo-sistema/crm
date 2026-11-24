@@ -1,4 +1,0 @@
-# Ferramentas da documentação, não dependências do backend.
-PyYAML==6.0.3
-openapi-spec-validator==0.9.0
-jsonschema==4.26.0

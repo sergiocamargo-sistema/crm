@@ -48,6 +48,12 @@ Thumbs.db
 /playwright-report/
 /test-results/
 
+# Planejamento e registros de trabalho ficam somente nesta máquina
+/docs/
+/README.md
+/AGENTS.md
+/validacao.md
+
 # Segredos e credenciais locais (os exemplos sem valores podem ser versionados)
 .env
 .env.*

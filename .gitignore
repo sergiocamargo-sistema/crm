@@ -46,3 +46,11 @@ Thumbs.db
 *.swo
 /.codex/*
 !/.codex/config.toml
+
+# Planejamento e documentação de trabalho: somente local
+/docs/
+/scripts/
+/.agents/
+/index.html
+/README.md
+/AGENTS.md

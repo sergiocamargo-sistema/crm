@@ -38,7 +38,8 @@ jobs:
         run: npm run build:pages
         env:
           NG_CLI_ANALYTICS: 'false'
-      - name: Enviar somente os arquivos do site
+      # Publicar apenas o artefato Angular; nunca a raiz com documentos locais.
+      - name: Enviar somente os arquivos do frontend
         if: github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4
         with:
