@@ -1,113 +1,107 @@
-<form class="editor" novalidate (submit)="save($event)" [attr.aria-busy]="state.saving()">
-  <h2 #heading tabindex="-1">
-    {{ record() ? 'Editar automação' : 'Criar automação' }} ·
-    {{ step() === 1 ? 'Quando acontece?' : step() === 2 ? 'Quais tarefas?' : 'Revisar e ativar' }}
-  </h2>
-  <ol class="wizard-progress" aria-label="Etapas da configuração">
-    <li [attr.aria-current]="step() === 1 ? 'step' : null">1. Gatilho</li>
-    <li [attr.aria-current]="step() === 2 ? 'step' : null">2. Conjunto</li>
-    <li [attr.aria-current]="step() === 3 ? 'step' : null">3. Revisão</li>
-  </ol>
-  <fieldset [disabled]="state.saving()" class="editor-fields">
-    @switch (step()) {
-      @case (1) {
-        <label
-          ><span class="form-label">Nome da automação</span
-          ><input class="form-input" [formField]="fields.name"
-        /></label>
-        <div class="review">
-          <h3>Quando uma solicitação for criada</h3>
-          <label
-            ><span class="form-label">Com este padrão de solicitação</span
-            ><select class="form-select form-input--compact" [formField]="fields.patternId">
-              <option value="">Selecione o padrão</option>
-              @for (pattern of state.catalog().patterns; track pattern.id) {
-                <option [value]="pattern.id">{{ pattern.name }}</option>
-              }
-            </select></label
+<form novalidate (submit)="save($event)" [attr.aria-busy]="state.saving()">
+  <div class="dialog__body layout-stack">
+    <fieldset class="layout-stack" [disabled]="state.saving()">
+      <label>
+        <span class="form-label">Nome da automação</span>
+        <input
+          #nameInput
+          class="form-input"
+          [formField]="fields.name"
+          [attr.aria-describedby]="errors().name ? 'automation-rule-name-error' : null"
+        />
+        @if (errors().name) {
+          <span class="form-error" id="automation-rule-name-error">{{ errors().name }}</span>
+        }
+      </label>
+
+      <label>
+        <span class="form-label">Quando criar uma solicitação com o padrão</span>
+        <select
+          #patternInput
+          class="form-select"
+          [formField]="fields.patternId"
+          [attr.aria-describedby]="errors().pattern ? 'automation-rule-pattern-error' : null"
+        >
+          <option value="">
+            {{
+              state.catalog().patterns.length ? 'Selecione o padrão' : 'Nenhum padrão cadastrado'
+            }}
+          </option>
+          @for (pattern of state.catalog().patterns; track pattern.id) {
+            <option [value]="pattern.id">{{ pattern.name }}</option>
+          }
+        </select>
+        @if (errors().pattern) {
+          <span class="form-error" id="automation-rule-pattern-error">{{ errors().pattern }}</span>
+        }
+      </label>
+
+      <div class="inline-controls">
+        <label>
+          <span class="form-label">Iniciar conjunto de tarefas</span>
+          <select
+            #setInput
+            class="form-select"
+            [formField]="fields.setId"
+            [attr.aria-describedby]="errors().set ? 'automation-rule-set-error' : null"
           >
-        </div>
-        <p class="muted">
-          Vale para novas solicitações criadas com esse padrão. Editar ou classificar uma
-          solicitação existente não dispara esta regra.
-        </p>
-        @if (!state.catalog().patterns.length) {
-          <p class="form-error">Cadastre um padrão de solicitação antes de criar a automação.</p>
-        }
-      }
-      @case (2) {
-        <label
-          ><span class="form-label">Usar este conjunto de tarefas</span
-          ><select class="form-select form-input--compact" [formField]="fields.setId">
-            <option value="">Selecione o conjunto</option>
-            @for (set of state.sets(); track set.id) {
-              <option [value]="set.id">{{ set.name }} · {{ set.steps.length }} tarefa(s)</option>
+            <option value="">
+              {{ sets().length ? 'Selecione o conjunto' : 'Nenhum conjunto cadastrado' }}
+            </option>
+            @for (set of sets(); track set.id) {
+              <option [value]="set.id">{{ set.name }}</option>
             }
-          </select></label
+          </select>
+          @if (errors().set) {
+            <span class="form-error" id="automation-rule-set-error">{{ errors().set }}</span>
+          }
+        </label>
+        <button
+          #newSetButton
+          type="button"
+          class="text-button"
+          aria-haspopup="dialog"
+          (click)="createSet.emit(newSetButton)"
         >
-        @if (selectedSet()) {
-          <app-task-set-flow [steps]="preview()" />
-        } @else {
-          <p class="muted">
-            Escolha um conjunto para conferir a ordem. Para montar um novo, cancele e abra
-            Conjuntos.
-          </p>
-        }
-      }
-      @case (3) {
-        <div class="review">
-          <h3>{{ draft().name }}</h3>
-          <p>
-            Quando criar uma solicitação com o padrão <strong>{{ patternName() }}</strong>, usar o
-            conjunto <strong>{{ selectedSet()?.name }}</strong>.
-          </p>
-        </div>
+          Novo conjunto
+        </button>
+      </div>
+
+      @if (selectedSet()) {
         <app-task-set-flow [steps]="preview()" />
-        @if (otherRules().length) {
-          <p class="hint">
-            Este padrão já tem {{ otherRules().length }} automação(ões) ativa(s). Ao ativar esta
-            regra, cada uma iniciará seu próprio conjunto.
-          </p>
-        }
-        <label class="check"
-          ><input type="checkbox" [formField]="fields.enabled" /><span
-            ><strong>{{
-              draft().enabled ? 'Automação ativa após salvar' : 'Salvar desativada'
-            }}</strong
-            ><br />Ative para disparar nas próximas solicitações. Nenhuma solicitação existente será
-            processada.</span
-          ></label
-        >
-        <p class="hint">
-          Ao desativar, apenas novos disparos param. As sequências iniciadas continuam com a
-          configuração original. Uma tarefa de avisar o munícipe será atribuída à equipe para
-          execução.
-        </p>
       }
+
+      <label class="check">
+        <input
+          type="checkbox"
+          [formField]="fields.enabled"
+          aria-describedby="automation-rule-toggle-hint"
+        />
+        Ativar automação
+      </label>
+      <p id="automation-rule-toggle-hint" class="muted">
+        Vale para novas solicitações. As execuções em andamento continuam ao desativar.
+      </p>
+      @if (hasOtherEnabledRule()) {
+        <p class="muted">As outras automações ativas para este padrão também serão executadas.</p>
+      }
+    </fieldset>
+    @if (state.actionError()) {
+      <p class="form-error" role="alert">{{ state.actionError() }}</p>
     }
-  </fieldset>
-  @if (error() || state.actionError()) {
-    <p class="form-error" role="alert">{{ error() || state.actionError() }}</p>
-  }
-  <footer class="editor-footer">
+  </div>
+  <div class="dialog__footer">
     <button type="button" class="button" [disabled]="state.saving()" (click)="cancelled.emit()">
       Cancelar
     </button>
-    @if (step() > 1) {
-      <button type="button" class="button" [disabled]="state.saving()" (click)="move(step() - 1)">
-        Voltar
-      </button>
-    }
     <button type="submit" class="button button--primary" [disabled]="state.saving()">
       {{
         state.saving()
           ? 'Salvando...'
-          : step() < 3
-            ? 'Continuar'
-            : draft().enabled
-              ? 'Salvar e ativar'
-              : 'Salvar desativada'
+          : draft().enabled && !record()?.enabled
+            ? 'Salvar e ativar'
+            : 'Salvar'
       }}
     </button>
-  </footer>
+  </div>
 </form>

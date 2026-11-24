@@ -12,10 +12,9 @@ import {
   viewChild,
 } from '@angular/core';
 import { form, FormField } from '@angular/forms/signals';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { DatePipe } from '@angular/common';
 import { IconComponent } from '../../../../shared/components/icon/icon.component';
-import { RichTextComponent } from '../../../../shared/components/rich-text/rich-text.component';
 import { TaskLabelsComponent } from '../../../../shared/components/task-labels/task-labels.component';
 import { taskPriorityLabel } from '../../../../core/models/task';
 import { AutomationService } from '../../services/automation.service';
@@ -29,6 +28,7 @@ type Editor =
   | { kind: 'template'; record: TaskTemplate | null }
   | { kind: 'set'; record: TaskSet | null }
   | { kind: 'rule'; record: AutomationRule | null };
+type OpenEditor = { editor: Editor; trigger: HTMLElement };
 type Removal = { kind: 'template' | 'set' | 'rule'; id: string; version: number; name: string };
 
 @Component({
@@ -39,7 +39,6 @@ type Removal = { kind: 'template' | 'set' | 'rule'; id: string; version: number;
     FormField,
     IconComponent,
     TaskLabelsComponent,
-    RichTextComponent,
     TemplateEditorComponent,
     SetEditorComponent,
     RuleEditorComponent,
@@ -50,41 +49,68 @@ type Removal = { kind: 'template' | 'set' | 'rule'; id: string; version: number;
 export class AutomationsComponent {
   private readonly service = inject(AutomationService);
   private readonly route = inject(ActivatedRoute);
-  private readonly router = inject(Router);
   private readonly injector = inject(Injector);
   private readonly destroyRef = inject(DestroyRef);
   protected readonly state = this.service.store;
   protected readonly searchForm = form(this.state.search);
   protected readonly tab = signal<Tab>('rules');
-  protected readonly editor = signal<Editor | null>(null);
+  protected readonly editors = signal<readonly OpenEditor[]>([]);
+  protected readonly activeEditor = computed(() => this.editors().at(-1));
+  protected readonly createdSet = signal<TaskSet | null>(null);
+  protected readonly createdTemplate = signal<TaskTemplate | null>(null);
+  protected readonly editorTitle = computed(() => {
+    const editor = this.activeEditor()?.editor;
+    switch (editor?.kind) {
+      case 'rule':
+        return editor.record ? 'Editar automação' : 'Nova automação';
+      case 'set':
+        return editor.record ? 'Editar conjunto' : 'Novo conjunto';
+      case 'template':
+        return editor.record ? 'Editar tarefa modelo' : 'Nova tarefa modelo';
+      default:
+        return '';
+    }
+  });
   protected readonly removal = signal<Removal | null>(null);
   protected readonly status = signal('');
   protected readonly targetRun = signal('');
   private readonly document = inject(DOCUMENT);
   private focusedRun = '';
-  protected readonly tabs: readonly { id: Tab; label: string }[] = [
-    { id: 'rules', label: 'Automações' },
-    { id: 'sets', label: 'Conjuntos' },
-    { id: 'templates', label: 'Banco de tarefas' },
-    { id: 'runs', label: 'Execuções' },
-  ];
-  protected readonly currentLabel = computed(
-    () => this.tabs.find((tab) => tab.id === this.tab())?.label ?? 'Automações',
+  protected readonly tabs: readonly { id: Tab; label: string; search: string; create?: string }[] =
+    [
+      { id: 'rules', label: 'Automações', search: 'Buscar automações', create: 'Nova automação' },
+      { id: 'sets', label: 'Conjuntos', search: 'Buscar conjuntos', create: 'Novo conjunto' },
+      {
+        id: 'templates',
+        label: 'Banco de tarefas',
+        search: 'Buscar tarefas modelo',
+        create: 'Nova tarefa modelo',
+      },
+      { id: 'runs', label: 'Execuções', search: 'Buscar execuções' },
+    ];
+  protected readonly section = computed(
+    () => this.tabs.find((tab) => tab.id === this.tab()) ?? this.tabs[0],
   );
   protected readonly taskPriorityLabel = taskPriorityLabel;
   private readonly heading = viewChild.required<ElementRef<HTMLHeadingElement>>('heading');
   private readonly dialog = viewChild.required<ElementRef<HTMLDialogElement>>('deleteDialog');
-  private trigger: HTMLElement | null = null;
+  private readonly editorDialog = viewChild.required<ElementRef<HTMLDialogElement>>('editorDialog');
+  private readonly editorHeading =
+    viewChild.required<ElementRef<HTMLHeadingElement>>('editorHeading');
   private deleteTrigger: HTMLElement | null = null;
   constructor() {
     const subscription = this.route.queryParamMap.subscribe((params) => {
       const tab = params.get('aba');
       const runId = params.get('execucao') ?? '';
+      const nextTab = tab === 'sets' || tab === 'templates' || tab === 'runs' ? tab : 'rules';
+      if (runId || nextTab !== this.tab()) {
+        this.state.search.set({ text: '' });
+        this.status.set('');
+        this.service.clearError();
+      }
+      if (this.targetRun() !== runId) this.focusedRun = '';
       this.targetRun.set(runId);
-      if (runId) this.state.search.set({ text: '' });
-      if (tab === 'sets' || tab === 'templates' || tab === 'runs' || tab === 'rules')
-        this.tab.set(tab);
-      else this.tab.set('rules');
+      this.tab.set(nextTab);
     });
     this.destroyRef.onDestroy(() => subscription.unsubscribe());
     afterNextRender(() => this.heading().nativeElement.focus({ preventScroll: true }));
@@ -108,20 +134,20 @@ export class AutomationsComponent {
       );
     });
   }
-  protected changeTab(tab: Tab): void {
-    this.status.set('');
-    this.service.clearError();
-    void this.router.navigate([], {
-      relativeTo: this.route,
-      queryParams: { aba: tab },
-      replaceUrl: true,
-    });
-  }
   protected open(editor: Editor, trigger: HTMLElement): void {
-    this.trigger = trigger;
+    if (!this.editors().length) this.status.set('');
+    if (editor.kind === 'set') this.createdTemplate.set(null);
     this.service.clearError();
-    this.status.set('');
-    this.editor.set(editor);
+    this.editors.update((editors) => [...editors, { editor, trigger }]);
+    afterNextRender(
+      () => {
+        const dialog = this.editorDialog().nativeElement;
+        if (!dialog.open) dialog.showModal();
+        dialog.scrollTop = 0;
+        this.editorHeading().nativeElement.focus();
+      },
+      { injector: this.injector },
+    );
   }
   protected create(trigger: HTMLElement): void {
     const tab = this.tab();
@@ -129,20 +155,45 @@ export class AutomationsComponent {
     else if (tab === 'sets') this.open({ kind: 'set', record: null }, trigger);
     else this.open({ kind: 'rule', record: null }, trigger);
   }
+  protected saveSet(set: TaskSet): void {
+    if (this.editors().length > 1) this.createdSet.set(set);
+    this.closeEditor(true);
+  }
+  protected saveTemplate(template: TaskTemplate): void {
+    if (this.editors().length > 1) this.createdTemplate.set(template);
+    this.closeEditor(true);
+  }
   protected closeEditor(saved = false): void {
-    if (this.state.saving()) return;
-    this.editor.set(null);
+    const active = this.activeEditor();
+    if (!active || this.state.saving()) return;
     this.service.clearError();
-    if (saved)
-      this.status.set('Configuração salva. Execuções iniciadas preservam a versão original.');
+    if (this.editors().length > 1) {
+      this.editors.update((editors) => editors.slice(0, -1));
+      this.restoreFocus(active.trigger);
+      return;
+    }
+    if (saved) this.status.set('Alterações salvas.');
+    this.editorDialog().nativeElement.close();
+  }
+  protected cancelEditor(event: Event): void {
+    event.preventDefault();
+    this.closeEditor();
+  }
+  protected onEditorClosed(): void {
+    const trigger = this.editors()[0]?.trigger ?? null;
+    this.editors.set([]);
+    this.createdSet.set(null);
+    this.createdTemplate.set(null);
+    this.restoreFocus(trigger);
+  }
+  private restoreFocus(trigger: HTMLElement | null): void {
     afterNextRender(
       () => {
+        const dialogOpen = this.editorDialog().nativeElement.open;
+        const fallback = dialogOpen ? this.editorHeading() : this.heading();
         const target =
-          this.trigger?.isConnected && !this.trigger.matches(':disabled')
-            ? this.trigger
-            : this.heading().nativeElement;
-        target.focus({ preventScroll: true });
-        this.trigger = null;
+          trigger?.isConnected && !trigger.matches(':disabled') ? trigger : fallback.nativeElement;
+        target.focus({ preventScroll: !dialogOpen });
       },
       { injector: this.injector },
     );
@@ -160,9 +211,9 @@ export class AutomationsComponent {
     if (this.state.saving()) event.preventDefault();
   }
   protected restoreDeleteFocus(): void {
-    (this.deleteTrigger?.isConnected ? this.deleteTrigger : this.heading().nativeElement).focus({
-      preventScroll: true,
-    });
+    this.service.clearError();
+    this.removal.set(null);
+    this.restoreFocus(this.deleteTrigger);
     this.deleteTrigger = null;
   }
   protected async remove(): Promise<void> {
@@ -229,7 +280,7 @@ export class AutomationsComponent {
   }
   canLeave(): boolean {
     return (
-      !this.editor() ||
+      !this.activeEditor() ||
       (!this.state.saving() &&
         window.confirm('Sair da edição e descartar as alterações não salvas?'))
     );

@@ -1,68 +1,63 @@
-<div class="flow layout-stack">
-  <h3>Ordem de criação</h3>
-  <p class="flow-summary">
-    <strong>{{ initial() }} no início</strong> · {{ steps().length - initial() }} após outras
-    tarefas
-  </p>
-  @if (interactive()) {
-    <div class="simulation-tools">
-      <p>Simule as conclusões abaixo. Nenhuma tarefa será criada.</p>
-      <button type="button" class="text-button" (click)="reset()">Reiniciar simulação</button>
+<details class="flow">
+  <summary class="text-button">Ver tarefas do conjunto ({{ steps().length }})</summary>
+  <div class="flow-content layout-stack">
+    <div class="simulation">
+      <button type="button" class="text-button" (click)="reset()">
+        {{ simulating() ? 'Reiniciar simulação' : 'Simular' }}
+      </button>
+      @if (simulating()) {
+        <span class="muted">Conclua as tarefas disponíveis para ver quais seriam criadas.</span>
+      }
     </div>
-  }
-  <ol class="flow-layers" aria-label="Ordem de criação das tarefas">
-    @for (layer of layers(); track $index; let level = $index) {
-      <li class="flow-layer">
-        <h4>{{ level === 0 ? 'Ao disparar' : 'Após as dependências' }}</h4>
-        @if (layer.blocked) {
-          <p class="form-error">Revise as dependências para liberar estas etapas.</p>
-        }
-        <ul class="flow-cards">
-          @for (step of layer.steps; track step.id) {
-            <li class="flow-card" [class.flow-card--completed]="completed().includes(step.id)">
-              <strong>{{ step.title }}</strong>
-              <p class="muted">{{ step.assigneeNames.join(', ') }}</p>
-              <p>
-                {{
-                  step.dependsOn.length
-                    ? 'Só será criada após concluir: ' + dependencyNames(step)
-                    : 'Criada imediatamente, junto das outras tarefas iniciais.'
-                }}
-              </p>
-              @if (step.dueInDays !== null) {
-                <p class="muted">Prazo: {{ step.dueInDays }} dia(s) após esta tarefa ser criada.</p>
-              }
-              @if (interactive()) {
-                <button
-                  type="button"
-                  class="text-button"
-                  [disabled]="!available(step) || layer.blocked"
-                  [attr.aria-disabled]="completed().includes(step.id)"
-                  (click)="finish(step.id)"
-                  [attr.aria-label]="
-                    step.title +
-                    ': ' +
-                    (completed().includes(step.id) ? 'concluída na simulação' : 'simular conclusão')
-                  "
-                >
+    <ul class="flow-list" aria-label="Tarefas do conjunto">
+      @for (step of steps(); track step.id) {
+        <li class="flow-row">
+          <div class="flow-task">
+            <strong>{{ step.title }}</strong>
+            <span class="muted">
+              {{
+                step.dependsOn.length
+                  ? 'Após concluir ' + dependencyNames(step)
+                  : 'Na criação da solicitação'
+              }}
+            </span>
+            @if (step.assigneeNames.length || step.dueInDays !== null) {
+              <span class="muted">
+                {{ step.assigneeNames.join(', ') }}
+                @if (step.dueInDays !== null) {
+                  {{ step.assigneeNames.length ? ' · ' : '' }}
                   {{
-                    completed().includes(step.id)
-                      ? 'Concluída na simulação'
-                      : available(step)
-                        ? 'Simular conclusão'
-                        : 'Aguarda dependências'
+                    step.dueInDays === 0
+                      ? 'Vence no dia da criação'
+                      : 'Prazo de ' + step.dueInDays + (step.dueInDays === 1 ? ' dia' : ' dias')
                   }}
-                </button>
-              }
-            </li>
+                }
+              </span>
+            }
+          </div>
+          @if (simulating()) {
+            @if (available(step)) {
+              @let done = completed().includes(step.id);
+              <button
+                type="button"
+                class="text-button"
+                [attr.aria-disabled]="done"
+                [attr.aria-label]="done ? step.title + ' concluída' : 'Concluir ' + step.title"
+                (click)="finish(step)"
+              >
+                {{ done ? 'Concluída' : 'Concluir' }}
+              </button>
+            } @else {
+              <span class="muted">Ainda não criada</span>
+            }
           }
-        </ul>
-      </li>
-    }
-  </ol>
-  @if (interactive()) {
+        </li>
+      }
+    </ul>
     <p class="sr-only" role="status">
-      {{ completed().length }} de {{ steps().length }} tarefas concluídas na simulação.
+      @if (simulating()) {
+        {{ completed().length }} de {{ steps().length }} tarefas concluídas na simulação.
+      }
     </p>
-  }
-</div>
+  </div>
+</details>

@@ -1,5 +1,4 @@
 import {
-  afterNextRender,
   Component,
   DestroyRef,
   effect,
@@ -37,11 +36,15 @@ import type { TaskTemplate } from '../../models/automation';
 export class TemplateEditorComponent {
   readonly record = input<TaskTemplate | null>(null);
   readonly cancelled = output<void>();
-  readonly saved = output<void>();
+  readonly saved = output<TaskTemplate>();
   private readonly service = inject(AutomationService);
   private readonly destroyRef = inject(DestroyRef);
   protected readonly state = this.service.store;
-  private readonly heading = viewChild.required<ElementRef<HTMLHeadingElement>>('heading');
+  private readonly titleInput = viewChild.required<ElementRef<HTMLInputElement>>('titleInput');
+  private readonly instructions = viewChild.required(MentionEditorComponent);
+  private readonly assignees = viewChild.required(AssigneePickerComponent);
+  private readonly options = viewChild.required<ElementRef<HTMLDetailsElement>>('options');
+  private readonly dueInput = viewChild<ElementRef<HTMLInputElement>>('dueInput');
   protected readonly draft = signal({
     title: '',
     description: '',
@@ -93,19 +96,29 @@ export class TemplateEditorComponent {
         ),
       );
     });
-    afterNextRender(() => this.heading().nativeElement.focus({ preventScroll: true }));
   }
   protected async save(event: SubmitEvent): Promise<void> {
     event.preventDefault();
     this.error.set('');
-    if (this.draft().dueEnabled && this.fields.dueDays().invalid()) {
-      this.error.set('Informe um prazo inteiro entre 0 e 3.650 dias.');
+    if (this.fields.title().invalid() || !this.draft().title.trim()) {
+      this.error.set('Informe um título com até 120 caracteres.');
+      this.titleInput().nativeElement.focus();
       return;
     }
-    if (this.fields().invalid() || !this.draft().assigneeIds.length) {
-      this.error.set(
-        'Informe um título com até 120 caracteres e selecione ao menos um responsável. A descrição aceita até 1.500 caracteres.',
-      );
+    if (this.fields.description().invalid()) {
+      this.error.set('As instruções aceitam até 1.500 caracteres.');
+      this.instructions().focus();
+      return;
+    }
+    if (!this.draft().assigneeIds.length) {
+      this.error.set('Selecione pelo menos um responsável.');
+      this.assignees().focus();
+      return;
+    }
+    if (this.draft().dueEnabled && this.fields.dueDays().invalid()) {
+      this.error.set('Informe um prazo inteiro entre 0 e 3.650 dias.');
+      this.options().nativeElement.open = true;
+      this.dueInput()?.nativeElement.focus();
       return;
     }
     const { dueEnabled, dueDays, ...draft } = this.draft();
@@ -114,6 +127,6 @@ export class TemplateEditorComponent {
       ...draft,
       dueInDays: dueEnabled ? dueDays : null,
     });
-    if (result && !this.destroyRef.destroyed) this.saved.emit();
+    if (result && !this.destroyRef.destroyed) this.saved.emit(result);
   }
 }

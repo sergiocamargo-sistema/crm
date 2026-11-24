@@ -1,65 +1,66 @@
-<form class="editor" novalidate (submit)="save($event)" [attr.aria-busy]="state.saving()">
-  <header class="editor-header">
-    <h2 #heading tabindex="-1">{{ record() ? 'Editar tarefa modelo' : 'Nova tarefa modelo' }}</h2>
-  </header>
-  <p class="muted">
-    Defina uma vez e reutilize nos conjuntos. Cada solicitação receberá sua própria tarefa.
-  </p>
-  <fieldset [disabled]="state.saving()" class="editor-fields">
-    <label
-      ><span class="form-label">Título da tarefa</span
-      ><input class="form-input" [formField]="fields.title"
-    /></label>
-    <app-mention-editor
-      controlId="automation-template-description"
-      label="Instruções para a equipe"
-      [formField]="fields.description"
-    />
-    <app-assignee-picker [formField]="fields.assigneeIds" />
-    <app-task-label-picker
-      controlId="automation-template-labels"
-      [catalog]="state.catalog().labels"
-      [formField]="fields.labelIds"
-    />
-    <label
-      ><span class="form-label">Prioridade</span
-      ><select class="form-select form-input--compact" [formField]="fields.priority">
-        @for (priority of priorities; track priority.value) {
-          <option [value]="priority.value">{{ priority.label }}</option>
-        }
-      </select></label
-    >
-    <label class="check"
-      ><input type="checkbox" [formField]="fields.dueEnabled" />Definir prazo relativo à criação da
-      tarefa</label
-    >
-    @if (draft().dueEnabled) {
-      <label
-        ><span class="form-label">Dias corridos após a criação da tarefa</span
-        ><input
-          type="number"
-          class="form-input form-input--compact"
-          step="1"
-          [formField]="fields.dueDays"
-          aria-describedby="template-due-hint"
-      /></label>
-      <p id="template-due-hint" class="muted">
-        0 = no mesmo dia. Uma tarefa encadeada conta o prazo somente quando for criada.
-      </p>
+<form novalidate (submit)="save($event)" [attr.aria-busy]="state.saving()">
+  <div class="dialog__body layout-stack">
+    <fieldset [disabled]="state.saving()" class="editor-fields">
+      <label>
+        <span class="form-label">Título da tarefa</span>
+        <input #titleInput class="form-input" [formField]="fields.title" />
+      </label>
+      <app-mention-editor
+        controlId="automation-template-description"
+        label="Instruções para a equipe"
+        [formField]="fields.description"
+        [rows]="3"
+      />
+      <app-assignee-picker [formField]="fields.assigneeIds" />
+
+      <details #options class="disclosure">
+        <summary>Prioridade, etiquetas e prazo</summary>
+        <div class="layout-stack">
+          <label>
+            <span class="form-label">Prioridade</span>
+            <select class="form-select form-input--compact" [formField]="fields.priority">
+              @for (priority of priorities; track priority.value) {
+                <option [value]="priority.value">{{ priority.label }}</option>
+              }
+            </select>
+          </label>
+          <app-task-label-picker
+            controlId="automation-template-labels"
+            [catalog]="state.catalog().labels"
+            [formField]="fields.labelIds"
+          />
+          <label class="check">
+            <input type="checkbox" [formField]="fields.dueEnabled" />
+            Definir prazo
+          </label>
+          @if (draft().dueEnabled) {
+            <label>
+              <span class="form-label">Dias após a criação da tarefa</span>
+              <input
+                #dueInput
+                type="number"
+                class="form-input form-input--compact"
+                step="1"
+                [formField]="fields.dueDays"
+                aria-describedby="template-due-hint"
+              />
+            </label>
+            <p id="template-due-hint" class="muted">Use 0 para vencer no mesmo dia.</p>
+          }
+        </div>
+      </details>
+    </fieldset>
+    @if (error() || state.actionError()) {
+      <p class="form-error" role="alert">{{ error() || state.actionError() }}</p>
     }
-  </fieldset>
-  <p class="hint">
-    Alterações serão usadas em novos disparos. As execuções já iniciadas preservam a versão
-    original.
-  </p>
-  @if (error() || state.actionError()) {
-    <p class="form-error" role="alert">{{ error() || state.actionError() }}</p>
-  }
-  <footer class="editor-footer">
+  </div>
+
+  <div class="dialog__footer">
     <button type="button" class="button" [disabled]="state.saving()" (click)="cancelled.emit()">
-      Cancelar</button
-    ><button type="submit" class="button button--primary" [disabled]="state.saving()">
-      {{ state.saving() ? 'Salvando...' : 'Salvar tarefa modelo' }}
+      Cancelar
     </button>
-  </footer>
+    <button type="submit" class="button button--primary" [disabled]="state.saving()">
+      {{ state.saving() ? 'Salvando...' : 'Salvar modelo' }}
+    </button>
+  </div>
 </form>

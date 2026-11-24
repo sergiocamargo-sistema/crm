@@ -1,21 +1,27 @@
 import {
-  afterNextRender,
   Component,
   computed,
   DestroyRef,
   effect,
   ElementRef,
   inject,
-  Injector,
   input,
   output,
   signal,
+  untracked,
   viewChild,
 } from '@angular/core';
 import { form, FormField, maxLength, required } from '@angular/forms/signals';
+import {
+  flowSteps,
+  type AutomationRule,
+  type AutomationRuleDraft,
+  type TaskSet,
+} from '../../models/automation';
 import { AutomationService } from '../../services/automation.service';
-import { flowSteps, type AutomationRule, type AutomationRuleDraft } from '../../models/automation';
 import { TaskSetFlowComponent } from '../task-set-flow/task-set-flow.component';
+
+const emptyRule: AutomationRuleDraft = { name: '', patternId: '', setId: '', enabled: false };
 
 @Component({
   selector: 'app-rule-editor',
@@ -25,48 +31,59 @@ import { TaskSetFlowComponent } from '../task-set-flow/task-set-flow.component';
 })
 export class RuleEditorComponent {
   readonly record = input<AutomationRule | null>(null);
+  readonly createdSet = input<TaskSet | null>(null);
+  readonly createSet = output<HTMLElement>();
   readonly cancelled = output<void>();
   readonly saved = output<void>();
   private readonly service = inject(AutomationService);
   private readonly destroyRef = inject(DestroyRef);
-  private readonly injector = inject(Injector);
+  private readonly nameInput = viewChild.required<ElementRef<HTMLInputElement>>('nameInput');
+  private readonly patternInput = viewChild.required<ElementRef<HTMLSelectElement>>('patternInput');
+  private readonly setInput = viewChild.required<ElementRef<HTMLSelectElement>>('setInput');
+  private readonly attempted = signal(false);
   protected readonly state = this.service.store;
-  protected readonly step = signal(1);
-  protected readonly draft = signal<AutomationRuleDraft>({
-    name: '',
-    patternId: '',
-    setId: '',
-    enabled: false,
-  });
+  protected readonly draft = signal<AutomationRuleDraft>({ ...emptyRule });
   protected readonly fields = form(this.draft, (schema) => {
     required(schema.name);
     maxLength(schema.name, 120);
     required(schema.patternId);
     required(schema.setId);
   });
+  protected readonly sets = computed(() => {
+    const sets = this.state.sets();
+    const created = this.createdSet();
+    return created && !sets.some(({ id }) => id === created.id) ? [...sets, created] : sets;
+  });
   protected readonly selectedSet = computed(
-    () => this.state.sets().find((item) => item.id === this.draft().setId) ?? null,
-  );
-  protected readonly patternName = computed(
-    () =>
-      this.state.catalog().patterns.find((item) => item.id === this.draft().patternId)?.name ??
-      'Selecione o padrão',
+    () => this.sets().find(({ id }) => id === this.draft().setId) ?? null,
   );
   protected readonly preview = computed(() =>
     flowSteps(this.selectedSet(), this.state.templates(), this.state.catalog().users),
   );
-  protected readonly otherRules = computed(() =>
-    this.state
-      .rules()
-      .filter(
-        (rule) =>
-          rule.enabled &&
-          rule.patternId === this.draft().patternId &&
-          rule.id !== this.record()?.id,
-      ),
-  );
-  protected readonly error = signal('');
-  private readonly heading = viewChild.required<ElementRef<HTMLHeadingElement>>('heading');
+  protected readonly hasOtherEnabledRule = computed(() => {
+    const { enabled, patternId } = this.draft();
+    return (
+      enabled &&
+      this.state
+        .rules()
+        .some(
+          (rule) => rule.enabled && rule.patternId === patternId && rule.id !== this.record()?.id,
+        )
+    );
+  });
+  protected readonly errors = computed(() => {
+    if (!this.attempted()) return { name: '', pattern: '', set: '' };
+    const { name, patternId } = this.draft();
+    return {
+      name:
+        !name.trim() || this.fields.name().invalid() ? 'Use um nome de até 120 caracteres.' : '',
+      pattern: this.state.catalog().patterns.some(({ id }) => id === patternId)
+        ? ''
+        : 'Selecione um padrão de solicitação.',
+      set: this.selectedSet() ? '' : 'Selecione ou crie um conjunto de tarefas.',
+    };
+  });
+
   constructor() {
     effect(() => {
       const record = this.record();
@@ -78,41 +95,28 @@ export class RuleEditorComponent {
               setId: record.setId,
               enabled: record.enabled,
             }
-          : { name: '', patternId: '', setId: '', enabled: false },
+          : { ...emptyRule },
       );
+      this.attempted.set(false);
     });
-    afterNextRender(() => this.heading().nativeElement.focus({ preventScroll: true }));
-  }
-  protected move(step: number): void {
-    this.error.set('');
-    if (step > this.step()) {
-      if (
-        this.step() === 1 &&
-        (!this.draft().name.trim() || this.fields.name().invalid() || !this.draft().patternId)
-      ) {
-        this.error.set('Informe um nome com até 120 caracteres e escolha o padrão de solicitação.');
-        return;
-      }
-      if (this.step() === 2 && !this.selectedSet()) {
-        this.error.set('Escolha um conjunto de tarefas para continuar.');
-        return;
-      }
-    }
-    this.step.set(step);
-    afterNextRender(() => this.heading().nativeElement.focus({ preventScroll: true }), {
-      injector: this.injector,
+    effect(() => {
+      const created = this.createdSet();
+      if (created) untracked(() => this.draft.update((draft) => ({ ...draft, setId: created.id })));
     });
   }
+
   protected async save(event: SubmitEvent): Promise<void> {
     event.preventDefault();
-    if (this.step() < 3) {
-      this.move(this.step() + 1);
+    if (this.state.saving()) return;
+    this.attempted.set(true);
+    this.service.clearError();
+    const { name, pattern, set } = this.errors();
+    if (name || pattern || set) {
+      const invalid = name ? this.nameInput() : pattern ? this.patternInput() : this.setInput();
+      invalid.nativeElement.focus();
       return;
     }
-    if (this.fields().invalid()) {
-      this.error.set('Revise os campos das etapas anteriores.');
-      return;
-    }
+
     const record = this.record();
     const result = await this.service.saveRule(
       record?.id ?? null,

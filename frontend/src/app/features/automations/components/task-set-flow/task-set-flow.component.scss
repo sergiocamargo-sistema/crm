@@ -2,55 +2,47 @@
   display: block;
   min-width: 0;
 }
-p,
-h3,
-h4 {
-  margin: 0;
+
+.flow > summary {
+  display: list-item;
+  width: fit-content;
+  cursor: pointer;
 }
-.flow-summary {
-  color: var(--color-primary);
+
+.flow-content {
+  padding-top: var(--space-2);
 }
-.simulation-tools {
+
+.simulation,
+.flow-row {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
   gap: var(--space-2);
-  font-size: var(--font-size-sm);
 }
-.flow-layers,
-.flow-cards {
-  list-style: none;
-  margin: 0;
+
+.flow-list {
   padding: 0;
-  display: grid;
-  gap: var(--space-3);
+  margin: 0;
+  list-style: none;
 }
-.flow-layer {
-  display: grid;
-  gap: var(--space-2);
-  border-left: 3px solid var(--color-border);
-  padding-left: var(--space-3);
-}
-.flow-layer h4 {
+
+.flow-row {
+  justify-content: space-between;
+  padding-block: var(--space-2);
+  border-top: 1px solid var(--color-border);
   font-size: var(--font-size-sm);
 }
-.flow-cards {
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
-}
-.flow-card {
+
+.flow-task {
+  display: grid;
+  flex: 1 1 12rem;
+  gap: var(--space-1);
   min-width: 0;
   overflow-wrap: anywhere;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: var(--space-2);
-  border: 1px solid var(--color-border);
-  background: var(--color-surface);
-  border-radius: var(--radius-card);
-  padding: var(--space-3);
-  font-size: var(--font-size-sm);
 }
-.flow-card--completed {
-  border-color: var(--color-success);
+
+.muted {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-xs);
 }

@@ -1,38 +1,10 @@
-:host {
-  display: block;
-}
+@use '../../../../shared/styles/management-catalog';
 
-.management-page {
-  max-width: var(--layout-width);
-  margin-inline: auto;
-  padding: var(--space-6) var(--space-8) var(--space-12);
-}
-
-.page-heading,
 .pattern,
 .pattern-actions {
   display: flex;
   align-items: center;
   gap: var(--space-3);
-}
-
-h1 {
-  min-width: 0;
-  color: var(--color-primary);
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-semibold);
-}
-
-.create-button {
-  margin-inline-start: auto;
-}
-
-.directory {
-  padding: var(--space-5);
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow-card);
 }
 
 .muted {
@@ -69,12 +41,6 @@ h1 {
 }
 
 @media (max-width: 600px) {
-  .management-page {
-    padding: var(--space-4);
-  }
-  .directory {
-    padding: var(--space-3);
-  }
   .pattern {
     flex-wrap: wrap;
   }

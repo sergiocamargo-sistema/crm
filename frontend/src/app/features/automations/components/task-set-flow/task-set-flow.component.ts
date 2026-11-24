@@ -1,5 +1,7 @@
-import { Component, computed, input, signal } from '@angular/core';
+import { Component, computed, input, linkedSignal } from '@angular/core';
 import type { FlowStep } from '../../models/automation';
+
+const dependencyList = new Intl.ListFormat('pt-BR', { type: 'conjunction' });
 
 @Component({
   selector: 'app-task-set-flow',
@@ -8,53 +10,32 @@ import type { FlowStep } from '../../models/automation';
 })
 export class TaskSetFlowComponent {
   readonly steps = input.required<readonly FlowStep[]>();
-  readonly interactive = input(true);
-  private readonly simulation = signal<{ signature: string; completed: readonly string[] }>({
-    signature: '',
-    completed: [],
-  });
-  private readonly signature = computed(() => JSON.stringify(this.steps()));
-  protected readonly completed = computed(() =>
-    this.simulation().signature === this.signature() ? this.simulation().completed : [],
+  private readonly titles = computed(
+    () => new Map(this.steps().map(({ id, title }) => [id, title])),
   );
-  protected readonly initial = computed(
-    () => this.steps().filter((step) => !step.dependsOn.length).length,
-  );
-  protected readonly layers = computed(() => {
-    const steps = this.steps();
-    const remaining = new Map(steps.map((step) => [step.id, step]));
-    const placed = new Set<string>();
-    const layers: { steps: readonly FlowStep[]; blocked: boolean }[] = [];
-    while (remaining.size) {
-      const ready = [...remaining.values()].filter((step) =>
-        step.dependsOn.every((id) => placed.has(id)),
-      );
-      if (!ready.length) {
-        layers.push({ steps: [...remaining.values()], blocked: true });
-        break;
-      }
-      layers.push({ steps: ready, blocked: false });
-      ready.forEach((step) => {
-        remaining.delete(step.id);
-        placed.add(step.id);
-      });
-    }
-    return layers;
+  private readonly simulation = linkedSignal({
+    source: this.steps,
+    computation: () => ({ started: false, completed: [] as readonly string[] }),
   });
+  protected readonly simulating = computed(() => this.simulation().started);
+  protected readonly completed = computed(() => this.simulation().completed);
+
   protected dependencyNames(step: FlowStep): string {
-    return step.dependsOn
-      .map((id) => this.steps().find((item) => item.id === id)?.title ?? 'Etapa removida')
-      .join(' + ');
+    return dependencyList.format(
+      step.dependsOn.map((id) => this.titles().get(id) ?? 'Tarefa indisponível'),
+    );
   }
+
   protected available(step: FlowStep): boolean {
     return step.dependsOn.every((id) => this.completed().includes(id));
   }
-  protected finish(id: string): void {
-    const step = this.steps().find((item) => item.id === id);
-    if (!step || !this.available(step) || this.completed().includes(id)) return;
-    this.simulation.set({ signature: this.signature(), completed: [...this.completed(), id] });
+
+  protected finish(step: FlowStep): void {
+    if (!this.available(step) || this.completed().includes(step.id)) return;
+    this.simulation.update((state) => ({ ...state, completed: [...state.completed, step.id] }));
   }
+
   protected reset(): void {
-    this.simulation.set({ signature: this.signature(), completed: [] });
+    this.simulation.set({ started: true, completed: [] });
   }
 }
