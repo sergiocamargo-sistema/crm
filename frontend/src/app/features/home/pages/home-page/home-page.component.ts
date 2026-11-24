@@ -40,6 +40,7 @@ export class HomePageComponent {
       route: '/relatorios/horas-trabalhadas',
     },
     { id: 'configuracoes', label: 'Configurações', icon: 'settings' },
+    { id: 'automacoes', label: 'Automações', icon: 'workflow', route: '/automacoes' },
   ];
 
   constructor() {
