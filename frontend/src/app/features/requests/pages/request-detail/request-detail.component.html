@@ -49,10 +49,13 @@
           >Aberta em {{ detail.request.createdAt | date: 'dd/MM/yyyy HH:mm' : '-0300' }}</time
         >
         <div class="request-tags">
-          <span class="badge badge--category"
-            ><span class="sr-only">Departamento relacionado: </span
-            >{{ detail.request.department }}</span
-          >
+          <span class="badge badge--category">
+            @if (detail.request.department; as department) {
+              <span class="sr-only">Departamento relacionado: </span>{{ department }}
+            } @else {
+              Sem departamento
+            }
+          </span>
           <span class="badge badge--category"
             ><span class="sr-only">Padrão de solicitação: </span>{{ patternLabel() }}</span
           >

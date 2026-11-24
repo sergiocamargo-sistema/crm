@@ -81,7 +81,6 @@ export class RequestEditorComponent {
     maxLength(schema.title, 120);
     required(schema.description);
     maxLength(schema.description, 5000);
-    required(schema.departmentId);
   });
   protected readonly citizen = this.service.observeCitizen(computed(() => this.model().citizenId))
     .state;

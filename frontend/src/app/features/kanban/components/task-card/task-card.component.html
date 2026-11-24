@@ -120,7 +120,9 @@
       >
         <app-icon name="clipboard" /> #{{ request.protocol }}
       </a>
-      <span>{{ request.department }}</span>
+      @if (request.department) {
+        <span>{{ request.department }}</span>
+      }
       @if (request.citizen; as citizen) {
         <a
           draggable="false"

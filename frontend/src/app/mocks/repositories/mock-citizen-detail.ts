@@ -647,7 +647,7 @@ export class MockCitizenDetailRepository implements CitizenDetailRepository, Aut
     if (!title || title.length > 120 || !description || description.length > 5000)
       throw new Error('Informe título de até 120 caracteres e descrição de até 5.000 caracteres.');
     const department = this.departments().find((item) => item.id === draft.departmentId);
-    if (!department) throw new Error('Selecione um departamento válido.');
+    if (draft.departmentId && !department) throw new Error('Selecione um departamento válido.');
     if (draft.patternId && !this.listRequestPatterns().some((item) => item.id === draft.patternId))
       throw new Error('Selecione um padrão de solicitação válido.');
     if (
@@ -658,12 +658,19 @@ export class MockCitizenDetailRepository implements CitizenDetailRepository, Aut
     if (draft.dueAt && !Number.isFinite(Date.parse(draft.dueAt)))
       throw new Error('Informe um prazo válido.');
     const dueAt = draft.dueAt ? new Date(draft.dueAt).toISOString() : '';
-    const fields = { title, description, dueAt, priority: draft.priority, status: draft.status };
+    const fields = {
+      title,
+      description,
+      dueAt,
+      priority: draft.priority,
+      status: draft.status,
+      department: department?.name ?? '',
+    };
+    const departmentId = department?.id ?? '';
     if (!id) {
       return this.createRequest(draft.citizenId, {
         ...fields,
-        department: department.name,
-        departmentId: department.id,
+        departmentId,
         patternId: draft.patternId,
         occurredAt: new Date().toISOString(),
         direction: draft.citizenId ? 'passive' : 'active',
@@ -675,14 +682,14 @@ export class MockCitizenDetailRepository implements CitizenDetailRepository, Aut
     if (entry.citizenId !== draft.citizenId)
       throw new Error('O munícipe da solicitação existente deve ser mantido.');
     const previous = entry.record;
-    const updated: CitizenRequest = { ...previous, ...fields, department: department.name };
+    const updated: CitizenRequest = { ...previous, ...fields };
     const changed = [
       previous.title !== title && 'Título',
       previous.description !== description && 'Descrição',
       (previous.dueAt || dueAt) && Date.parse(previous.dueAt) !== Date.parse(dueAt) && 'Prazo',
       previous.priority !== draft.priority && 'Prioridade',
       previous.status !== draft.status && 'Situação',
-      extras.departmentId !== department.id && 'Departamento',
+      extras.departmentId !== departmentId && 'Departamento',
       extras.patternId !== draft.patternId && 'Padrão',
     ].filter(Boolean);
     if (!changed.length) return id;
@@ -691,7 +698,7 @@ export class MockCitizenDetailRepository implements CitizenDetailRepository, Aut
     );
     this.updateRequest(id, (value) => ({
       ...value,
-      departmentId: department.id,
+      departmentId,
       patternId: draft.patternId,
       changes: [
         ...value.changes,
@@ -715,7 +722,8 @@ export class MockCitizenDetailRepository implements CitizenDetailRepository, Aut
     const department = this.departments().find(({ id, name }) =>
       request.departmentId ? id === request.departmentId : name === request.department,
     );
-    if (!department) throw new Error('Departamento não encontrado.');
+    if ((request.departmentId || request.department) && !department)
+      throw new Error('Departamento não encontrado.');
     const year = request.occurredAt.slice(0, 4);
     const latest = this.requests().reduce((max, { record }) => {
       const [protocolYear, serial] = record.protocol.split('-');
@@ -726,7 +734,7 @@ export class MockCitizenDetailRepository implements CitizenDetailRepository, Aut
       id,
       title: request.title,
       description: request.description,
-      department: department.name,
+      department: department?.name ?? '',
       protocol: `${year}-${String(latest + 1).padStart(4, '0')}`,
       createdAt: request.occurredAt,
       createdBy: this.team.actor.name,
@@ -739,7 +747,7 @@ export class MockCitizenDetailRepository implements CitizenDetailRepository, Aut
     this.requestExtras.update((extras) => ({
       ...extras,
       [id]: {
-        departmentId: department.id,
+        departmentId: department?.id ?? '',
         patternId: request.patternId ?? null,
         awareness: [],
         attachments: [],
@@ -1262,8 +1270,9 @@ export class MockCitizenDetailRepository implements CitizenDetailRepository, Aut
       ...contact,
       requestId,
       protocol: detail.request.protocol,
-      department: detail.request.department,
-      departmentId: detail.extras.departmentId,
+      ...(detail.extras.departmentId
+        ? { department: detail.request.department, departmentId: detail.extras.departmentId }
+        : {}),
     };
     if (detail.citizen) {
       this.registerContact(detail.citizen.id, value);

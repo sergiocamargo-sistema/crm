@@ -72,9 +72,13 @@ export class CitizenTimelineComponent {
     return !!from && !!to && from > to;
   });
   protected readonly departments = computed(() =>
-    [...new Set(this.interactions().map((item) => item.department))].sort((a, b) =>
-      a.localeCompare(b, 'pt-BR'),
-    ),
+    [
+      ...new Set(
+        this.interactions()
+          .map((item) => item.department)
+          .filter(Boolean),
+      ),
+    ].sort((a, b) => a.localeCompare(b, 'pt-BR')),
   );
   protected readonly visibleInteractions = computed(() =>
     this.service.filterTimeline(this.interactions(), this.filters()),

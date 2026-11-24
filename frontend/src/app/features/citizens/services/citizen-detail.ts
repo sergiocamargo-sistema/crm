@@ -93,7 +93,9 @@ export class CitizenDetailService {
     }
     this.repository.registerContact(citizenId, {
       ...contact,
-      ...(request ? { protocol: request.protocol, department: request.department } : {}),
+      ...(request
+        ? { protocol: request.protocol, department: request.department || contact.department }
+        : {}),
       title,
       description,
       occurredAt,

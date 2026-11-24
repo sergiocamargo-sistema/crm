@@ -158,7 +158,9 @@
                           item.contextLabel
                         }}</a>
                       }
-                      <span><app-icon name="building" />{{ item.department }}</span>
+                      @if (item.department) {
+                        <span><app-icon name="building" />{{ item.department }}</span>
+                      }
                       <span><app-icon name="user" />{{ item.author }}</span>
                       @if (allowReplies() && item.commentId) {
                         <button
