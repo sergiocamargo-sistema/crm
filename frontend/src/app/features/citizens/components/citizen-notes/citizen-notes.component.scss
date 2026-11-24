@@ -19,27 +19,8 @@
 .observations:hover {
   border-color: var(--color-warning);
 }
-.category-row {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-2);
-}
-.citizen-categories {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-1);
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
 .notes-editor {
   width: min(520px, calc(100% - 32px));
-}
-.citizen-categories > li {
-  max-width: 100%;
-  min-width: 0;
 }
 .notes-editor h2 {
   font-size: var(--font-size-lg);
@@ -47,90 +28,7 @@
 textarea {
   resize: vertical;
 }
-.category-picker {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-.category-picker .form-label {
-  margin: 0;
-}
-.category-picker-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-2);
-}
-.category-search-control {
-  position: relative;
-}
-.category-search-control > app-icon {
-  position: absolute;
-  left: var(--space-3);
-  top: 13px;
-  color: var(--color-text-muted);
-  pointer-events: none;
-}
-.category-search-control input {
-  padding-left: 40px;
-}
-.category-suggestions {
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-control);
-  background: var(--color-surface);
-  max-height: 240px;
-  overflow-y: auto;
-}
-.category-suggestions[hidden] {
-  display: none;
-}
-.category-suggestions ul {
-  list-style: none;
-  margin: 0;
-  padding: var(--space-1);
-}
-.category-option {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  width: 100%;
-  min-height: var(--control-height);
-  border: 0;
-  padding: var(--space-3);
-  text-align: left;
-  background: var(--color-surface);
-  color: var(--color-text);
-  font-size: var(--font-size-sm);
-}
-.category-option:hover:not(:disabled),
-.category-option:focus-visible {
-  background: var(--color-primary-soft);
-}
-.category-option app-icon {
-  width: 16px;
-  height: 16px;
-  color: var(--color-primary);
-}
-.category-option > span {
-  flex: 1;
-  min-width: 0;
-  overflow-wrap: anywhere;
-}
-.category-option small {
-  color: var(--color-text-muted);
-  font-size: 10px;
-}
-.category-option:disabled {
-  opacity: 1;
-  color: var(--color-text-muted);
-}
-.no-category-results {
-  padding: var(--space-4);
-  color: var(--color-text-muted);
-  font-size: var(--font-size-sm);
-}
-.form-input,
-.form-select {
+.form-input {
   min-width: 0;
 }
 @media (max-width: 600px) {

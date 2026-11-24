@@ -30,8 +30,8 @@ export class MockCitizenRegistration {
   private readonly completed = new Map<string, { signature: string; id: string }>();
   private readonly reviews = new Map<string, string>();
 
-  async configuration(categories: readonly string[]): Promise<CitizenRegistrationConfiguration> {
-    return { genders: CITIZEN_GENDERS, documentTypes: CITIZEN_DOCUMENT_TYPES, categories };
+  async configuration(): Promise<CitizenRegistrationConfiguration> {
+    return { genders: CITIZEN_GENDERS, documentTypes: CITIZEN_DOCUMENT_TYPES };
   }
 
   async create(

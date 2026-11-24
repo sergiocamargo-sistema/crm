@@ -1,0 +1,172 @@
+<div class="category-row">
+  <ul class="citizen-categories" aria-label="Categorias do munícipe">
+    @for (category of selected(); track category) {
+      <li>
+        <button
+          type="button"
+          class="badge badge--category badge--category-action"
+          [disabled]="disabled() || busy()"
+          [attr.aria-label]="'Remover categoria ' + category"
+          aria-haspopup="dialog"
+          [attr.aria-controls]="inputId() + '-dialog'"
+          (click)="open('remove', $event, category)"
+        >
+          {{ category }}
+        </button>
+      </li>
+    }
+  </ul>
+  <button
+    #addButton
+    type="button"
+    class="icon-button"
+    aria-label="Adicionar categoria ao munícipe"
+    title="Adicionar categoria"
+    aria-haspopup="dialog"
+    [attr.aria-controls]="inputId() + '-dialog'"
+    [disabled]="disabled() || busy()"
+    (click)="open('add', $event)"
+  >
+    <app-icon name="plus" />
+  </button>
+</div>
+<dialog
+  #editor
+  class="dialog category-editor"
+  [id]="inputId() + '-dialog'"
+  [attr.aria-labelledby]="inputId() + '-title'"
+  [attr.aria-busy]="busy()"
+  (cancel)="onCancel($event)"
+  (close)="onClose()"
+  (click)="onBackdropClick($event)"
+>
+  @if (mode() === 'add') {
+    <div class="dialog__body layout-stack">
+      <div class="category-picker" (focusout)="onFocusOut($event)">
+        <div class="category-picker-heading">
+          <label class="form-label" [id]="inputId() + '-title'" [for]="inputId() + '-query'"
+            >Categoria</label
+          >
+          <button
+            type="button"
+            class="icon-button"
+            aria-label="Fechar categorias"
+            [disabled]="busy()"
+            (click)="close()"
+          >
+            <app-icon name="close" />
+          </button>
+        </div>
+        <div class="category-search-control">
+          <app-icon name="search" /><input
+            #categoryInput
+            class="form-input"
+            [id]="inputId() + '-query'"
+            type="search"
+            autocomplete="off"
+            placeholder="Buscar categoria..."
+            [formField]="queryForm.query"
+            [attr.aria-controls]="
+              state.loading() || state.loadError() ? null : inputId() + '-suggestions'
+            "
+            [attr.aria-describedby]="inputId() + '-hint'"
+            (focus)="suggestionsOpen.set(true)"
+            (input)="onInput()"
+            (keydown)="onKeydown($event)"
+          />
+        </div>
+        <p class="sr-only" [id]="inputId() + '-hint'">
+          Digite para buscar. Use as setas ou Tab para escolher uma opção e Enter para selecionar.
+        </p>
+        @if (state.loading()) {
+          <p role="status">Carregando categorias...</p>
+        } @else if (state.loadError(); as error) {
+          <p class="form-error" role="alert">{{ error }}</p>
+          <button type="button" class="button" (click)="service.retry()">Tentar novamente</button>
+        } @else {
+          <div
+            class="category-suggestions"
+            [id]="inputId() + '-suggestions'"
+            [hidden]="!suggestionsOpen()"
+            role="region"
+            aria-label="Sugestões de categorias"
+          >
+            <ul>
+              @for (option of categoryOptions(); track option.name) {
+                <li>
+                  <button
+                    #categoryOption
+                    type="button"
+                    class="category-option"
+                    [disabled]="option.assigned || busy() || disabled()"
+                    (click)="choose(option.name, option.create)"
+                    (keydown)="onKeydown($event)"
+                  >
+                    <app-icon [name]="option.create ? 'plus' : 'tag'" /><span>{{
+                      option.create ? 'Cadastrar “' + option.name + '”' : option.name
+                    }}</span>
+                    @if (option.assigned) {
+                      <small>Já adicionada</small>
+                    }
+                  </button>
+                </li>
+              } @empty {
+                <li class="no-category-results">Nenhuma categoria encontrada.</li>
+              }
+            </ul>
+          </div>
+        }
+      </div>
+      <p class="sr-only" role="status">
+        {{
+          suggestionsOpen() && !state.loading() && !state.loadError()
+            ? categoryOptions().length + ' opções de categorias.'
+            : ''
+        }}
+      </p>
+      @if (attempted() && queryForm().invalid()) {
+        <p class="form-error" role="alert">Informe uma categoria de até 80 caracteres.</p>
+      }
+      @if (state.error(); as error) {
+        <p class="form-error" role="alert">{{ error }}</p>
+      }
+      @if (busy()) {
+        <p role="status">Adicionando categoria...</p>
+      }
+    </div>
+  } @else {
+    <div class="dialog__header">
+      <h2 [id]="inputId() + '-title'">Remover categoria</h2>
+      <button
+        type="button"
+        class="icon-button"
+        aria-label="Fechar confirmação"
+        [disabled]="busy()"
+        (click)="close()"
+      >
+        <app-icon name="close" />
+      </button>
+    </div>
+    <div class="dialog__body">
+      <p>
+        Remover a categoria <strong>“{{ toRemove() }}”</strong> deste munícipe?
+      </p>
+      @if (state.error(); as error) {
+        <p class="form-error" role="alert">{{ error }}</p>
+      }
+    </div>
+    <div class="dialog__footer">
+      <button data-cancel type="button" class="button" [disabled]="busy()" (click)="close()">
+        Cancelar</button
+      ><button
+        type="button"
+        class="button button--danger"
+        [disabled]="busy() || disabled()"
+        (click)="remove()"
+      >
+        {{ busy() ? 'Removendo...' : 'Sim, remover' }}
+      </button>
+    </div>
+  }
+</dialog>
+<p class="sr-only" role="status">{{ status() }}</p>

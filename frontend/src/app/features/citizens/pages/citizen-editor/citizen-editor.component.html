@@ -339,26 +339,22 @@
         ></textarea>
       </section>
     </form>
-    <section class="record-panel" aria-label="Categorias do munícipe">
-      <fieldset class="plain-fieldset" [disabled]="state.saving() || !!state.createdId()">
-        <app-filter-selection
-          controlId="new-citizen-categories"
-          label="Categorias"
-          hint="Selecione as categorias que se aplicam ao cadastro."
-          [choices]="state.categoryChoices()"
-          [selected]="model().categories"
-          (added)="addCategory($event)"
-          (removed)="removeCategory($event)"
-        />
-      </fieldset>
+    <section class="record-panel" aria-labelledby="new-citizen-categories-title">
+      <h2 id="new-citizen-categories-title">Categorias</h2>
+      <app-citizen-categories
+        #categoryControl
+        inputId="new-citizen-categories"
+        [selected]="model().categories"
+        [disabled]="state.saving() || !!state.createdId()"
+        (selectionChanged)="setCategories($event)"
+      />
     </section>
     <section class="record-panel" aria-labelledby="citizen-referrer-title">
       <h2 id="citizen-referrer-title">Indicado por</h2>
       <fieldset class="plain-fieldset" [disabled]="state.saving() || !!state.createdId()">
         @if (referrer(); as person) {
           <div class="record-heading-row">
-            <span>{{ person.name }}</span
-            ><button
+            <span>{{ person.name }}</span><button
               class="icon-button"
               type="button"
               #removeReferrerButton
@@ -483,7 +479,7 @@
         class="button button--primary"
         type="submit"
         form="citizen-registration"
-        [disabled]="state.saving() || !!state.createdId()"
+        [disabled]="state.saving() || !!state.createdId() || categoryControl()?.busy()"
       >
         {{ state.saving() ? 'Salvando...' : 'Salvar munícipe' }}
       </button>

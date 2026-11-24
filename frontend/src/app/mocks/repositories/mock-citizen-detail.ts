@@ -143,7 +143,7 @@ export class MockCitizenDetailRepository implements CitizenDetailRepository {
   }
 
   loadCitizenRegistration() {
-    return this.registration.configuration(this.listCategories());
+    return this.registration.configuration();
   }
 
   createCitizen(command: CitizenRegistrationCommand) {
@@ -1315,27 +1315,47 @@ export class MockCitizenDetailRepository implements CitizenDetailRepository {
     return this.categoryCatalog();
   }
 
-  addCategory(citizenId: string, name: string): void {
-    const citizen = this.loadDetail(citizenId);
-    if (!citizen) throw new Error('Munícipe não encontrado.');
+  async loadCitizenCategories(): Promise<readonly string[]> {
+    return [...this.categoryCatalog()].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  }
+
+  async createCitizenCategory(name: string): Promise<string> {
+    await Promise.resolve();
+    return this.upsertCitizenCategory(name);
+  }
+
+  private upsertCitizenCategory(name: string): string {
+    const value = name.trim().replace(/\s+/gu, ' ');
+    if (!value || value.length > 80) throw new Error('Informe uma categoria de até 80 caracteres.');
     const normalize = (value: string): string =>
       value
         .normalize('NFD')
         .replace(/[\u0300-\u036f]/g, '')
         .toLocaleLowerCase('pt-BR')
-        .trim();
+        .trim()
+        .replace(/\s+/gu, ' ');
     const category =
-      this.categoryCatalog().find((item) => normalize(item) === normalize(name)) ?? name;
+      this.categoryCatalog().find((item) => normalize(item) === normalize(value)) ?? value;
     if (!this.categoryCatalog().includes(category))
       this.categoryCatalog.update((items) => [...items, category]);
-    if (citizen.categories.includes(category)) return;
+    return category;
+  }
+
+  async addCategory(citizenId: string, name: string): Promise<string> {
+    await Promise.resolve();
+    const citizen = this.loadDetail(citizenId);
+    if (!citizen) throw new Error('Munícipe não encontrado.');
+    const category = this.upsertCitizenCategory(name);
+    if (citizen.categories.includes(category)) return category;
     this.profileEdits.update((edits) => ({
       ...edits,
       [citizenId]: { ...edits[citizenId], categories: [...citizen.categories, category] },
     }));
+    return category;
   }
 
-  removeCategory(citizenId: string, name: string): void {
+  async removeCategory(citizenId: string, name: string): Promise<void> {
+    await Promise.resolve();
     const citizen = this.loadDetail(citizenId);
     if (!citizen) throw new Error('Munícipe não encontrado.');
     this.profileEdits.update((edits) => ({

@@ -24,7 +24,7 @@ import {
 import { Router, RouterLink } from '@angular/router';
 import { IconComponent } from '../../../../shared/components/icon/icon.component';
 import { CitizenSearchComponent } from '../../../../shared/components/citizen-search/citizen-search.component';
-import { FilterSelectionComponent } from '../../../../shared/components/filter-selection/filter-selection.component';
+import { CitizenCategoriesComponent } from '../../../../shared/components/citizen-categories/citizen-categories.component';
 import { DictationButtonComponent } from '../../../../shared/components/dictation-button/dictation-button.component';
 import { SpeechToTextDirective } from '../../../../shared/directives/speech-to-text.directive';
 import { PhotoGalleryComponent } from '../../../../shared/components/photo-gallery/photo-gallery.component';
@@ -44,7 +44,7 @@ import type { CitizenSummary } from '../../../../core/models/citizen-summary';
     FormField,
     IconComponent,
     CitizenSearchComponent,
-    FilterSelectionComponent,
+    CitizenCategoriesComponent,
     DictationButtonComponent,
     SpeechToTextDirective,
     PhotoGalleryComponent,
@@ -68,6 +68,7 @@ export class CitizenEditorComponent {
   private readonly removeReferrerButton =
     viewChild<ElementRef<HTMLButtonElement>>('removeReferrerButton');
   private readonly addPhotosButton = viewChild<ElementRef<HTMLButtonElement>>('addPhotosButton');
+  protected readonly categoryControl = viewChild<CitizenCategoriesComponent>('categoryControl');
   private leaveResolver: ((discard: boolean) => void) | null = null;
   private leavePromise: Promise<boolean> | null = null;
   protected readonly model = signal(emptyCitizenDraft());
@@ -227,17 +228,8 @@ export class CitizenEditorComponent {
       { injector: this.injector },
     );
   }
-  protected addCategory(value: string): void {
-    this.model.update((draft) => ({
-      ...draft,
-      categories: [...new Set([...draft.categories, value])],
-    }));
-  }
-  protected removeCategory(value: string): void {
-    this.model.update((draft) => ({
-      ...draft,
-      categories: draft.categories.filter((category) => category !== value),
-    }));
+  protected setCategories(categories: readonly string[]): void {
+    this.model.update((draft) => ({ ...draft, categories: [...categories] }));
   }
   protected selectReferrer(person: CitizenSummary): void {
     this.referrer.set(person);
@@ -278,7 +270,7 @@ export class CitizenEditorComponent {
     });
   }
   private persist(confirm: boolean): void {
-    if (this.state.saving()) return;
+    if (this.state.saving() || this.categoryControl()?.busy()) return;
     this.attempted.set(true);
     if (this.fields().invalid()) {
       afterNextRender(() => this.errors()?.nativeElement.focus(), { injector: this.injector });
@@ -309,7 +301,7 @@ export class CitizenEditorComponent {
     );
   }
   canLeave(): boolean | Promise<boolean> {
-    if (this.state.saving()) return false;
+    if (this.state.saving() || this.categoryControl()?.busy()) return false;
     if (this.state.createdId() || !this.dirty()) return true;
     if (!this.leavePromise) {
       this.leavePromise = new Promise((resolve) => {

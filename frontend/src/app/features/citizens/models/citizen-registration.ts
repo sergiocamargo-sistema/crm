@@ -31,7 +31,6 @@ export interface CitizenRegistrationDraft {
 export interface CitizenRegistrationConfiguration {
   readonly genders: readonly { readonly value: string; readonly label: string }[];
   readonly documentTypes: readonly { readonly value: string; readonly label: string }[];
-  readonly categories: readonly string[];
 }
 
 export interface CitizenDuplicateCandidate extends CitizenSummary {

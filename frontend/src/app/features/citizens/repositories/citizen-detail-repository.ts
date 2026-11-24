@@ -89,9 +89,10 @@ export interface CitizenDetailRepository {
   setRequestTaskCompleted(requestId: string, taskId: string, completed: boolean): void;
   registerContact(citizenId: string, contact: NewCitizenInteraction): void;
   saveObservations(citizenId: string, text: string): void;
-  listCategories(): readonly string[];
-  addCategory(citizenId: string, name: string): void;
-  removeCategory(citizenId: string, name: string): void;
+  loadCitizenCategories(): Promise<readonly string[]>;
+  createCitizenCategory(name: string): Promise<string>;
+  addCategory(citizenId: string, name: string): Promise<string>;
+  removeCategory(citizenId: string, name: string): Promise<void>;
 }
 
 export const CITIZEN_DETAIL_REPOSITORY = new InjectionToken<CitizenDetailRepository>(

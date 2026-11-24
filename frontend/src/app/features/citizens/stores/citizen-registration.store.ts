@@ -1,4 +1,4 @@
-import { computed, signal } from '@angular/core';
+import { signal } from '@angular/core';
 import type { CitizenPhoto } from '../models/citizen-detail';
 import type {
   CitizenRegistrationConfiguration,
@@ -14,7 +14,4 @@ export class CitizenRegistrationStore {
   readonly photos = signal<readonly CitizenPhoto[]>([]);
   readonly review = signal<Extract<CitizenRegistrationResult, { kind: 'review' }> | null>(null);
   readonly createdId = signal<string | null>(null);
-  readonly categoryChoices = computed(() =>
-    (this.configuration()?.categories ?? []).map((name) => ({ value: name, label: name })),
-  );
 }

@@ -49,22 +49,6 @@ export class CitizenDetailService {
     this.repository.saveObservations(citizenId, text.trim());
   }
 
-  readonly categoryStore = new ReadStore(computed(() => this.listCategories()));
-
-  private listCategories(): readonly string[] {
-    return [...this.repository.listCategories()].sort((a, b) => a.localeCompare(b, 'pt-BR'));
-  }
-
-  addCategory(citizenId: string, name: string): void {
-    const value = name.trim().replace(/\s+/g, ' ');
-    if (!value || value.length > 80) throw new Error('Informe uma categoria de até 80 caracteres.');
-    this.repository.addCategory(citizenId, value);
-  }
-
-  removeCategory(citizenId: string, name: string): void {
-    this.repository.removeCategory(citizenId, name);
-  }
-
   registerInteraction(citizenId: string, interaction: NewConversationInteraction): void {
     const channel = INTERACTION_CHANNELS.find((item) => item.value === interaction.channel);
     if (!channel) throw new Error('Selecione o tipo de interação.');
