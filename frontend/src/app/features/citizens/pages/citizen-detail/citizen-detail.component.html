@@ -69,8 +69,13 @@
               <app-icon name="share" />
             </button>
           </div>
-          <a class="button edit-citizen-link" [routerLink]="['/municipes', person.id, 'editar']">
-            <app-icon name="filePen" /> Editar munícipe
+          <a
+            class="icon-button edit-citizen-link"
+            [routerLink]="['/municipes', person.id, 'editar']"
+            aria-label="Editar munícipe"
+            title="Editar munícipe"
+          >
+            <app-icon name="filePen" />
           </a>
         </div>
         <app-citizen-notes [citizen]="person" />

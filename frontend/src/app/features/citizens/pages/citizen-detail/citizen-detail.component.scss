@@ -304,11 +304,8 @@ address strong {
     padding: var(--space-4) var(--space-4) 100px;
   }
   .identity-row {
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) auto auto;
     padding: var(--space-3) var(--space-4) var(--space-2);
-  }
-  .edit-citizen-link {
-    grid-column: 1 / -1;
   }
 
   .citizen-information {
