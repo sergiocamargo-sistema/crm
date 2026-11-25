@@ -22,7 +22,7 @@ import type {
   LabelTemplate,
 } from '../../../src/app/features/labels/models/label-print';
 import type { TaskStatus } from '../../../src/app/core/models/task';
-import type { VoteEstimate } from '../../../src/app/core/models/vote-estimate';
+import type { CabinetRating } from '../../../src/app/core/models/cabinet-rating';
 import type {
   TaskLabel,
   TaskLabelDraft,
@@ -298,9 +298,9 @@ export type ConcreteInvocation =
       readonly args: [citizenId: string, text: string];
     }
   | {
-      readonly operation: 'saveVoteEstimate';
+      readonly operation: 'saveCabinetRating';
       readonly requestId: string;
-      readonly args: [citizenId: string, estimate: VoteEstimate | null];
+      readonly args: [citizenId: string, rating: CabinetRating | null];
     }
   | { readonly operation: 'loadCitizenCategories'; readonly requestId: string; readonly args: [] }
   | {

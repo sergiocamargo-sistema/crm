@@ -8,7 +8,7 @@ import {
 export const initialQuery = (): CitizenListQuery => ({
   query: '',
   neighborhoods: [],
-  voteEstimates: [],
+  cabinetRatings: [],
   includedCategories: [],
   excludedCategories: [],
   categoryMatch: 'all',

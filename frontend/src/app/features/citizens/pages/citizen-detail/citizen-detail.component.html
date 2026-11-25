@@ -93,25 +93,25 @@
         <aside class="citizen-information" aria-label="Informações do munícipe">
           <form
             class="info-card layout-stack"
-            [attr.aria-label]="voteEstimateLabel"
-            (submit)="saveVoteEstimate($event)"
+            [attr.aria-label]="cabinetRatingLabel"
+            (submit)="saveCabinetRating($event)"
           >
-            <app-vote-estimate-slider
-              controlId="citizen-vote-estimate"
-              [formField]="voteEstimateForm.estimate"
+            <app-cabinet-rating
+              controlId="citizen-cabinet-rating"
+              [formField]="cabinetRatingForm.rating"
             />
             <button
-              class="button button--primary vote-estimate-save"
+              class="button button--primary cabinet-rating-save"
               type="submit"
-              [disabled]="!voteEstimateChanged()"
+              [disabled]="!cabinetRatingChanged()"
             >
-              Salvar estimativa
+              Salvar avaliação
             </button>
-            @if (voteEstimateError(); as error) {
+            @if (cabinetRatingError(); as error) {
               <p class="form-error" role="alert">{{ error }}</p>
             }
-            <p role="status" [class.sr-only]="voteEstimateChanged() || !voteEstimateStatus()">
-              {{ voteEstimateChanged() ? '' : voteEstimateStatus() }}
+            <p role="status" [class.sr-only]="cabinetRatingChanged() || !cabinetRatingStatus()">
+              {{ cabinetRatingChanged() ? '' : cabinetRatingStatus() }}
             </p>
           </form>
           <section class="info-card" aria-labelledby="address-title">

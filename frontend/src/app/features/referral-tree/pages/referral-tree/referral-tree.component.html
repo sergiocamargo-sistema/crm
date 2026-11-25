@@ -11,10 +11,13 @@
     <div class="branch-identity">
       <h1 #heading tabindex="-1">{{ current()?.name ?? 'Árvore' }}</h1>
       @if (current(); as person) {
-        @if (person.voteEstimate !== null) {
-          <span class="badge vote-estimate-badge">
-            {{ voteEstimateLabel }} <strong>{{ person.voteEstimate }}%</strong>
-          </span>
+        @if (person.cabinetRating !== null) {
+          <app-cabinet-rating
+            class="cabinet-rating-badge"
+            [controlId]="'tree-rating-' + person.id"
+            [readOnly]="true"
+            [value]="person.cabinetRating"
+          />
         }
       }
     </div>
@@ -84,10 +87,13 @@
                     </span>
                     {{ person.name }}
                   </span>
-                  @if (person.voteEstimate !== null) {
-                    <span class="badge vote-estimate-badge">
-                      {{ voteEstimateLabel }} <strong>{{ person.voteEstimate }}%</strong>
-                    </span>
+                  @if (person.cabinetRating !== null) {
+                    <app-cabinet-rating
+                      class="cabinet-rating-badge"
+                      [controlId]="'tree-rating-' + person.id"
+                      [readOnly]="true"
+                      [value]="person.cabinetRating"
+                    />
                   }
                   <span class="muted">
                     @switch (person.childCount) {

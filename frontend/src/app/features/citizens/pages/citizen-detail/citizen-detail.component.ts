@@ -16,9 +16,9 @@ import {
 } from '@angular/core';
 import { form, FormField } from '@angular/forms/signals';
 import { RouterLink } from '@angular/router';
-import { VOTE_ESTIMATE_LABEL } from '../../../../core/models/vote-estimate';
+import { CABINET_RATING_LABEL } from '../../../../core/models/cabinet-rating';
 import { IconComponent } from '../../../../shared/components/icon/icon.component';
-import { VoteEstimateSliderComponent } from '../../../../shared/components/vote-estimate-slider/vote-estimate-slider.component';
+import { CabinetRatingComponent } from '../../../../shared/components/cabinet-rating/cabinet-rating.component';
 import { CitizenDetailService } from '../../services/citizen-detail';
 import { CitizenTimelineComponent } from '../../components/citizen-timeline/citizen-timeline.component';
 import { CitizenPhotoGalleryComponent } from '../../components/citizen-photo-gallery/citizen-photo-gallery.component';
@@ -43,7 +43,7 @@ const registrationFormatter = new Intl.DateTimeFormat('pt-BR', {
     CitizenNotesComponent,
     CitizenActivityShortcutsComponent,
     FormField,
-    VoteEstimateSliderComponent,
+    CabinetRatingComponent,
   ],
   selector: 'app-citizen-detail',
   styleUrl: './citizen-detail.component.scss',
@@ -57,7 +57,7 @@ export class CitizenDetailComponent {
   private readonly injector = inject(Injector);
   private readonly destroyRef = inject(DestroyRef);
   private readonly pageTitle = viewChild<ElementRef<HTMLHeadingElement>>('pageTitle');
-  private readonly voteEstimateSlider = viewChild(VoteEstimateSliderComponent);
+  private readonly cabinetRatingControl = viewChild(CabinetRatingComponent);
   private readonly actionsTrigger = viewChild<ElementRef<HTMLButtonElement>>('actionsTrigger');
   private readonly actionsPanel = viewChild<ElementRef<HTMLElement>>('actionsPanel');
   private readonly mobileMedia = this.document.defaultView?.matchMedia('(max-width: 600px)');
@@ -66,18 +66,18 @@ export class CitizenDetailComponent {
   private statusTimer: ReturnType<typeof setTimeout> | undefined;
   protected readonly citizenState = this.service.observeCitizen(this.id);
   protected readonly citizen = this.citizenState.state;
-  protected readonly voteEstimateLabel = VOTE_ESTIMATE_LABEL;
-  private readonly savedVoteEstimate = computed(() => this.citizen()?.voteEstimate ?? null);
-  private readonly voteEstimateDraft = linkedSignal({
-    source: () => ({ id: this.id(), estimate: this.savedVoteEstimate() }),
-    computation: ({ estimate }) => ({ estimate }),
+  protected readonly cabinetRatingLabel = CABINET_RATING_LABEL;
+  private readonly savedCabinetRating = computed(() => this.citizen()?.cabinetRating ?? null);
+  private readonly cabinetRatingDraft = linkedSignal({
+    source: () => ({ id: this.id(), rating: this.savedCabinetRating() }),
+    computation: ({ rating }) => ({ rating }),
   });
-  protected readonly voteEstimateForm = form(this.voteEstimateDraft);
-  protected readonly voteEstimateChanged = computed(
-    () => this.voteEstimateDraft().estimate !== this.savedVoteEstimate(),
+  protected readonly cabinetRatingForm = form(this.cabinetRatingDraft);
+  protected readonly cabinetRatingChanged = computed(
+    () => this.cabinetRatingDraft().rating !== this.savedCabinetRating(),
   );
-  protected readonly voteEstimateStatus = signal('');
-  protected readonly voteEstimateError = signal('');
+  protected readonly cabinetRatingStatus = signal('');
+  protected readonly cabinetRatingError = signal('');
   protected readonly addresses = computed(() => {
     const person = this.citizen();
     if (!person) return [];
@@ -100,8 +100,8 @@ export class CitizenDetailComponent {
       this.citizenState.loading();
       this.id();
       this.shareStatus.set('');
-      this.voteEstimateStatus.set('');
-      this.voteEstimateError.set('');
+      this.cabinetRatingStatus.set('');
+      this.cabinetRatingError.set('');
       this.closeActions();
       afterNextRender(
         () => {
@@ -136,19 +136,19 @@ export class CitizenDetailComponent {
     }
   }
 
-  protected async saveVoteEstimate(event: SubmitEvent): Promise<void> {
+  protected async saveCabinetRating(event: SubmitEvent): Promise<void> {
     event.preventDefault();
-    if (!this.voteEstimateChanged()) return;
-    this.voteEstimateStatus.set('');
-    this.voteEstimateError.set('');
-    const { estimate } = this.voteEstimateDraft();
+    if (!this.cabinetRatingChanged()) return;
+    this.cabinetRatingStatus.set('');
+    this.cabinetRatingError.set('');
+    const { rating } = this.cabinetRatingDraft();
     try {
-      await this.service.saveVoteEstimate(this.id(), estimate);
-      this.voteEstimateStatus.set(estimate === null ? 'Estimativa removida.' : 'Estimativa salva.');
-      this.voteEstimateSlider()?.focus({ preventScroll: true });
+      await this.service.saveCabinetRating(this.id(), rating);
+      this.cabinetRatingStatus.set(rating === null ? 'Avaliação removida.' : 'Avaliação salva.');
+      this.cabinetRatingControl()?.focus({ preventScroll: true });
     } catch (error: unknown) {
-      this.voteEstimateError.set(
-        error instanceof Error ? error.message : 'Não foi possível salvar a estimativa.',
+      this.cabinetRatingError.set(
+        error instanceof Error ? error.message : 'Não foi possível salvar a avaliação.',
       );
     }
   }

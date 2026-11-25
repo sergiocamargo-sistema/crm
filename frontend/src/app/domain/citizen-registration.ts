@@ -1,7 +1,7 @@
 import type { TeamContext } from './team-context';
 import type { CitizenRegistry } from './citizen-registry';
 import type { CitizenDetail, CitizenPhoto } from '../features/citizens/models/citizen-detail';
-import { isVoteEstimate } from '../core/models/vote-estimate';
+import { isCabinetRating } from '../core/models/cabinet-rating';
 import {
   citizenPhoneIdentity,
   emptyCitizenDraft,
@@ -220,7 +220,7 @@ export class CitizenRegistration {
       })),
       categories: [...person.categories],
       referrerId: person.referrerId ?? '',
-      voteEstimate: person.voteEstimate ?? null,
+      cabinetRating: person.cabinetRating ?? null,
     };
   }
 
@@ -490,8 +490,10 @@ export class CitizenRegistration {
           : current?.documents,
       referrerId:
         changes.referrerId !== undefined ? draft.referrerId || undefined : current?.referrerId,
-      voteEstimate:
-        changes.voteEstimate !== undefined ? draft.voteEstimate : (current?.voteEstimate ?? null),
+      cabinetRating:
+        changes.cabinetRating !== undefined
+          ? draft.cabinetRating
+          : (current?.cabinetRating ?? null),
       categories: changes.categories !== undefined ? draft.categories : (current?.categories ?? []),
       personalData,
     };
@@ -509,7 +511,7 @@ export class CitizenRegistration {
       cra: trim(input.cra),
       occupation: trim(input.occupation),
       observations: trim(input.observations),
-      voteEstimate: input.voteEstimate ?? null,
+      cabinetRating: input.cabinetRating ?? null,
       phones: input.phones
         .filter((phone) => phone.number.trim() || phone.label.trim())
         .map((phone) => ({ ...phone, number: trim(phone.number), label: trim(phone.label) })),
@@ -611,8 +613,8 @@ export class CitizenRegistration {
       throw new Error('Uma das categorias selecionadas não está disponível.');
     if (draft.referrerId && !this.registry.citizens().some(({ id }) => id === draft.referrerId))
       throw new Error('O munícipe indicado não foi encontrado.');
-    if (draft.voteEstimate !== null && !isVoteEstimate(draft.voteEstimate))
-      throw new Error('Selecione um nível válido para a estimativa de voto.');
+    if (draft.cabinetRating !== null && !isCabinetRating(draft.cabinetRating))
+      throw new Error('Selecione uma avaliação de 1 a 5 estrelas.');
     return draft;
   }
 }

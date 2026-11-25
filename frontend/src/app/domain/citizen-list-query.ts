@@ -1,4 +1,4 @@
-import { VOTE_ESTIMATE_LEVELS, type VoteEstimate } from '../core/models/vote-estimate';
+import { CABINET_RATING_LEVELS, type CabinetRating } from '../core/models/cabinet-rating';
 import {
   AGE_RANGES,
   BIRTHDAY_MONTHS,
@@ -13,7 +13,7 @@ import type { Department } from '../features/requests/models/request-detail';
 // Campos de consulta são privados do domínio e não são enviados à listagem.
 export interface CitizenQueryRecord extends CitizenListItem {
   readonly birthDate: string | null;
-  readonly voteEstimate: VoteEstimate | null;
+  readonly cabinetRating: CabinetRating | null;
   readonly observations: string;
   readonly phoneNumbers: readonly string[];
   readonly requests: readonly {
@@ -38,9 +38,12 @@ export function citizenListFacetChoices(
       .filter((neighborhood) => neighborhood.trim())
       .sort((a, b) => a.localeCompare(b, 'pt-BR'))
       .map((neighborhood) => ({ value: neighborhood, label: neighborhood })),
-    voteEstimates: [
-      { value: 'unset', label: 'Sem estimativa' },
-      ...VOTE_ESTIMATE_LEVELS.map((level) => ({ value: String(level), label: `${level}%` })),
+    cabinetRatings: [
+      { value: 'unset', label: 'Sem avaliação' },
+      ...CABINET_RATING_LEVELS.map((level) => ({
+        value: String(level),
+        label: `${level} ${level === 1 ? 'estrela' : 'estrelas'}`,
+      })),
     ],
     ageRanges: AGE_RANGES.map(({ value, label }) => ({ value, label })),
     birthdayDays: Array.from({ length: 31 }, (_, index) => {
@@ -71,8 +74,8 @@ export function queryCitizens(
   const numericQuery = /^[\d\s()+.-]+$/.test(query) && digits.length > 0;
   return citizens
     .filter((person) => {
-      const voteEstimate = person.voteEstimate === null ? 'unset' : String(person.voteEstimate);
-      if (filters.voteEstimates.length && !filters.voteEstimates.includes(voteEstimate)) {
+      const cabinetRating = person.cabinetRating === null ? 'unset' : String(person.cabinetRating);
+      if (filters.cabinetRatings.length && !filters.cabinetRatings.includes(cabinetRating)) {
         return false;
       }
       const text = normalize(

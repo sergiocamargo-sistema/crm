@@ -67,6 +67,14 @@ Limites iniciais: 20 mil registros, aproximadamente 12 MiB e validade máxima de
 
 A listagem e seus filtros continuam no backend. Impressão busca apenas os campos de etiquetas em lotes de 200; não baixa uma ficha por pessoa. Observações não são truncadas. A geração do PDF permanece no navegador. Lotes limitam transferência e resposta, não tornam uma impressão de milhares de pessoas isenta de consumo.
 
+## Avaliação do gabinete — 25/11/2026
+
+A avaliação agora representa a nota efetivamente informada pelo munícipe sobre o gabinete. `cabinetRating` aceita exclusivamente 1, 2, 3, 4, 5 ou `null` (Sem avaliação). Cadastro e ficha usam o mesmo `CabinetRatingComponent`, com cinco estrelas/rádios nativos, limpeza, teclado e toque; a ficha mantém salvamento explícito. A Árvore reutiliza o componente em modo somente leitura e a listagem filtra por múltiplas notas, inclusive ausência.
+
+`CabinetRating`, `isCabinetRating` e os níveis ficam em `src/app/core/models/cabinet-rating.ts`. O contrato usa `saveCabinetRating`; o filtro é `cabinetRatings`. Frontend e API compartilham a validação. Não é previsão, probabilidade ou classificação de preferência política.
+
+O antigo `voteEstimate` não é lido como avaliação nem convertido para estrelas. Cadastros legados sem o novo campo aparecem Sem avaliação, e o campo anterior é excluído da resposta da ficha. Nenhuma migração/exclusão foi executada em banco ou backup real; dados legados eventualmente existentes exigem uma decisão administrativa própria sobre retenção/eliminação. Os formatos de backup continuam versionados e preservam o conteúdo original, sem reinterpretá-lo. O schema da API é regenerado para aceitar o novo domínio e retirar a operação anterior.
+
 ## Arquivos
 
 Primeiro adaptador: Cloud Storage, bucket esperado `sergio-6ceff.firebasestorage.app`. Criar/configurar o bucket no Blaze antes de usar anexos. O backend valida extensão, tipo aceito, tamanho, propriedade do upload pendente e existência; autoria, tamanho e MIME gravados vêm do servidor. Esta validação não inclui antivírus.

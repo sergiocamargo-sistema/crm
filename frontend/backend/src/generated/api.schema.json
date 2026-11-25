@@ -1295,7 +1295,7 @@
           "properties": {
             "operation": {
               "type": "string",
-              "const": "saveVoteEstimate"
+              "const": "saveCabinetRating"
             },
             "requestId": {
               "type": "string"
@@ -1311,13 +1311,13 @@
                 {
                   "anyOf": [
                     {
-                      "$ref": "#/definitions/VoteEstimate"
+                      "$ref": "#/definitions/CabinetRating"
                     },
                     {
                       "type": "null"
                     }
                   ],
-                  "title": "estimate"
+                  "title": "rating"
                 }
               ],
               "maxItems": 2
@@ -2065,10 +2065,10 @@
         "referrerId": {
           "type": "string"
         },
-        "voteEstimate": {
+        "cabinetRating": {
           "anyOf": [
             {
-              "$ref": "#/definitions/VoteEstimate"
+              "$ref": "#/definitions/CabinetRating"
             },
             {
               "type": "null"
@@ -2089,7 +2089,7 @@
         "documents",
         "categories",
         "referrerId",
-        "voteEstimate"
+        "cabinetRating"
       ],
       "additionalProperties": false
     },
@@ -2137,9 +2137,9 @@
       ],
       "additionalProperties": false
     },
-    "VoteEstimate": {
+    "CabinetRating": {
       "type": "number",
-      "enum": [0, 25, 50, 75, 100]
+      "enum": [1, 2, 3, 4, 5]
     },
     "CitizenPhoto": {
       "type": "object",
@@ -2288,10 +2288,10 @@
         "referrerId": {
           "type": "string"
         },
-        "voteEstimate": {
+        "cabinetRating": {
           "anyOf": [
             {
-              "$ref": "#/definitions/VoteEstimate"
+              "$ref": "#/definitions/CabinetRating"
             },
             {
               "type": "null"
@@ -2487,7 +2487,7 @@
             "type": "string"
           }
         },
-        "voteEstimates": {
+        "cabinetRatings": {
           "type": "array",
           "items": {
             "type": "string"
@@ -2557,6 +2557,7 @@
         "ageRanges",
         "birthdayDays",
         "birthdayMonths",
+        "cabinetRatings",
         "categoryMatch",
         "excludedCategories",
         "excludedDepartmentIds",
@@ -2565,8 +2566,7 @@
         "neighborhoods",
         "order",
         "query",
-        "requestStatuses",
-        "voteEstimates"
+        "requestStatuses"
       ],
       "additionalProperties": false
     },

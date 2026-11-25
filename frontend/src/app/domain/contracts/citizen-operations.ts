@@ -16,7 +16,7 @@ import type {
 } from '../../features/citizens/models/citizen-registration';
 import type { LabelRecipient } from '../../features/labels/models/label-print';
 import type { TaskStatus } from '../../core/models/task';
-import type { VoteEstimate } from '../../core/models/vote-estimate';
+import type { CabinetRating } from '../../core/models/cabinet-rating';
 import type {
   TaskLabel,
   TaskLabelDraft,
@@ -108,7 +108,7 @@ export interface CitizenDetailOperations {
   setRequestTaskCompleted(requestId: string, taskId: string, completed: boolean): void;
   registerContact(citizenId: string, contact: NewCitizenInteraction): void;
   saveObservations(citizenId: string, text: string): void;
-  saveVoteEstimate(citizenId: string, estimate: VoteEstimate | null): void;
+  saveCabinetRating(citizenId: string, rating: CabinetRating | null): void;
   loadCitizenCategories(): Promise<readonly string[]>;
   createCitizenCategory(name: string): Promise<string>;
   addCategory(citizenId: string, name: string): Promise<string>;

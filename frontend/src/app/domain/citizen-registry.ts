@@ -2,7 +2,7 @@ import type { CitizenDetail } from '../features/citizens/models/citizen-detail';
 import { createState, type StateCell, type StateFactory } from './state-cell';
 
 export type CitizenProfileEdits = Readonly<
-  Record<string, Partial<Pick<CitizenDetail, 'observations' | 'categories' | 'voteEstimate'>>>
+  Record<string, Partial<Pick<CitizenDetail, 'observations' | 'categories' | 'cabinetRating'>>>
 >;
 
 export class CitizenRegistry {

@@ -5,7 +5,7 @@ import {
   departmentScopeIds,
 } from '../features/requests/models/department-options';
 import type { TextReference } from '../core/models/collaboration';
-import { isVoteEstimate, type VoteEstimate } from '../core/models/vote-estimate';
+import { isCabinetRating, type CabinetRating } from '../core/models/cabinet-rating';
 import type {
   CitizenRegistrationCommand,
   CitizenUpdateCommand,
@@ -640,7 +640,7 @@ export class CrmEngine implements CitizenDetailOperations, AutomationOperations 
     const matches = queryCitizens(citizens, departments, query, currentCitizenCalendarDate());
     return {
       items: matches.map(
-        ({ birthDate, voteEstimate, observations, phoneNumbers, requests, ...item }) => item,
+        ({ birthDate, cabinetRating, observations, phoneNumbers, requests, ...item }) => item,
       ),
       total: citizens.length,
       facetChoices: citizenListFacetChoices(citizens),
@@ -654,7 +654,7 @@ export class CrmEngine implements CitizenDetailOperations, AutomationOperations 
     const contacts = this.contacts();
     const requestExtras = this.requestExtras();
     return this.citizens().map((citizen) => {
-      const estimateEdit = edits[citizen.id]?.voteEstimate;
+      const ratingEdit = edits[citizen.id]?.cabinetRating;
       const requests = this.requestsForCitizen(citizen.id);
       const interactions = contacts[citizen.id] ?? citizen.interactions;
       const lastInteractionAt = interactions
@@ -679,7 +679,7 @@ export class CrmEngine implements CitizenDetailOperations, AutomationOperations 
         phone: citizen.phone,
         cra: citizen.cra,
         birthDate: citizen.birthDate,
-        voteEstimate: estimateEdit === undefined ? (citizen.voteEstimate ?? null) : estimateEdit,
+        cabinetRating: ratingEdit === undefined ? (citizen.cabinetRating ?? null) : ratingEdit,
         observations: edits[citizen.id]?.observations ?? citizen.observations,
         photo: original && thumbnail ? { src: thumbnail.toString(), label: original.label } : null,
         phoneNumbers: citizen.phones.map((phone) => phone.number),
@@ -704,9 +704,17 @@ export class CrmEngine implements CitizenDetailOperations, AutomationOperations 
     const referrerName = citizen.referrerId
       ? this.citizens().find(({ id }) => id === citizen.referrerId)?.name
       : undefined;
+    // O campo antigo não é exposto nem reinterpretado como avaliação.
+    const { voteEstimate: _legacyCitizenEstimate, ...profile } = citizen as CitizenDetail & {
+      voteEstimate?: unknown;
+    };
+    const { voteEstimate: _legacyEditEstimate, ...edits } = (this.profileEdits()[citizenId] ??
+      {}) as CitizenProfileEdits[string] & { voteEstimate?: unknown };
+    const rating = edits.cabinetRating === undefined ? profile.cabinetRating : edits.cabinetRating;
     return {
-      ...citizen,
-      ...this.profileEdits()[citizenId],
+      ...profile,
+      ...edits,
+      cabinetRating: isCabinetRating(rating) ? rating : null,
       personalData: referrerName
         ? citizen.personalData.map((field) =>
             field.label === 'Indicado por' ? { ...field, value: referrerName } : field,
@@ -1622,14 +1630,14 @@ export class CrmEngine implements CitizenDetailOperations, AutomationOperations 
     }));
   }
 
-  saveVoteEstimate(citizenId: string, estimate: VoteEstimate | null): void {
+  saveCabinetRating(citizenId: string, rating: CabinetRating | null): void {
     if (!this.citizens().some(({ id }) => id === citizenId))
       throw new Error('Munícipe não encontrado.');
-    if (estimate !== null && !isVoteEstimate(estimate))
-      throw new Error('Selecione um nível válido para a estimativa de voto.');
+    if (rating !== null && !isCabinetRating(rating))
+      throw new Error('Selecione uma avaliação de 1 a 5 estrelas.');
     this.profileEdits.update((edits) => ({
       ...edits,
-      [citizenId]: { ...edits[citizenId], voteEstimate: estimate },
+      [citizenId]: { ...edits[citizenId], cabinetRating: rating },
     }));
   }
 

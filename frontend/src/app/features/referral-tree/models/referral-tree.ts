@@ -1,10 +1,10 @@
-import type { VoteEstimate } from '../../../core/models/vote-estimate';
+import type { CabinetRating } from '../../../core/models/cabinet-rating';
 
 export interface ReferralTreePerson {
   readonly id: string;
   readonly name: string;
   readonly initials: string;
-  readonly voteEstimate: VoteEstimate | null;
+  readonly cabinetRating: CabinetRating | null;
 }
 
 export interface ReferralTreeEntry extends ReferralTreePerson {

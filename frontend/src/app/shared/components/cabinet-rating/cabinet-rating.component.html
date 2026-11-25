@@ -1,0 +1,47 @@
+@if (readOnly()) {
+  <span class="rating-summary" role="img" [attr.aria-label]="label + ': ' + valueText()">
+    <span class="rating-stars" aria-hidden="true">
+      @for (level of levels; track level) {
+        <app-icon name="star" [filled]="level <= (value() ?? 0)" />
+      }
+    </span>
+    <span aria-hidden="true">{{ valueText() }}</span>
+  </span>
+} @else {
+  <fieldset
+    class="rating-control"
+    [disabled]="disabled()"
+    [attr.aria-describedby]="controlId() + '-hint'"
+  >
+    <legend class="form-label">{{ label }}</legend>
+    <div class="rating-options">
+      @for (level of levels; track level) {
+        <input
+          #choice
+          class="sr-only"
+          type="radio"
+          [id]="controlId() + '-' + level"
+          [name]="controlId()"
+          [value]="level"
+          [checked]="value() === level"
+          [attr.aria-label]="level + ' de 5 estrelas'"
+          (change)="select(level)"
+        />
+        <label
+          class="rating-option"
+          [for]="controlId() + '-' + level"
+          [title]="level + ' de 5 estrelas'"
+        >
+          <app-icon name="star" [filled]="level <= (value() ?? 0)" />
+        </label>
+      }
+      <span class="rating-value">{{ valueText() }}</span>
+    </div>
+    <p class="rating-hint" [id]="controlId() + '-hint'">Avaliação informada pelo munícipe.</p>
+    @if (value() !== null && !disabled()) {
+      <button type="button" class="text-button clear-rating" (click)="clear()">
+        Limpar avaliação
+      </button>
+    }
+  </fieldset>
+}

@@ -10,6 +10,7 @@ export type { IconName } from '../../../core/models/icon-paths';
   host: { 'aria-hidden': 'true' },
 })
 export class IconComponent {
+  readonly filled = input(false);
   readonly name = input.required<IconName>();
   protected readonly path = computed(() => ICON_PATHS[this.name()]);
 }

@@ -1,0 +1,66 @@
+:host {
+  display: block;
+  min-inline-size: 0;
+}
+.rating-control {
+  display: grid;
+  gap: var(--space-1);
+  min-inline-size: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.rating-control legend {
+  margin-block-end: var(--space-1);
+}
+.rating-options,
+.rating-summary,
+.rating-stars {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+.rating-option {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 30px;
+  block-size: 30px;
+  color: var(--color-primary);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+}
+.rating-option app-icon {
+  inline-size: 18px;
+  block-size: 18px;
+}
+input:focus-visible + .rating-option {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+input:disabled + .rating-option {
+  color: var(--color-text-muted);
+  cursor: default;
+}
+.rating-stars {
+  flex-wrap: nowrap;
+  color: var(--color-primary);
+}
+.rating-stars app-icon {
+  inline-size: 16px;
+  block-size: 16px;
+}
+.rating-value,
+.rating-hint,
+.rating-summary {
+  font-size: var(--font-size-xs);
+}
+.rating-hint {
+  color: var(--color-text-muted);
+  margin: 0;
+}
+.clear-rating {
+  justify-self: start;
+  min-block-size: var(--space-8);
+}

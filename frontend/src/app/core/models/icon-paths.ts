@@ -1,4 +1,5 @@
 export const ICON_PATHS = {
+  star: 'm12 3 2.78 5.63 6.22.9-4.5 4.39 1.06 6.2L12 17.19l-5.56 2.93 1.06-6.2L3 9.53l6.22-.9L12 3z',
   logout: 'M9 3H4v18h5 M13 7l5 5-5 5 M8 12h13',
   print: 'M6 9V3h12v6 M6 17H3V9h18v8h-3 M6 14h12v7H6z M17 12h.01',
   kanban: 'M3 4h5v16H3z M10 4h5v16h-5z M17 4h4v16h-4z M5 8h1 M5 11h1 M12 8h1 M19 8h.01',

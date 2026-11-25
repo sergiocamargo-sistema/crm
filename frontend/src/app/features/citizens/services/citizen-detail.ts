@@ -1,6 +1,6 @@
 import { RemoteReadStore } from '../../../core/stores/read-store';
 import { computed, type Signal, inject, Service } from '@angular/core';
-import type { VoteEstimate } from '../../../core/models/vote-estimate';
+import type { CabinetRating } from '../../../core/models/cabinet-rating';
 import { CITIZEN_DETAIL_REPOSITORY } from '../repositories/citizen-detail-repository';
 import type {
   CitizenDetail,
@@ -50,8 +50,8 @@ export class CitizenDetailService {
     await this.repository.saveObservations(citizenId, text.trim());
   }
 
-  async saveVoteEstimate(citizenId: string, estimate: VoteEstimate | null): Promise<void> {
-    await this.repository.saveVoteEstimate(citizenId, estimate);
+  async saveCabinetRating(citizenId: string, rating: CabinetRating | null): Promise<void> {
+    await this.repository.saveCabinetRating(citizenId, rating);
   }
 
   async registerInteraction(

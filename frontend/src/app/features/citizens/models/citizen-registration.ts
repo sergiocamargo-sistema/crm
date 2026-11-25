@@ -1,5 +1,5 @@
 import type { CitizenSummary } from '../../../core/models/citizen-summary';
-import type { VoteEstimate } from '../../../core/models/vote-estimate';
+import type { CabinetRating } from '../../../core/models/cabinet-rating';
 import type { CitizenPhoto } from './citizen-detail';
 
 export interface CitizenAddressDraft {
@@ -27,7 +27,7 @@ export interface CitizenRegistrationDraft {
   documents: { key: string; type: string; value: string; issuer: string }[];
   categories: string[];
   referrerId: string;
-  voteEstimate: VoteEstimate | null;
+  cabinetRating: CabinetRating | null;
 }
 
 export interface CitizenRegistrationConfiguration {
@@ -81,7 +81,7 @@ export const emptyCitizenDraft = (): CitizenRegistrationDraft => ({
   documents: [],
   categories: [],
   referrerId: '',
-  voteEstimate: null,
+  cabinetRating: null,
 });
 
 export function validCitizenBirthDate(value: string, today: string): boolean {

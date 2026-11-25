@@ -1,6 +1,6 @@
 import { Component, computed, ElementRef, inject, viewChild } from '@angular/core';
 import { form, FormField } from '@angular/forms/signals';
-import { VOTE_ESTIMATE_LABEL } from '../../../../core/models/vote-estimate';
+import { CABINET_RATING_LABEL } from '../../../../core/models/cabinet-rating';
 import { IconComponent, type IconName } from '../../../../shared/components/icon/icon.component';
 import { FilterSelectionComponent } from '../../../../shared/components/filter-selection/filter-selection.component';
 import { birthdayFiltersAreCompatible } from '../../models/citizen-birth-filters';
@@ -17,12 +17,12 @@ const PROFILE_FILTERS = [
     icon: 'location',
   },
   {
-    key: 'voteEstimates',
-    label: VOTE_ESTIMATE_LABEL,
-    hint: 'Inclui qualquer nível escolhido, inclusive Sem estimativa.',
-    placeholder: 'Buscar estimativa...',
-    itemLabel: 'estimativa',
-    icon: 'chart',
+    key: 'cabinetRatings',
+    label: CABINET_RATING_LABEL,
+    hint: 'Inclui qualquer nota escolhida, inclusive Sem avaliação.',
+    placeholder: 'Buscar avaliação...',
+    itemLabel: 'avaliação',
+    icon: 'star',
   },
   {
     key: 'ageRanges',

@@ -17,10 +17,10 @@ export function referralBranch(
       name: person.name,
       initials: person.initials,
       referrerId: person.referrerId,
-      voteEstimate:
-        edits[person.id]?.voteEstimate === undefined
-          ? (person.voteEstimate ?? null)
-          : (edits[person.id].voteEstimate ?? null),
+      cabinetRating:
+        edits[person.id]?.cabinetRating === undefined
+          ? (person.cabinetRating ?? null)
+          : (edits[person.id].cabinetRating ?? null),
     }))
     .sort((first, second) => first.name.localeCompare(second.name, 'pt-BR'));
   const byId = new Map(people.map((person) => [person.id, person]));
@@ -29,7 +29,7 @@ export function referralBranch(
     id: person.id,
     name: person.name,
     initials: person.initials,
-    voteEstimate: person.voteEstimate,
+    cabinetRating: person.cabinetRating,
   });
   for (const person of people) {
     if (!person.referrerId || person.referrerId === person.id || !byId.has(person.referrerId))

@@ -24,7 +24,7 @@ export interface CitizenListResult {
 
 export const CITIZEN_LIST_FACETS = [
   'neighborhoods',
-  'voteEstimates',
+  'cabinetRatings',
   'ageRanges',
   'birthdayDays',
   'birthdayMonths',
