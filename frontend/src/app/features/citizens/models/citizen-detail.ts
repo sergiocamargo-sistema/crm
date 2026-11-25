@@ -1,6 +1,6 @@
 import type { CitizenSummary } from '../../../core/models/citizen-summary';
 import type { VoteEstimate } from '../../../core/models/vote-estimate';
-import type { IconName } from '../../../shared/components/icon/icon.component';
+import type { IconName } from '../../../core/models/icon-paths';
 
 export const INTERACTION_TYPES = [
   { value: 'request', label: 'Solicitação', icon: 'clipboard' },
@@ -59,6 +59,7 @@ export interface CitizenConversationMessage {
 }
 
 export interface CitizenPhoto {
+  readonly fileReference?: string;
   readonly src: string;
   readonly label: string;
 }

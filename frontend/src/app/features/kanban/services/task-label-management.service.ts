@@ -1,3 +1,5 @@
+import { DataConnection } from '../../../core/backend/data-connection';
+import { SessionContext } from '../../../core/backend/session-context';
 import { effect, inject, Service, signal, untracked } from '@angular/core';
 import { CITIZEN_DETAIL_REPOSITORY } from '../../citizens/repositories/citizen-detail-repository';
 import type { TaskLabel, TaskLabelDraft } from '../../../core/models/task-label';
@@ -5,12 +7,16 @@ import { TaskLabelManagementStore } from '../stores/task-label-management.store'
 
 @Service()
 export class TaskLabelManagementService {
+  private readonly connection = inject(DataConnection);
+  private readonly session = inject(SessionContext);
   private readonly repository = inject(CITIZEN_DETAIL_REPOSITORY);
   private readonly refresh = signal(0);
   readonly store = new TaskLabelManagementStore();
 
   constructor() {
     effect((onCleanup) => {
+      this.connection.revision();
+      if (!this.session.profile()) return;
       const query = this.store.search().text;
       this.refresh();
       let active = true;

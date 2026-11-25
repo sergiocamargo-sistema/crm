@@ -88,7 +88,7 @@ export class RequestClassificationComponent {
   }
   protected chooseDepartment(id: string): void {
     this.persist(
-      () => this.service.assignDepartment(this.workspace().request.id, id),
+      async () => await this.service.assignDepartment(this.workspace().request.id, id),
       'Departamento atualizado.',
     );
     this.open.set(false);
@@ -97,7 +97,7 @@ export class RequestClassificationComponent {
   protected createDepartment(): void {
     if (this.fields.departmentQuery().invalid()) return;
     this.persist(
-      () => this.service.createDepartment(this.workspace().request.id, this.newName()),
+      async () => await this.service.createDepartment(this.workspace().request.id, this.newName()),
       'Departamento cadastrado e vinculado.',
     );
     this.open.set(false);
@@ -105,8 +105,8 @@ export class RequestClassificationComponent {
   }
   protected choosePattern(event: Event): void {
     this.persist(
-      () =>
-        this.service.assignPattern(
+      async () =>
+        await this.service.assignPattern(
           this.workspace().request.id,
           (event.target as HTMLSelectElement).value,
         ),
@@ -157,11 +157,11 @@ export class RequestClassificationComponent {
       buttons[0]?.click();
     }
   }
-  private persist(action: () => void, status: string): void {
+  private async persist(action: () => Promise<unknown>, status: string): Promise<void> {
     this.failure.set('');
     this.status.set('');
     try {
-      action();
+      await action();
       this.status.set(status);
     } catch (error: unknown) {
       this.failure.set(error instanceof Error ? error.message : 'Não foi possível salvar.');

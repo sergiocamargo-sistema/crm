@@ -1,3 +1,4 @@
+import { FILES_REPOSITORY } from '../../../core/repositories/files.repository';
 import { DestroyRef, inject, Service } from '@angular/core';
 import { CITIZEN_DETAIL_REPOSITORY } from '../repositories/citizen-detail-repository';
 import type { CitizenRegistrationDraft } from '../models/citizen-registration';
@@ -10,6 +11,9 @@ import {
 
 @Service()
 export class CitizenRegistrationService {
+  private readonly files = inject(FILES_REPOSITORY);
+  private readonly photoFiles = new Map<string, File>();
+  private readonly uploadedPhotos = new Map<string, string>();
   private readonly repository = inject(CITIZEN_DETAIL_REPOSITORY);
   readonly store = new CitizenRegistrationStore();
   readonly photoAccept = Object.entries(ATTACHMENT_TYPES)
@@ -84,7 +88,11 @@ export class CitizenRegistrationService {
     }
     const created: { src: string; label: string }[] = [];
     try {
-      for (const file of files) created.push({ src: URL.createObjectURL(file), label: file.name });
+      for (const file of files) {
+        const src = URL.createObjectURL(file);
+        this.photoFiles.set(src, file);
+        created.push({ src, label: file.name });
+      }
       for (const photo of created) this.draftPhotoUrls.add(photo.src);
       this.store.photos.update((photos) => [...photos, ...created]);
       this.clearReview();
@@ -131,7 +139,16 @@ export class CitizenRegistrationService {
         requestId: this.requestId,
         ...(review && reason !== undefined ? { review: { token: review.token, reason } } : {}),
       };
-      const photos = this.store.photos();
+      const photos = [];
+      for (const photo of this.store.photos()) {
+        const file = this.photoFiles.get(photo.src);
+        let reference = this.uploadedPhotos.get(photo.src) ?? photo.fileReference;
+        if (file && !reference) {
+          reference = await this.files.upload(file);
+          this.uploadedPhotos.set(photo.src, reference);
+        }
+        photos.push(reference ? { src: reference, label: photo.label } : photo);
+      }
       const result =
         id && original
           ? await this.repository.updateCitizen(id, {
@@ -154,7 +171,7 @@ export class CitizenRegistrationService {
         this.store.review.set(result);
         return null;
       }
-      this.draftPhotoUrls.clear();
+      this.releaseDraftPhotos();
       this.store.savedId.set(result.id);
       this.store.review.set(null);
       return result.id;
@@ -173,5 +190,7 @@ export class CitizenRegistrationService {
   private releaseDraftPhotos(): void {
     for (const src of this.draftPhotoUrls) URL.revokeObjectURL(src);
     this.draftPhotoUrls.clear();
+    this.photoFiles.clear();
+    this.uploadedPhotos.clear();
   }
 }

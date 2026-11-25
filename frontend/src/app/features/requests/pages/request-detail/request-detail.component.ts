@@ -57,7 +57,8 @@ export class RequestDetailComponent {
   private readonly tasksHeading = viewChild<ElementRef<HTMLHeadingElement>>('tasksHeading');
   private readonly composer = viewChild(RequestComposerComponent);
   private readonly fragment = toSignal(inject(ActivatedRoute).fragment);
-  protected readonly workspace = this.service.observeRequest(this.id).state;
+  protected readonly requestState = this.service.observeRequest(this.id);
+  protected readonly workspace = this.requestState.state;
   private readonly automationPlans = this.service.observeAutomationPlans(
     computed(() => this.workspace()?.extras.patternId),
     this.id,
@@ -81,6 +82,7 @@ export class RequestDetailComponent {
 
   constructor() {
     effect(() => {
+      this.requestState.loading();
       this.id();
       const fragment = this.fragment();
       this.status.set('');
@@ -107,10 +109,10 @@ export class RequestDetailComponent {
     const trigger = this.document.activeElement;
     if (trigger && 'focus' in trigger) this.reply(id, trigger as HTMLElement);
   }
-  protected completeTask(taskId: string, completed: boolean): void {
+  protected async completeTask(taskId: string, completed: boolean): Promise<void> {
     this.failure.set('');
     try {
-      this.service.completeTask(this.id(), taskId, completed);
+      await this.service.completeTask(this.id(), taskId, completed);
       this.saved();
     } catch (error: unknown) {
       this.failure.set(
@@ -118,10 +120,10 @@ export class RequestDetailComponent {
       );
     }
   }
-  protected startAutomation(ruleId: string): void {
+  protected async startAutomation(ruleId: string): Promise<void> {
     this.failure.set('');
     try {
-      this.service.startAutomation(this.id(), ruleId);
+      await this.service.startAutomation(this.id(), ruleId);
       this.announce('Automação iniciada.');
       afterNextRender(() => this.tasksHeading()?.nativeElement.focus({ preventScroll: true }), {
         injector: this.injector,

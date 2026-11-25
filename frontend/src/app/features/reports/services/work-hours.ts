@@ -3,7 +3,7 @@ import { CITIZEN_DETAIL_REPOSITORY } from '../../citizens/repositories/citizen-d
 import { TeamCollaborationService } from '../../../core/services/team-collaboration.service';
 import { employeeWork } from '../models/work-hours';
 import { WorkHoursStore } from '../stores/work-hours.store';
-import { ReadStore } from '../../../core/stores/read-store';
+import { ReadStore, RemoteReadStore } from '../../../core/stores/read-store';
 
 @Service()
 export class WorkHours {
@@ -11,7 +11,14 @@ export class WorkHours {
   readonly users = inject(TeamCollaborationService).users;
   readonly store = inject(WorkHoursStore);
   readonly query = this.store.query;
-  private readonly workspace = computed(() => this.repository.loadKanbanWorkspace());
+  private readonly workspace = new RemoteReadStore(() => this.repository.loadKanbanWorkspace(), {
+    tasks: [],
+    customColumns: [],
+    requests: [],
+    labels: [],
+    history: [],
+    order: { status: [], custom: [] },
+  }).state;
 
   observeReport(now: Signal<number>, invalidDay: Signal<boolean>) {
     return new ReadStore(computed(() => (invalidDay() ? [] : this.report(now()))));

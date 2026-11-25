@@ -1,7 +1,7 @@
 import { computed, DOCUMENT, inject, Service } from '@angular/core';
 import { CITIZEN_DETAIL_REPOSITORY } from '../../features/citizens/repositories/citizen-detail-repository';
 import { TeamCollaborationService } from '../../core/services/team-collaboration.service';
-import { ReadStore } from '../../core/stores/read-store';
+import { RemoteReadStore } from '../../core/stores/read-store';
 import type { RichTextPart } from '../../core/models/collaboration';
 
 @Service()
@@ -9,7 +9,7 @@ export class TextReferencesService {
   private readonly repository = inject(CITIZEN_DETAIL_REPOSITORY);
   private readonly document = inject(DOCUMENT);
   private readonly team = inject(TeamCollaborationService);
-  private readonly records = new ReadStore(computed(() => this.repository.listTextReferences()))
+  private readonly records = new RemoteReadStore(() => this.repository.listTextReferences(), [])
     .state;
 
   parts(text: string): readonly RichTextPart[] {

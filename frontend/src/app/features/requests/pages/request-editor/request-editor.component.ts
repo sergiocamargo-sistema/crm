@@ -140,7 +140,7 @@ export class RequestEditorComponent {
       try {
         const model = this.model();
         const existingDueAt = this.workspace()?.request.dueAt ?? '';
-        const id = this.service.save(this.id() ?? null, {
+        const id = await this.service.save(this.id() ?? null, {
           ...model,
           dueAt: model.dueAt === localDateTime(existingDueAt) ? existingDueAt : model.dueAt,
           citizenId: model.citizenId || null,

@@ -1,18 +1,16 @@
 import { DatePipe } from '@angular/common';
 import { Component, computed, ElementRef, inject, viewChild } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { form, FormField } from '@angular/forms/signals';
 import { TeamCollaborationService } from '../../../core/services/team-collaboration.service';
 import { IconComponent } from '../icon/icon.component';
 @Component({
   selector: 'app-notifications',
-  imports: [DatePipe, RouterLink, FormField, IconComponent],
+  imports: [DatePipe, RouterLink, IconComponent],
   templateUrl: './notifications.component.html',
   styleUrl: './notifications.component.scss',
 })
 export class NotificationsComponent {
   protected readonly team = inject(TeamCollaborationService);
-  protected readonly recipientForm = form(this.team.recipient);
   protected readonly items = computed(() =>
     this.team.notifications().filter((item) => item.recipientId === this.team.recipient().userId),
   );

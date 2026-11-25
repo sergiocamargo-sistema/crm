@@ -1,5 +1,5 @@
 import { computed, inject, Service, type Signal } from '@angular/core';
-import { ReadStore } from '../../../core/stores/read-store';
+import { RemoteReadStore } from '../../../core/stores/read-store';
 import { CITIZEN_DETAIL_REPOSITORY } from '../../citizens/repositories/citizen-detail-repository';
 import { departmentOptions } from '../models/department-options';
 import type { RequestEditorDraft } from '../models/request-detail';
@@ -7,25 +7,31 @@ import type { RequestEditorDraft } from '../models/request-detail';
 @Service()
 export class RequestEditorService {
   private readonly repository = inject(CITIZEN_DETAIL_REPOSITORY);
-  readonly departments = new ReadStore(
-    computed(() => departmentOptions(this.repository.listDepartments())),
+  readonly departments = new RemoteReadStore(
+    async () => departmentOptions(await this.repository.listDepartments()),
+    [],
   );
-  readonly patterns = new ReadStore(computed(() => this.repository.listRequestPatterns()));
+  readonly patterns = new RemoteReadStore(
+    async () => await this.repository.listRequestPatterns(),
+    [],
+  );
 
   observeRequest(id: Signal<string | undefined>) {
-    return new ReadStore(
-      computed(() => {
+    return new RemoteReadStore(
+      () => {
         const requestId = id();
         return requestId ? this.repository.loadRequestWorkspace(requestId) : null;
-      }),
+      },
+      null,
+      id,
     );
   }
 
   observeCitizen(id: Signal<string>) {
-    return new ReadStore(computed(() => (id() ? this.repository.loadDetail(id()) : null)));
+    return new RemoteReadStore(() => (id() ? this.repository.loadDetail(id()) : null), null, id);
   }
 
-  save(id: string | null, draft: RequestEditorDraft): string {
-    return this.repository.saveRequest(id, draft);
+  async save(id: string | null, draft: RequestEditorDraft): Promise<string> {
+    return await this.repository.saveRequest(id, draft);
   }
 }

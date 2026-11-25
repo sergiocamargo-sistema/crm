@@ -258,15 +258,15 @@ export class LabelPrintComponent {
     }));
   }
   protected saveTemplate(asNew: boolean): void {
-    this.act(() => {
-      const saved = this.service.saveTemplate(this.model().template, asNew);
+    void this.act(async () => {
+      const saved = await this.service.saveTemplate(this.model().template, asNew);
       this.model.update((value) => ({ ...value, templateId: saved.id, template: saved }));
       this.status.set('Modelo salvo.');
     });
   }
   protected saveFormat(): void {
-    this.act(() => {
-      const saved = this.service.saveFormat(this.format());
+    void this.act(async () => {
+      const saved = await this.service.saveFormat(this.format());
       this.model.update((value) => ({ ...value, formatId: saved.id, custom: saved }));
       this.status.set('Formato salvo.');
     });
@@ -277,11 +277,11 @@ export class LabelPrintComponent {
   protected restoreRecipients(): void {
     this.excluded.set(new Set());
   }
-  private act(action: () => void): void {
+  private async act(action: () => Promise<void>): Promise<void> {
     this.failure.set('');
     this.status.set('');
     try {
-      action();
+      await action();
     } catch (error: unknown) {
       this.failure.set(error instanceof Error ? error.message : 'Não foi possível salvar.');
     }

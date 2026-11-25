@@ -1,4 +1,5 @@
-import { ReadStore } from '../../../core/stores/read-store';
+import { FILES_REPOSITORY } from '../../../core/repositories/files.repository';
+import { RemoteReadStore } from '../../../core/stores/read-store';
 import { computed, type Signal, DestroyRef, inject, Service } from '@angular/core';
 import { TeamCollaborationService } from '../../../core/services/team-collaboration.service';
 import { CITIZEN_DETAIL_REPOSITORY } from '../../citizens/repositories/citizen-detail-repository';
@@ -18,7 +19,10 @@ import {
 @Service()
 export class RequestDetailService {
   private readonly team = inject(TeamCollaborationService);
-  readonly currentUserId = this.team.actor.id;
+  get currentUserId(): string {
+    return this.team.actor.id;
+  }
+  private readonly files = inject(FILES_REPOSITORY);
   private readonly repository = inject(CITIZEN_DETAIL_REPOSITORY);
   private readonly fileUrls = new Set<string>();
 
@@ -26,9 +30,10 @@ export class RequestDetailService {
     inject(DestroyRef).onDestroy(() => this.fileUrls.forEach((url) => URL.revokeObjectURL(url)));
   }
 
-  addAttachments(id: string, files: readonly File[]): void {
+  async addAttachments(id: string, files: readonly File[]): Promise<void> {
     if (!files.length) return;
-    if (!this.repository.loadRequestWorkspace(id)) throw new Error('Solicitação não encontrada.');
+    if (!(await this.repository.loadRequestWorkspace(id)))
+      throw new Error('Solicitação não encontrada.');
     for (const file of files) {
       if (!attachmentType(file.name, file.type))
         throw new Error(
@@ -43,8 +48,8 @@ export class RequestDetailService {
       for (const file of files) {
         const type = attachmentType(file.name, file.type)!;
         const attachmentId = `attachment-${crypto.randomUUID()}`;
-        const url = URL.createObjectURL(file.slice(0, file.size, type.mime));
-        this.fileUrls.add(url);
+        const url = await this.files.upload(file);
+
         attachments.push({
           id: attachmentId,
           name: file.name,
@@ -56,7 +61,7 @@ export class RequestDetailService {
           createdAt: new Date().toISOString(),
         });
       }
-      this.repository.addRequestAttachments(id, attachments);
+      await this.repository.addRequestAttachments(id, attachments);
     } catch (error: unknown) {
       for (const attachment of attachments) {
         URL.revokeObjectURL(attachment.url);
@@ -66,34 +71,36 @@ export class RequestDetailService {
     }
   }
   observeRequest(id: Signal<string>) {
-    return new ReadStore(computed(() => this.loadDetail(id())));
+    return new RemoteReadStore(() => this.loadDetail(id()), null, id);
   }
 
   observeAutomationPlans(patternId: Signal<string | null | undefined>, requestId?: Signal<string>) {
-    return new ReadStore(
-      computed(() => {
+    return new RemoteReadStore(
+      () => {
         const pattern = patternId();
         return pattern === undefined
           ? []
           : this.repository.listRequestAutomationPlans(pattern, requestId?.());
-      }),
+      },
+      [],
+      () => [patternId(), requestId?.()],
     );
   }
 
-  startAutomation(id: string, ruleId: string): void {
-    this.repository.startRequestAutomation(id, ruleId);
+  async startAutomation(id: string, ruleId: string): Promise<void> {
+    await this.repository.startRequestAutomation(id, ruleId);
   }
 
-  loadDetail(id: string) {
-    return this.repository.loadRequestWorkspace(id);
+  async loadDetail(id: string) {
+    return await this.repository.loadRequestWorkspace(id);
   }
-  addAwareness(id: string, citizenId: string): void {
-    this.repository.addRequestAwareness(id, citizenId);
+  async addAwareness(id: string, citizenId: string): Promise<void> {
+    await this.repository.addRequestAwareness(id, citizenId);
   }
-  removeAwareness(id: string, awarenessId: string): void {
-    this.repository.removeRequestAwareness(id, awarenessId);
+  async removeAwareness(id: string, awarenessId: string): Promise<void> {
+    await this.repository.removeRequestAwareness(id, awarenessId);
   }
-  registerContact(id: string, contact: NewCitizenInteraction): void {
+  async registerContact(id: string, contact: NewCitizenInteraction): Promise<void> {
     const title = contact.title.trim();
     const description = contact.description.trim();
     if (
@@ -106,17 +113,17 @@ export class RequestDetailService {
       !Number.isFinite(Date.parse(contact.occurredAt))
     )
       throw new Error('Preencha tipo, título, descrição e data do contato.');
-    this.repository.registerRequestContact(id, {
+    await this.repository.registerRequestContact(id, {
       ...contact,
       title,
       description,
       occurredAt: new Date(contact.occurredAt).toISOString(),
     });
   }
-  registerInteraction(id: string, interaction: NewConversationInteraction): void {
+  async registerInteraction(id: string, interaction: NewConversationInteraction): Promise<void> {
     const channel = INTERACTION_CHANNELS.find((item) => item.value === interaction.channel);
     if (!channel) throw new Error('Selecione o tipo de interação.');
-    this.registerContact(id, {
+    await this.registerContact(id, {
       type: 'conversation',
       channel: channel.value,
       title: channel.label,
@@ -127,42 +134,43 @@ export class RequestDetailService {
     });
   }
   readonly catalog = {
-    taskLabels: new ReadStore(computed(() => this.repository.listTaskLabels())).state,
-    departments: new ReadStore(computed(() => this.departments())).state,
-    patterns: new ReadStore(computed(() => this.repository.listRequestPatterns())).state,
+    taskLabels: new RemoteReadStore(async () => await this.repository.listTaskLabels(), []).state,
+    departments: new RemoteReadStore(async () => await this.departments(), []).state,
+    patterns: new RemoteReadStore(async () => await this.repository.listRequestPatterns(), [])
+      .state,
   };
 
-  private departments() {
-    return [...this.repository.listDepartments()].sort((a, b) =>
+  private async departments() {
+    return [...(await this.repository.listDepartments())].sort((a, b) =>
       a.name.localeCompare(b.name, 'pt-BR'),
     );
   }
-  assignDepartment(id: string, departmentId: string): void {
-    this.repository.assignRequestDepartment(id, departmentId);
+  async assignDepartment(id: string, departmentId: string): Promise<void> {
+    await this.repository.assignRequestDepartment(id, departmentId);
   }
-  createDepartment(id: string, name: string): void {
+  async createDepartment(id: string, name: string): Promise<void> {
     const value = name.trim().replace(/\s+/g, ' ');
     if (!value || value.length > 80)
       throw new Error('Informe um departamento de até 80 caracteres.');
-    this.repository.createAndAssignDepartment(id, value);
+    await this.repository.createAndAssignDepartment(id, value);
   }
-  assignPattern(id: string, patternId: string): void {
-    this.repository.assignRequestPattern(id, patternId || null);
+  async assignPattern(id: string, patternId: string): Promise<void> {
+    await this.repository.assignRequestPattern(id, patternId || null);
   }
-  addComment(id: string, comment: NewRequestComment): void {
+  async addComment(id: string, comment: NewRequestComment): Promise<void> {
     const text = comment.text.trim();
     if (!text || text.length > 5000)
       throw new Error('Escreva um comentário de até 5.000 caracteres.');
-    this.repository.addRequestComment(id, { ...comment, text });
+    await this.repository.addRequestComment(id, { ...comment, text });
   }
-  addTask(id: string, task: NewRequestTask): void {
+  async addTask(id: string, task: NewRequestTask): Promise<void> {
     const title = task.title.trim();
     const assigneeIds = this.team.validateAssignees(task.assigneeIds);
     if (!title || title.length > 120) throw new Error('Informe um título de até 120 caracteres.');
     if (!Number.isFinite(Date.parse(task.dueAt))) throw new Error('Informe um prazo válido.');
     if (task.description.length > 1500)
       throw new Error('Descreva a tarefa em até 1.500 caracteres.');
-    this.repository.addRequestTask(id, {
+    await this.repository.addRequestTask(id, {
       ...task,
       title,
       assigneeIds,
@@ -170,7 +178,7 @@ export class RequestDetailService {
       dueAt: new Date(task.dueAt).toISOString(),
     });
   }
-  completeTask(id: string, taskId: string, completed: boolean): void {
-    this.repository.setRequestTaskCompleted(id, taskId, completed);
+  async completeTask(id: string, taskId: string, completed: boolean): Promise<void> {
+    await this.repository.setRequestTaskCompleted(id, taskId, completed);
   }
 }

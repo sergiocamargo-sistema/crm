@@ -1,3 +1,5 @@
+import { DataConnection } from '../../../core/backend/data-connection';
+import { SessionContext } from '../../../core/backend/session-context';
 import { DestroyRef, effect, inject, Service, signal, untracked } from '@angular/core';
 import { CITIZEN_DETAIL_REPOSITORY } from '../repositories/citizen-detail-repository';
 import { currentCitizenCalendarDate } from '../models/citizen-birth-filters';
@@ -10,6 +12,8 @@ import {
 
 @Service()
 export class CitizenListService {
+  private readonly connection = inject(DataConnection);
+  private readonly session = inject(SessionContext);
   private readonly repository = inject(CITIZEN_DETAIL_REPOSITORY);
   readonly store = new CitizenListStore();
   private readonly calendarDay = signal(currentCitizenCalendarDate());
@@ -30,6 +34,12 @@ export class CitizenListService {
 
   constructor() {
     effect((onCleanup) => {
+      this.connection.revision();
+      if (!this.session.profile()) {
+        this.store.startLoading();
+        this.selection.set({});
+        return;
+      }
       const query = this.model();
       this.calendarDay();
       this.refresh();
@@ -38,7 +48,6 @@ export class CitizenListService {
         active = false;
       });
       untracked(() => this.store.startLoading());
-      // O mock lê seus signals antes de resolver a Promise, mantendo as atualizações da sessão.
       const request = this.repository.loadCitizenList(query);
       void request.then(
         (result) => {

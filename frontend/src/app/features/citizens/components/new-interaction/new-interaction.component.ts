@@ -162,8 +162,9 @@ export class NewInteractionComponent {
       try {
         const requestId = this.requestId();
         const citizenId = this.citizenId();
-        if (requestId) this.requestService.registerInteraction(requestId, this.conversation());
-        else if (citizenId) this.service.registerInteraction(citizenId, this.conversation());
+        if (requestId)
+          await this.requestService.registerInteraction(requestId, this.conversation());
+        else if (citizenId) await this.service.registerInteraction(citizenId, this.conversation());
         else throw new Error('Informe o contexto da interação.');
         this.dialog().nativeElement.close();
         this.saved.emit();
@@ -187,8 +188,8 @@ export class NewInteractionComponent {
         const department = this.departments().find(({ id }) => id === formValue.department);
         if (!department) throw new Error('Selecione um departamento.');
         const contact = { ...formValue, departmentId: department.id, department: department.name };
-        if (requestId) this.requestService.registerContact(requestId, contact);
-        else if (citizenId) this.service.registerContact(citizenId, contact);
+        if (requestId) await this.requestService.registerContact(requestId, contact);
+        else if (citizenId) await this.service.registerContact(citizenId, contact);
         else throw new Error('Informe o contexto do contato.');
         this.dialog().nativeElement.close();
         this.saved.emit();

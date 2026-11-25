@@ -1,5 +1,7 @@
 import { Component, effect, inject } from '@angular/core';
 import { Router, RouterOutlet } from '@angular/router';
+import { WorkspaceSyncService } from '../../core/services/workspace-sync.service';
+import { DataConnection } from '../../core/backend/data-connection';
 import { AuthStore } from '../../core/stores/auth.store';
 import { AppHeaderComponent } from '../app-header/app-header.component';
 
@@ -10,6 +12,8 @@ import { AppHeaderComponent } from '../app-header/app-header.component';
   templateUrl: './authenticated-shell.component.html',
 })
 export class AuthenticatedShellComponent {
+  private readonly sync = inject(WorkspaceSyncService);
+  protected readonly data = inject(DataConnection);
   protected readonly auth = inject(AuthStore);
   private readonly router = inject(Router);
 

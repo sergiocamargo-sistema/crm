@@ -1,5 +1,4 @@
-import { environment } from '../environments/environment';
-import { MOCK_REPOSITORY_PROVIDERS } from './mocks/providers';
+import { BACKEND_PROVIDERS } from './core/backend/providers';
 import { ApplicationConfig, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { provideRouter, withComponentInputBinding, withInMemoryScrolling } from '@angular/router';
 
@@ -10,7 +9,7 @@ import { FirebaseAuthRepository } from './core/repositories/firebase-auth.reposi
 export const appConfig: ApplicationConfig = {
   providers: [
     { provide: AUTH_REPOSITORY, useClass: FirebaseAuthRepository },
-    ...(environment.mockEnabled ? MOCK_REPOSITORY_PROVIDERS : []),
+    ...BACKEND_PROVIDERS,
     provideBrowserGlobalErrorListeners(),
     provideRouter(
       routes,

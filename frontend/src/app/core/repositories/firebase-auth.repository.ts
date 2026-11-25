@@ -1,104 +1,88 @@
-import { Service } from '@angular/core';
+import { inject, Service } from '@angular/core';
 import type { Auth, User } from 'firebase/auth';
-import type { Firestore } from 'firebase/firestore';
 import { firebaseConfig } from '../config/firebase.config';
-import type { AuthSession, AuthUser } from '../models/auth-session';
+import { backendConfig } from '../config/backend.config';
+import { SessionContext } from '../backend/session-context';
+import type { TeamProfile } from '../../domain/contracts/backend-api';
+import type { AuthSession, AuthUser, TeamAccessRole } from '../models/auth-session';
 import type { AuthRepository } from './auth.repository';
 
 interface FirebaseRuntime {
   readonly auth: Auth;
-  readonly database: Firestore;
-  readonly authSdk: typeof import('firebase/auth');
-  readonly firestoreSdk: typeof import('firebase/firestore');
+  readonly sdk: typeof import('firebase/auth');
 }
-
 @Service()
 export class FirebaseAuthRepository implements AuthRepository {
+  private readonly session = inject(SessionContext);
   private runtime: Promise<FirebaseRuntime> | undefined;
-
   observe(listener: (session: AuthSession) => void): () => void {
     let disposed = false;
     let revision = 0;
-    let stopAuth: (() => void) | undefined;
-    let stopAccess: (() => void) | undefined;
-    let accessTimeout: ReturnType<typeof setTimeout> | undefined;
-    const clearAccess = (): void => {
-      stopAccess?.();
-      stopAccess = undefined;
-      clearTimeout(accessTimeout);
-      accessTimeout = undefined;
-    };
-
+    let stop: (() => void) | undefined;
+    let timer: ReturnType<typeof setInterval> | undefined;
     void this.load()
-      .then(({ auth, database, authSdk, firestoreSdk }) => {
+      .then(({ auth, sdk }) => {
         if (disposed) return;
-        stopAuth = authSdk.onAuthStateChanged(
+        stop = sdk.onIdTokenChanged(
           auth,
           (firebaseUser) => {
-            clearAccess();
-            const currentRevision = ++revision;
-            const active = (): boolean => !disposed && revision === currentRevision;
+            clearInterval(timer);
+            const current = ++revision;
+            const active = (): boolean => !disposed && current === revision;
+            if (this.session.profile()?.actor.id !== firebaseUser?.uid) this.session.set(null);
             if (!firebaseUser) {
               listener({ status: 'signed-out', user: null, role: null, error: null });
               return;
             }
-
             const user = this.userSummary(firebaseUser);
-            listener({ status: 'loading', user, role: null, error: null });
-            accessTimeout = setTimeout(() => {
-              if (active()) listener(this.accessError(user));
-            }, 15_000);
-
-            void authSdk
-              .getIdTokenResult(firebaseUser)
-              .then((token) => {
+            if (!this.session.profile())
+              listener({ status: 'loading', user, role: null, error: null });
+            let checking = false;
+            const confirm = async (): Promise<void> => {
+              if (checking) return;
+              checking = true;
+              try {
+                const token = await firebaseUser.getIdToken();
+                const response = await fetch(`${backendConfig.url}/v1/session`, {
+                  headers: { Authorization: `Bearer ${token}` },
+                  cache: 'no-store',
+                  signal: AbortSignal.timeout(15_000),
+                });
                 if (!active()) return;
-                if (!firebaseUser.emailVerified || token.signInProvider !== 'google.com') {
-                  clearTimeout(accessTimeout);
+                if (response.status === 401 || response.status === 403) {
+                  this.session.set(null);
                   listener({ status: 'denied', user, role: null, error: null });
                   return;
                 }
-
-                stopAccess = firestoreSdk.onSnapshot(
-                  firestoreSdk.doc(database, 'teamAccess', user.uid),
-                  { includeMetadataChanges: true },
-                  (snapshot) => {
-                    // A autorização inicial precisa de confirmação do servidor.
-                    if (!active() || snapshot.metadata.fromCache) return;
-                    clearTimeout(accessTimeout);
-                    const access: Record<string, unknown> | undefined = snapshot.data();
-                    const role = access?.['role'];
-                    const email = access?.['email'];
-                    const allowed =
-                      snapshot.exists() &&
-                      access?.['active'] === true &&
-                      typeof email === 'string' &&
-                      email.trim().toLowerCase() === user.email.toLowerCase() &&
-                      (role === 'admin' || role === 'member');
-                    listener({
-                      status: allowed ? 'authorized' : 'denied',
-                      user,
-                      role: allowed && (role === 'admin' || role === 'member') ? role : null,
-                      error: null,
-                    });
-                  },
-                  () => {
-                    if (!active()) return;
-                    clearTimeout(accessTimeout);
-                    listener(this.accessError(user));
-                  },
-                );
-              })
-              .catch(() => {
+                if (!response.ok) throw new Error('Falha ao confirmar o acesso.');
+                const data = (await response.json()) as {
+                  role: TeamAccessRole;
+                  profile: TeamProfile;
+                };
                 if (!active()) return;
-                clearTimeout(accessTimeout);
-                listener(this.accessError(user));
-              });
+                if (!['admin', 'member'].includes(data.role) || data.profile.actor.id !== user.uid)
+                  throw new Error('Sessão inválida.');
+                // Não recriar stores em cada confirmação periódica sem mudança no perfil.
+                if (JSON.stringify(this.session.profile()) !== JSON.stringify(data.profile))
+                  this.session.set(data.profile);
+                listener({ status: 'authorized', user, role: data.role, error: null });
+              } catch {
+                if (active()) {
+                  this.session.set(null);
+                  listener(this.accessError(user));
+                }
+              } finally {
+                checking = false;
+              }
+            };
+            void confirm();
+            timer = setInterval(() => {
+              if (document.visibilityState === 'visible') void confirm();
+            }, 60_000);
           },
           () => {
             if (!disposed) {
-              ++revision;
-              clearAccess();
+              this.session.set(null);
               listener(this.accessError(null));
             }
           },
@@ -107,48 +91,45 @@ export class FirebaseAuthRepository implements AuthRepository {
       .catch(() => {
         if (!disposed) listener(this.accessError(null));
       });
-
     return () => {
       disposed = true;
       ++revision;
-      stopAuth?.();
-      clearAccess();
+      stop?.();
+      clearInterval(timer);
     };
   }
-
+  async getToken(forceRefresh = false): Promise<string> {
+    const { auth } = await this.load();
+    if (!auth.currentUser) throw new Error('Entre novamente para continuar.');
+    return auth.currentUser.getIdToken(forceRefresh);
+  }
   async signInWithGoogle(): Promise<void> {
-    const { auth, authSdk } = await this.load();
-    const provider = new authSdk.GoogleAuthProvider();
+    const { auth, sdk } = await this.load();
+    const provider = new sdk.GoogleAuthProvider();
     provider.setCustomParameters({ prompt: 'select_account' });
-    await authSdk.signInWithPopup(auth, provider);
+    await sdk.signInWithPopup(auth, provider);
   }
-
   async signOut(): Promise<void> {
-    const { auth, authSdk } = await this.load();
-    await authSdk.signOut(auth);
+    const { auth, sdk } = await this.load();
+    await sdk.signOut(auth);
+    this.session.set(null);
   }
-
   private load(): Promise<FirebaseRuntime> {
     this.runtime ??= (async () => {
-      const [appSdk, authSdk, firestoreSdk] = await Promise.all([
-        import('firebase/app'),
-        import('firebase/auth'),
-        import('firebase/firestore'),
-      ]);
+      const [apps, sdk] = await Promise.all([import('firebase/app'), import('firebase/auth')]);
       const app =
-        appSdk.getApps().find((item) => item.name === 'gabinete-crm') ??
-        appSdk.initializeApp(firebaseConfig, 'gabinete-crm');
-      const auth = authSdk.getAuth(app);
+        apps.getApps().find((item) => item.name === 'gabinete-crm') ??
+        apps.initializeApp(firebaseConfig, 'gabinete-crm');
+      const auth = sdk.getAuth(app);
       auth.languageCode = 'pt-BR';
-      await authSdk.setPersistence(auth, authSdk.browserSessionPersistence);
-      return { auth, database: firestoreSdk.getFirestore(app), authSdk, firestoreSdk };
+      await sdk.setPersistence(auth, sdk.browserSessionPersistence);
+      return { auth, sdk };
     })().catch((error: unknown) => {
       this.runtime = undefined;
       throw error;
     });
     return this.runtime;
   }
-
   private userSummary(user: User): AuthUser {
     const name = user.displayName?.trim() || user.email?.split('@')[0] || 'Usuário';
     const parts = name.split(/\s+/u);
@@ -159,10 +140,9 @@ export class FirebaseAuthRepository implements AuthRepository {
       initials: [parts[0], ...(parts.length > 1 ? [parts.at(-1)] : [])]
         .map((part) => part?.[0] ?? '')
         .join('')
-        .toLocaleUpperCase('pt-BR'),
+        .toUpperCase(),
     };
   }
-
   private accessError(user: AuthUser | null): AuthSession {
     return {
       status: 'error',

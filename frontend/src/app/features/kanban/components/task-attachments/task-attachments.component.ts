@@ -29,13 +29,13 @@ export class TaskAttachmentsComponent {
   protected readonly audios = computed(() =>
     this.attachments().filter((item) => item.kind === 'audio'),
   );
-  protected addFiles(event: Event): void {
+  protected async addFiles(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
     const files = Array.from(input.files ?? []);
     input.value = '';
     this.failure.set('');
     try {
-      this.board.addAttachments(this.taskId(), files);
+      await this.board.addAttachments(this.taskId(), files);
     } catch (error: unknown) {
       this.failure.set(
         error instanceof Error ? error.message : 'Não foi possível anexar os arquivos.',

@@ -76,3 +76,9 @@ service-account*.json
 serviceAccount*.json
 firebase-adminsdk*.json
 .firebase/
+
+# Backend: dependências, artefatos e cópias com dados
+/backend/node_modules/
+/backend/lib/
+/backend/backups/
+*.backup.enc

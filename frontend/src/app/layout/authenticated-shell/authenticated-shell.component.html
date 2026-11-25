@@ -1,6 +1,16 @@
 @if (auth.authorized()) {
   <app-header />
-  <main class="app-main" id="main-content" tabindex="-1"><router-outlet /></main>
+  <main class="app-main" id="main-content" tabindex="-1">
+    @if (data.error()) {
+      <div role="alert">
+        <p>{{ data.error() }}</p>
+        <button type="button" (click)="data.refresh()">Tentar novamente</button>
+      </div>
+    } @else if (data.pending()) {
+      <p role="status">Carregando…</p>
+    }
+    <router-outlet />
+  </main>
 } @else {
   <main class="session-loading" id="main-content" tabindex="-1">
     <p role="status">Verificando seu acesso…</p>

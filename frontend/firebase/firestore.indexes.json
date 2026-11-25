@@ -1,0 +1,40 @@
+{
+  "indexes": [
+    {
+      "collectionGroup": "crmFiles",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "attached",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "ASCENDING"
+        }
+      ]
+    }
+  ],
+  "fieldOverrides": [
+    {
+      "collectionGroup": "crmRecords",
+      "fieldPath": "value",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "crmReceipts",
+      "fieldPath": "result",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "crmJournal",
+      "fieldPath": "changed",
+      "indexes": []
+    },
+    {
+      "collectionGroup": "crmJournal",
+      "fieldPath": "citizensChanged",
+      "indexes": []
+    }
+  ]
+}

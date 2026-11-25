@@ -176,7 +176,7 @@ export class KanbanBoardComponent {
     this.columnFailure.set('');
     void submit(this.columnForm, async () => {
       try {
-        this.board.createColumn(this.columnModel().name);
+        await this.board.createColumn(this.columnModel().name);
         this.columnEditor().nativeElement.close();
         this.message.set('Coluna criada.');
       } catch (error: unknown) {
@@ -213,14 +213,14 @@ export class KanbanBoardComponent {
     if (event.dataTransfer) event.dataTransfer.dropEffect = 'move';
     this.scroller.move({ x: event.clientX, y: event.clientY });
   }
-  protected dropNative(event: DragEvent): void {
+  protected async dropNative(event: DragEvent): Promise<void> {
     if (!this.dragging() || this.dragInput !== 'native') return;
     event.preventDefault();
     if (event.dataTransfer?.getData('application/x-gabinete-task') !== this.dragging()) {
       this.endDrag();
       return;
     }
-    this.dropAtPoint({ x: event.clientX, y: event.clientY });
+    await this.dropAtPoint({ x: event.clientX, y: event.clientY });
   }
   protected nativeDragLeave(event: DragEvent): void {
     if (this.dragInput !== 'native' || event.relatedTarget !== null) return;
@@ -255,8 +255,8 @@ export class KanbanBoardComponent {
     }
     this.scroller.move(point);
   }
-  protected dropMouseDrag(point: DragPoint): void {
-    if (this.dragInput === 'mouse' && this.dragging()) this.dropAtPoint(point);
+  protected async dropMouseDrag(point: DragPoint): Promise<void> {
+    if (this.dragInput === 'mouse' && this.dragging()) await this.dropAtPoint(point);
   }
   protected startTouchDrag(id: string, point: DragPoint): void {
     this.beginDrag(id, 'touch');
@@ -270,8 +270,8 @@ export class KanbanBoardComponent {
     }
     this.scroller.move(point);
   }
-  protected dropTouchDrag(point: DragPoint): void {
-    if (this.dragInput === 'touch' && this.dragging()) this.dropAtPoint(point);
+  protected async dropTouchDrag(point: DragPoint): Promise<void> {
+    if (this.dragInput === 'touch' && this.dragging()) await this.dropAtPoint(point);
   }
   private dropPosition(
     point: DragPoint,
@@ -333,14 +333,15 @@ export class KanbanBoardComponent {
     this.dragTarget.set(position?.column.id ?? null);
     this.dropBeforeId.set(position?.beforeId ?? null);
   }
-  private dropAtPoint(point: DragPoint): void {
+  private async dropAtPoint(point: DragPoint): Promise<void> {
     const id = this.dragging();
     if (!id) return;
     try {
       if (this.dragView !== this.boardState.viewSettings().mode) return;
       const position = this.dropPosition(point);
       if (!position) return;
-      this.board.positionTask(id, position.column.target, position.beforeId);
+      this.endDrag();
+      await this.board.positionTask(id, position.column.target, position.beforeId);
       this.message.set(`Posição atualizada em ${position.column.label}.`);
     } catch (error: unknown) {
       this.failure.set(error instanceof Error ? error.message : 'Não foi possível mover a tarefa.');
@@ -359,7 +360,11 @@ export class KanbanBoardComponent {
   protected visibilityChanged(): void {
     if (this.document.hidden) this.endDrag();
   }
-  protected reorderTask(id: string, column: KanbanDisplayColumn, direction: 'up' | 'down'): void {
+  protected async reorderTask(
+    id: string,
+    column: KanbanDisplayColumn,
+    direction: 'up' | 'down',
+  ): Promise<void> {
     const index = column.tasks.findIndex((task) => task.id === id);
     if (
       index < 0 ||
@@ -371,7 +376,7 @@ export class KanbanBoardComponent {
       direction === 'up' ? column.tasks[index - 1].id : (column.tasks[index + 2]?.id ?? null);
     this.failure.set('');
     try {
-      this.board.positionTask(id, column.target, beforeId);
+      await this.board.positionTask(id, column.target, beforeId);
       this.message.set(`Ordem atualizada em ${column.label}.`);
     } catch (error: unknown) {
       this.failure.set(

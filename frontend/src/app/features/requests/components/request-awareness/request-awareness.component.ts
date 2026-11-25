@@ -83,7 +83,7 @@ export class RequestAwarenessComponent {
 
   protected add(citizenId: string): void {
     this.persist(
-      () => this.service.addAwareness(this.workspace().request.id, citizenId),
+      async () => await this.service.addAwareness(this.workspace().request.id, citizenId),
       'Munícipe vinculado para ciência.',
     );
   }
@@ -92,15 +92,15 @@ export class RequestAwarenessComponent {
     const link = this.removing();
     if (!link) return;
     this.persist(
-      () => this.service.removeAwareness(this.workspace().request.id, link.id),
+      async () => await this.service.removeAwareness(this.workspace().request.id, link.id),
       'Vínculo de ciência removido.',
     );
   }
 
-  private persist(action: () => void, message: string): void {
+  private async persist(action: () => Promise<unknown>, message: string): Promise<void> {
     this.failure.set('');
     try {
-      action();
+      await action();
       this.dialog().nativeElement.close();
       this.status.set(message);
       this.changed.emit();

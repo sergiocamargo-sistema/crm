@@ -1,3 +1,4 @@
+import { FILES_REPOSITORY } from '../../../core/repositories/files.repository';
 import { computed, DestroyRef, inject, Service, type Signal } from '@angular/core';
 import { TeamCollaborationService } from '../../../core/services/team-collaboration.service';
 import { TASK_PRIORITIES, TASK_STATUSES } from '../../../core/models/task';
@@ -6,18 +7,28 @@ import type { RequestAttachment } from '../../requests/models/request-detail';
 import { CITIZEN_DETAIL_REPOSITORY } from '../../citizens/repositories/citizen-detail-repository';
 import type { KanbanMoveTarget, KanbanTask, TaskDraft } from '../models/kanban';
 
-import { ReadStore } from '../../../core/stores/read-store';
+import { RemoteReadStore } from '../../../core/stores/read-store';
 import { KanbanStore, initialQuery } from '../stores/kanban.store';
 
 @Service()
 export class KanbanService {
   private readonly fileUrls = new Set<string>();
+  private readonly files = inject(FILES_REPOSITORY);
   private readonly repository = inject(CITIZEN_DETAIL_REPOSITORY);
   private readonly team = inject(TeamCollaborationService);
-  readonly currentUserId = this.team.actor.id;
+  get currentUserId(): string {
+    return this.team.actor.id;
+  }
   readonly store = new KanbanStore(
-    computed(() => this.repository.loadKanbanWorkspace()),
-    computed(() => this.repository.listDepartments()),
+    new RemoteReadStore(() => this.repository.loadKanbanWorkspace(), {
+      tasks: [],
+      customColumns: [],
+      requests: [],
+      labels: [],
+      history: [],
+      order: { status: [], custom: [] },
+    }).state,
+    new RemoteReadStore(async () => await this.repository.listDepartments(), []).state,
     this.team.users,
   );
   readonly query = this.store.query;
@@ -44,7 +55,7 @@ export class KanbanService {
   clearFilters(): void {
     this.query.set(initialQuery());
   }
-  saveTask(id: string | null, draft: TaskDraft): string {
+  async saveTask(id: string | null, draft: TaskDraft): Promise<string> {
     const title = draft.title.trim();
     const assigneeIds = this.team.validateAssignees(draft.assigneeIds);
     if (!title || title.length > 120) throw new Error('Informe um título de até 120 caracteres.');
@@ -57,7 +68,7 @@ export class KanbanService {
       !TASK_PRIORITIES.some((item) => item.value === draft.priority)
     )
       throw new Error('Confira a etapa e a prioridade.');
-    return this.repository.saveKanbanTask(id, {
+    return await this.repository.saveKanbanTask(id, {
       ...draft,
       title,
       assigneeIds,
@@ -66,20 +77,21 @@ export class KanbanService {
     });
   }
   observeTask(id: Signal<string>) {
-    return new ReadStore(computed(() => this.loadTask(id())));
+    return new RemoteReadStore(() => this.loadTask(id()), null, id);
   }
-  private loadTask(id: string) {
-    return this.repository.loadTaskCollaboration(id);
+  private async loadTask(id: string) {
+    return await this.repository.loadTaskCollaboration(id);
   }
-  addComment(id: string, text: string, parentId: string | null): void {
+  async addComment(id: string, text: string, parentId: string | null): Promise<void> {
     const value = text.trim();
     if (!value || value.length > 5000)
       throw new Error('Escreva um comentário de até 5.000 caracteres.');
-    this.repository.addTaskComment(id, value, parentId);
+    await this.repository.addTaskComment(id, value, parentId);
   }
-  addAttachments(id: string, files: readonly File[]): void {
+  async addAttachments(id: string, files: readonly File[]): Promise<void> {
     if (!files.length) return;
-    if (!this.repository.loadTaskCollaboration(id)) throw new Error('Tarefa não encontrada.');
+    if (!(await this.repository.loadTaskCollaboration(id)))
+      throw new Error('Tarefa não encontrada.');
     for (const file of files) {
       if (!attachmentType(file.name, file.type))
         throw new Error(`O formato de “${file.name}” não é aceito.`);
@@ -90,8 +102,8 @@ export class KanbanService {
     try {
       for (const file of files) {
         const type = attachmentType(file.name, file.type)!;
-        const url = URL.createObjectURL(file.slice(0, file.size, type.mime));
-        this.fileUrls.add(url);
+        const url = await this.files.upload(file);
+
         attachments.push({
           id: `attachment-${crypto.randomUUID()}`,
           name: file.name,
@@ -104,7 +116,7 @@ export class KanbanService {
           createdAt: new Date().toISOString(),
         });
       }
-      this.repository.addTaskAttachments(id, attachments);
+      await this.repository.addTaskAttachments(id, attachments);
     } catch (error: unknown) {
       for (const attachment of attachments) {
         URL.revokeObjectURL(attachment.url);
@@ -113,11 +125,11 @@ export class KanbanService {
       throw error;
     }
   }
-  positionTask(id: string, target: KanbanMoveTarget, beforeId: string | null): void {
-    this.repository.positionKanbanTask(id, target, beforeId);
+  async positionTask(id: string, target: KanbanMoveTarget, beforeId: string | null): Promise<void> {
+    await this.repository.positionKanbanTask(id, target, beforeId);
   }
-  createColumn(name: string): void {
-    this.repository.createKanbanColumn(name);
+  async createColumn(name: string): Promise<void> {
+    await this.repository.createKanbanColumn(name);
     this.viewSettings.set({ mode: 'custom' });
   }
 }

@@ -245,7 +245,7 @@
       [showFloatingButton]="false"
       (saved)="saved()"
     />
-  } @else {
+  } @else if (!requestState.loading() && !requestState.error()) {
     <section class="record-panel not-found">
       <h1 #pageTitle tabindex="-1">Solicitação não encontrada</h1>
       <p>Busque o munícipe no cabeçalho para consultar suas solicitações.</p>

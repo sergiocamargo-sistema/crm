@@ -64,7 +64,8 @@ export class CitizenDetailComponent {
   protected readonly mobileActions = signal(this.mobileMedia?.matches ?? false);
   protected readonly actionsExpanded = signal(false);
   private statusTimer: ReturnType<typeof setTimeout> | undefined;
-  protected readonly citizen = this.service.observeCitizen(this.id).state;
+  protected readonly citizenState = this.service.observeCitizen(this.id);
+  protected readonly citizen = this.citizenState.state;
   protected readonly voteEstimateLabel = VOTE_ESTIMATE_LABEL;
   private readonly savedVoteEstimate = computed(() => this.citizen()?.voteEstimate ?? null);
   private readonly voteEstimateDraft = linkedSignal({
@@ -96,6 +97,7 @@ export class CitizenDetailComponent {
 
   constructor() {
     effect(() => {
+      this.citizenState.loading();
       this.id();
       this.shareStatus.set('');
       this.voteEstimateStatus.set('');
@@ -134,14 +136,14 @@ export class CitizenDetailComponent {
     }
   }
 
-  protected saveVoteEstimate(event: SubmitEvent): void {
+  protected async saveVoteEstimate(event: SubmitEvent): Promise<void> {
     event.preventDefault();
     if (!this.voteEstimateChanged()) return;
     this.voteEstimateStatus.set('');
     this.voteEstimateError.set('');
     const { estimate } = this.voteEstimateDraft();
     try {
-      this.service.saveVoteEstimate(this.id(), estimate);
+      await this.service.saveVoteEstimate(this.id(), estimate);
       this.voteEstimateStatus.set(estimate === null ? 'Estimativa removida.' : 'Estimativa salva.');
       this.voteEstimateSlider()?.focus({ preventScroll: true });
     } catch (error: unknown) {

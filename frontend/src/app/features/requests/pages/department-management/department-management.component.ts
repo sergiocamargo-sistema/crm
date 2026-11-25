@@ -63,12 +63,12 @@ export class DepartmentManagementComponent {
     this.editorDialog().nativeElement.showModal();
   }
 
-  protected save(event: SubmitEvent): void {
+  protected async save(event: SubmitEvent): Promise<void> {
     event.preventDefault();
     const editor = this.editor();
     try {
       if (editor.kind === 'remove') {
-        this.service.remove(editor.department.id);
+        await this.service.remove(editor.department.id);
         this.status.set('Unidade excluída.');
       } else {
         if (this.editorForm.name().invalid()) {
@@ -76,10 +76,13 @@ export class DepartmentManagementComponent {
           return;
         }
         const { name, parentId } = this.draft();
-        const saved = this.service.save(editor.kind === 'edit' ? editor.department.id : null, {
-          name,
-          parentId: parentId || null,
-        });
+        const saved = await this.service.save(
+          editor.kind === 'edit' ? editor.department.id : null,
+          {
+            name,
+            parentId: parentId || null,
+          },
+        );
         this.status.set(`${saved.name} salva.`);
       }
       this.editorDialog().nativeElement.close();

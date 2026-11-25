@@ -39,14 +39,14 @@ export class RequestAttachmentsComponent {
     });
   }
 
-  protected addFiles(event: Event): void {
+  protected async addFiles(event: Event): Promise<void> {
     const input = event.target as HTMLInputElement;
     const files = Array.from(input.files ?? []);
     input.value = '';
     if (!files.length) return;
     this.failure.set('');
     try {
-      this.service.addAttachments(this.requestId(), files);
+      await this.service.addAttachments(this.requestId(), files);
       this.added.emit();
     } catch (error: unknown) {
       this.failure.set(

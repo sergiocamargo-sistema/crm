@@ -1,4 +1,4 @@
-import { ReadStore } from '../../../core/stores/read-store';
+import { RemoteReadStore } from '../../../core/stores/read-store';
 import { computed, type Signal, inject, Service } from '@angular/core';
 import type { VoteEstimate } from '../../../core/models/vote-estimate';
 import { CITIZEN_DETAIL_REPOSITORY } from '../repositories/citizen-detail-repository';
@@ -32,35 +32,38 @@ export class CitizenDetailService {
   private readonly repository = inject(CITIZEN_DETAIL_REPOSITORY);
 
   observeCitizen(id: Signal<string>) {
-    return new ReadStore(computed(() => this.loadDetail(id())));
+    return new RemoteReadStore(() => this.loadDetail(id()), null, id);
   }
   observeTimeline(id: Signal<string>) {
-    return new ReadStore(computed(() => this.loadTimeline(id())));
+    return new RemoteReadStore(() => this.loadTimeline(id()), [], id);
   }
 
-  loadDetail(citizenId: string): CitizenDetail | null {
-    return this.repository.loadDetail(citizenId);
+  async loadDetail(citizenId: string): Promise<CitizenDetail | null> {
+    return await this.repository.loadDetail(citizenId);
   }
-  loadTimeline(citizenId: string): readonly TimelineEntry[] {
-    return this.repository.loadCitizenTimeline(citizenId);
+  async loadTimeline(citizenId: string): Promise<readonly TimelineEntry[]> {
+    return await this.repository.loadCitizenTimeline(citizenId);
   }
 
-  saveObservations(citizenId: string, text: string): void {
+  async saveObservations(citizenId: string, text: string): Promise<void> {
     if (text.length > 5000) throw new Error('A observação deve ter até 5.000 caracteres.');
-    this.repository.saveObservations(citizenId, text.trim());
+    await this.repository.saveObservations(citizenId, text.trim());
   }
 
-  saveVoteEstimate(citizenId: string, estimate: VoteEstimate | null): void {
-    this.repository.saveVoteEstimate(citizenId, estimate);
+  async saveVoteEstimate(citizenId: string, estimate: VoteEstimate | null): Promise<void> {
+    await this.repository.saveVoteEstimate(citizenId, estimate);
   }
 
-  registerInteraction(citizenId: string, interaction: NewConversationInteraction): void {
+  async registerInteraction(
+    citizenId: string,
+    interaction: NewConversationInteraction,
+  ): Promise<void> {
     const channel = INTERACTION_CHANNELS.find((item) => item.value === interaction.channel);
     if (!channel) throw new Error('Selecione o tipo de interação.');
     const description = interaction.description.trim();
     if (!description || description.length > 1500)
       throw new Error('Descreva o que foi conversado em até 1.500 caracteres.');
-    this.registerContact(citizenId, {
+    await this.registerContact(citizenId, {
       type: 'conversation',
       channel: channel.value,
       description,
@@ -71,11 +74,11 @@ export class CitizenDetailService {
     });
   }
 
-  registerContact(citizenId: string, contact: NewCitizenInteraction): void {
+  async registerContact(citizenId: string, contact: NewCitizenInteraction): Promise<void> {
     const request = contact.requestId
-      ? this.repository
-          .loadDetail(citizenId)
-          ?.requests.find((item) => item.id === contact.requestId)
+      ? (await this.repository.loadDetail(citizenId))?.requests.find(
+          (item) => item.id === contact.requestId,
+        )
       : null;
     if (contact.requestId && !request)
       throw new Error('A solicitação não pertence a este munícipe.');
@@ -86,7 +89,7 @@ export class CitizenDetailService {
     }
     const occurredAt = new Date(contact.occurredAt).toISOString();
     if (contact.type === 'request') {
-      this.repository.createRequest(citizenId, {
+      await this.repository.createRequest(citizenId, {
         title,
         description,
         occurredAt,
@@ -96,7 +99,7 @@ export class CitizenDetailService {
       });
       return;
     }
-    this.repository.registerContact(citizenId, {
+    await this.repository.registerContact(citizenId, {
       ...contact,
       ...(request
         ? { protocol: request.protocol, department: request.department || contact.department }

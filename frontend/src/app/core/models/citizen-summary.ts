@@ -1,4 +1,4 @@
-import type { IconName } from '../../shared/components/icon/icon.component';
+import type { IconName } from './icon-paths';
 
 export interface CitizenSummary {
   readonly id: string;

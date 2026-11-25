@@ -1,0 +1,3097 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/ConcreteInvocation",
+  "definitions": {
+    "ConcreteInvocation": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "loadCitizenRegistration"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "minItems": 0,
+              "maxItems": 0
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "createCitizen"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/CitizenRegistrationCommand",
+                "title": "command"
+              },
+              "minItems": 1,
+              "maxItems": 1
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "loadCitizenForEdit"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "title": "id"
+              },
+              "minItems": 1,
+              "maxItems": 1
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "updateCitizen"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "minItems": 2,
+              "items": [
+                {
+                  "type": "string",
+                  "title": "id"
+                },
+                {
+                  "$ref": "#/definitions/CitizenUpdateCommand",
+                  "title": "command"
+                }
+              ],
+              "maxItems": 2
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "listTaskLabels"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "minItems": 0,
+              "maxItems": 0
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "loadTaskLabelManagement"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "title": "query"
+              },
+              "minItems": 1,
+              "maxItems": 1
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "saveTaskLabel"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "minItems": 2,
+              "items": [
+                {
+                  "type": ["string", "null"],
+                  "title": "id"
+                },
+                {
+                  "$ref": "#/definitions/TaskLabelDraft",
+                  "title": "draft"
+                }
+              ],
+              "maxItems": 2
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "deleteTaskLabel"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "title": "id"
+              },
+              "minItems": 1,
+              "maxItems": 1
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "loadRequestList"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/RequestListQuery",
+                "title": "query"
+              },
+              "minItems": 1,
+              "maxItems": 1
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "loadKanbanWorkspace"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "minItems": 0,
+              "maxItems": 0
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "saveKanbanTask"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "minItems": 2,
+              "items": [
+                {
+                  "type": ["string", "null"],
+                  "title": "id"
+                },
+                {
+                  "$ref": "#/definitions/TaskDraft",
+                  "title": "draft"
+                }
+              ],
+              "maxItems": 2
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "loadTaskCollaboration"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "title": "id"
+              },
+              "minItems": 1,
+              "maxItems": 1
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "addTaskComment"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "minItems": 3,
+              "items": [
+                {
+                  "type": "string",
+                  "title": "id"
+                },
+                {
+                  "type": "string",
+                  "title": "text"
+                },
+                {
+                  "type": ["string", "null"],
+                  "title": "parentId"
+                }
+              ],
+              "maxItems": 3
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "addTaskAttachments"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "minItems": 2,
+              "items": [
+                {
+                  "type": "string",
+                  "title": "id"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/RequestAttachment"
+                  },
+                  "title": "attachments"
+                }
+              ],
+              "maxItems": 2
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "listTextReferences"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "minItems": 0,
+              "maxItems": 0
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "moveKanbanTask"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "minItems": 2,
+              "items": [
+                {
+                  "type": "string",
+                  "title": "id"
+                },
+                {
+                  "$ref": "#/definitions/TaskStatus",
+                  "title": "status"
+                }
+              ],
+              "maxItems": 2
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "positionKanbanTask"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "minItems": 3,
+              "items": [
+                {
+                  "type": "string",
+                  "title": "id"
+                },
+                {
+                  "$ref": "#/definitions/KanbanMoveTarget",
+                  "title": "target"
+                },
+                {
+                  "type": ["string", "null"],
+                  "title": "beforeId"
+                }
+              ],
+              "maxItems": 3
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "assignKanbanTaskColumn"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "minItems": 2,
+              "items": [
+                {
+                  "type": "string",
+                  "title": "id"
+                },
+                {
+                  "type": ["string", "null"],
+                  "title": "columnId"
+                }
+              ],
+              "maxItems": 2
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "createKanbanColumn"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "title": "name"
+              },
+              "minItems": 1,
+              "maxItems": 1
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "loadCitizenList"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/CitizenListQuery",
+                "title": "query"
+              },
+              "minItems": 1,
+              "maxItems": 1
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "prepareLabelRecipients"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "title": "citizenIds"
+              },
+              "minItems": 1,
+              "maxItems": 1
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "loadDetail"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "title": "citizenId"
+              },
+              "minItems": 1,
+              "maxItems": 1
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "loadActivityDetail"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "minItems": 2,
+              "items": [
+                {
+                  "$ref": "#/definitions/ActivityKind",
+                  "title": "kind"
+                },
+                {
+                  "type": "string",
+                  "title": "id"
+                }
+              ],
+              "maxItems": 2
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "saveRequest"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "minItems": 2,
+              "items": [
+                {
+                  "type": ["string", "null"],
+                  "title": "id"
+                },
+                {
+                  "$ref": "#/definitions/RequestEditorDraft",
+                  "title": "draft"
+                }
+              ],
+              "maxItems": 2
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "createRequest"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "minItems": 2,
+              "items": [
+                {
+                  "type": ["string", "null"],
+                  "title": "citizenId"
+                },
+                {
+                  "$ref": "#/definitions/NewCitizenRequest",
+                  "title": "request"
+                }
+              ],
+              "maxItems": 2
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "loadRequestWorkspace"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "title": "id"
+              },
+              "minItems": 1,
+              "maxItems": 1
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "listRequestAutomationPlans"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "minItems": 1,
+              "items": [
+                {
+                  "type": ["string", "null"],
+                  "title": "patternId"
+                },
+                {
+                  "type": "string",
+                  "title": "requestId"
+                }
+              ],
+              "maxItems": 2
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "startRequestAutomation"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "minItems": 2,
+              "items": [
+                {
+                  "type": "string",
+                  "title": "requestId"
+                },
+                {
+                  "type": "string",
+                  "title": "ruleId"
+                }
+              ],
+              "maxItems": 2
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "loadCitizenTimeline"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "title": "citizenId"
+              },
+              "minItems": 1,
+              "maxItems": 1
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "listDepartments"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "minItems": 0,
+              "maxItems": 0
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "searchDepartments"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "title": "query"
+              },
+              "minItems": 1,
+              "maxItems": 1
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "saveDepartment"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "minItems": 2,
+              "items": [
+                {
+                  "type": ["string", "null"],
+                  "title": "id"
+                },
+                {
+                  "$ref": "#/definitions/DepartmentDraft",
+                  "title": "draft"
+                }
+              ],
+              "maxItems": 2
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "deleteDepartment"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "title": "id"
+              },
+              "minItems": 1,
+              "maxItems": 1
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "listRequestPatterns"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "minItems": 0,
+              "maxItems": 0
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "loadRequestPatternManagement"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "title": "query"
+              },
+              "minItems": 1,
+              "maxItems": 1
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "saveRequestPattern"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "minItems": 2,
+              "items": [
+                {
+                  "type": ["string", "null"],
+                  "title": "id"
+                },
+                {
+                  "$ref": "#/definitions/RequestPatternDraft",
+                  "title": "draft"
+                }
+              ],
+              "maxItems": 2
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "deleteRequestPattern"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "title": "id"
+              },
+              "minItems": 1,
+              "maxItems": 1
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "assignRequestDepartment"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "minItems": 2,
+              "items": [
+                {
+                  "type": "string",
+                  "title": "requestId"
+                },
+                {
+                  "type": "string",
+                  "title": "departmentId"
+                }
+              ],
+              "maxItems": 2
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "createAndAssignDepartment"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "minItems": 2,
+              "items": [
+                {
+                  "type": "string",
+                  "title": "requestId"
+                },
+                {
+                  "type": "string",
+                  "title": "name"
+                }
+              ],
+              "maxItems": 2
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "assignRequestPattern"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "minItems": 2,
+              "items": [
+                {
+                  "type": "string",
+                  "title": "requestId"
+                },
+                {
+                  "type": ["string", "null"],
+                  "title": "patternId"
+                }
+              ],
+              "maxItems": 2
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "addRequestComment"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "minItems": 2,
+              "items": [
+                {
+                  "type": "string",
+                  "title": "requestId"
+                },
+                {
+                  "$ref": "#/definitions/NewRequestComment",
+                  "title": "comment"
+                }
+              ],
+              "maxItems": 2
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "addRequestTask"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "minItems": 2,
+              "items": [
+                {
+                  "type": "string",
+                  "title": "requestId"
+                },
+                {
+                  "$ref": "#/definitions/NewRequestTask",
+                  "title": "task"
+                }
+              ],
+              "maxItems": 2
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "addRequestAttachments"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "minItems": 2,
+              "items": [
+                {
+                  "type": "string",
+                  "title": "requestId"
+                },
+                {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/definitions/RequestAttachment"
+                  },
+                  "title": "attachments"
+                }
+              ],
+              "maxItems": 2
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "addRequestAwareness"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "minItems": 2,
+              "items": [
+                {
+                  "type": "string",
+                  "title": "requestId"
+                },
+                {
+                  "type": "string",
+                  "title": "citizenId"
+                }
+              ],
+              "maxItems": 2
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "removeRequestAwareness"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "minItems": 2,
+              "items": [
+                {
+                  "type": "string",
+                  "title": "requestId"
+                },
+                {
+                  "type": "string",
+                  "title": "awarenessId"
+                }
+              ],
+              "maxItems": 2
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "registerRequestContact"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "minItems": 2,
+              "items": [
+                {
+                  "type": "string",
+                  "title": "requestId"
+                },
+                {
+                  "$ref": "#/definitions/NewCitizenInteraction",
+                  "title": "contact"
+                }
+              ],
+              "maxItems": 2
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "setRequestTaskCompleted"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "minItems": 3,
+              "items": [
+                {
+                  "type": "string",
+                  "title": "requestId"
+                },
+                {
+                  "type": "string",
+                  "title": "taskId"
+                },
+                {
+                  "type": "boolean",
+                  "title": "completed"
+                }
+              ],
+              "maxItems": 3
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "registerContact"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "minItems": 2,
+              "items": [
+                {
+                  "type": "string",
+                  "title": "citizenId"
+                },
+                {
+                  "$ref": "#/definitions/NewCitizenInteraction",
+                  "title": "contact"
+                }
+              ],
+              "maxItems": 2
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "saveObservations"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "minItems": 2,
+              "items": [
+                {
+                  "type": "string",
+                  "title": "citizenId"
+                },
+                {
+                  "type": "string",
+                  "title": "text"
+                }
+              ],
+              "maxItems": 2
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "saveVoteEstimate"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "minItems": 2,
+              "items": [
+                {
+                  "type": "string",
+                  "title": "citizenId"
+                },
+                {
+                  "anyOf": [
+                    {
+                      "$ref": "#/definitions/VoteEstimate"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "estimate"
+                }
+              ],
+              "maxItems": 2
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "loadCitizenCategories"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "minItems": 0,
+              "maxItems": 0
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "createCitizenCategory"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "title": "name"
+              },
+              "minItems": 1,
+              "maxItems": 1
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "addCategory"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "minItems": 2,
+              "items": [
+                {
+                  "type": "string",
+                  "title": "citizenId"
+                },
+                {
+                  "type": "string",
+                  "title": "name"
+                }
+              ],
+              "maxItems": 2
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "removeCategory"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "minItems": 2,
+              "items": [
+                {
+                  "type": "string",
+                  "title": "citizenId"
+                },
+                {
+                  "type": "string",
+                  "title": "name"
+                }
+              ],
+              "maxItems": 2
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "loadAutomationWorkspace"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "title": "query"
+              },
+              "minItems": 1,
+              "maxItems": 1
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "saveAutomationTemplate"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "minItems": 3,
+              "items": [
+                {
+                  "type": ["string", "null"],
+                  "title": "id"
+                },
+                {
+                  "type": ["number", "null"],
+                  "title": "version"
+                },
+                {
+                  "$ref": "#/definitions/TaskTemplateDraft",
+                  "title": "draft"
+                }
+              ],
+              "maxItems": 3
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "deleteAutomationTemplate"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "minItems": 2,
+              "items": [
+                {
+                  "type": "string",
+                  "title": "id"
+                },
+                {
+                  "type": "number",
+                  "title": "version"
+                }
+              ],
+              "maxItems": 2
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "saveAutomationSet"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "minItems": 3,
+              "items": [
+                {
+                  "type": ["string", "null"],
+                  "title": "id"
+                },
+                {
+                  "type": ["number", "null"],
+                  "title": "version"
+                },
+                {
+                  "$ref": "#/definitions/TaskSetDraft",
+                  "title": "draft"
+                }
+              ],
+              "maxItems": 3
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "deleteAutomationSet"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "minItems": 2,
+              "items": [
+                {
+                  "type": "string",
+                  "title": "id"
+                },
+                {
+                  "type": "number",
+                  "title": "version"
+                }
+              ],
+              "maxItems": 2
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "saveAutomationRule"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "minItems": 3,
+              "items": [
+                {
+                  "type": ["string", "null"],
+                  "title": "id"
+                },
+                {
+                  "type": ["number", "null"],
+                  "title": "version"
+                },
+                {
+                  "$ref": "#/definitions/AutomationRuleDraft",
+                  "title": "draft"
+                }
+              ],
+              "maxItems": 3
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "deleteAutomationRule"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "minItems": 2,
+              "items": [
+                {
+                  "type": "string",
+                  "title": "id"
+                },
+                {
+                  "type": "number",
+                  "title": "version"
+                }
+              ],
+              "maxItems": 2
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "retryAutomationRun"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "title": "id"
+              },
+              "minItems": 1,
+              "maxItems": 1
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "searchCitizens"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "minItems": 2,
+              "items": [
+                {
+                  "type": "string",
+                  "title": "query"
+                },
+                {
+                  "type": "number",
+                  "title": "limit"
+                }
+              ],
+              "maxItems": 2
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "loadWorkspaceVersion"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "minItems": 0,
+              "maxItems": 0
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "loadTeam"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "minItems": 0,
+              "maxItems": 0
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "loadLabelConfiguration"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "minItems": 0,
+              "maxItems": 0
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "saveLabelTemplate"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "minItems": 2,
+              "items": [
+                {
+                  "$ref": "#/definitions/LabelTemplate",
+                  "title": "template"
+                },
+                {
+                  "type": "boolean",
+                  "title": "asNew"
+                }
+              ],
+              "maxItems": 2
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "saveLabelFormat"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/LabelFormat",
+                "title": "format"
+              },
+              "minItems": 1,
+              "maxItems": 1
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "loadReferralBranch"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "items": {
+                "type": ["string", "null"],
+                "title": "id"
+              },
+              "minItems": 1,
+              "maxItems": 1
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "loadNotifications"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "minItems": 0,
+              "maxItems": 0
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "markNotificationRead"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "title": "id"
+              },
+              "minItems": 1,
+              "maxItems": 1
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "markAllNotificationsRead"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "minItems": 0,
+              "maxItems": 0
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "loadHomeMessage"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "minItems": 0,
+              "maxItems": 0
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "operation": {
+              "type": "string",
+              "const": "syncCitizenSearch"
+            },
+            "requestId": {
+              "type": "string"
+            },
+            "args": {
+              "type": "array",
+              "minItems": 3,
+              "items": [
+                {
+                  "type": ["string", "null"],
+                  "title": "epoch"
+                },
+                {
+                  "type": "number",
+                  "title": "revision"
+                },
+                {
+                  "type": ["string", "null"],
+                  "title": "page"
+                }
+              ],
+              "maxItems": 3
+            }
+          },
+          "required": ["operation", "requestId", "args"],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "CitizenRegistrationCommand": {
+      "type": "object",
+      "properties": {
+        "requestId": {
+          "type": "string"
+        },
+        "draft": {
+          "$ref": "#/definitions/CitizenRegistrationDraft"
+        },
+        "photos": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/CitizenPhoto"
+          }
+        },
+        "review": {
+          "type": "object",
+          "properties": {
+            "token": {
+              "type": "string"
+            },
+            "reason": {
+              "type": "string"
+            }
+          },
+          "required": ["token", "reason"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["requestId", "draft", "photos"],
+      "additionalProperties": false
+    },
+    "CitizenRegistrationDraft": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "birthDate": {
+          "type": "string"
+        },
+        "gender": {
+          "type": "string"
+        },
+        "occupation": {
+          "type": "string"
+        },
+        "cra": {
+          "type": "string"
+        },
+        "observations": {
+          "type": "string"
+        },
+        "phones": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "type": "string"
+              },
+              "number": {
+                "type": "string"
+              },
+              "label": {
+                "type": "string"
+              },
+              "whatsapp": {
+                "type": "boolean"
+              }
+            },
+            "required": ["key", "number", "label", "whatsapp"],
+            "additionalProperties": false
+          }
+        },
+        "emails": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "type": "string"
+              },
+              "address": {
+                "type": "string"
+              },
+              "label": {
+                "type": "string"
+              }
+            },
+            "required": ["key", "address", "label"],
+            "additionalProperties": false
+          }
+        },
+        "addresses": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/CitizenAddressDraft"
+          }
+        },
+        "documents": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string"
+              },
+              "value": {
+                "type": "string"
+              },
+              "issuer": {
+                "type": "string"
+              }
+            },
+            "required": ["key", "type", "value", "issuer"],
+            "additionalProperties": false
+          }
+        },
+        "categories": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "referrerId": {
+          "type": "string"
+        },
+        "voteEstimate": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/VoteEstimate"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "name",
+        "birthDate",
+        "gender",
+        "occupation",
+        "cra",
+        "observations",
+        "phones",
+        "emails",
+        "addresses",
+        "documents",
+        "categories",
+        "referrerId",
+        "voteEstimate"
+      ],
+      "additionalProperties": false
+    },
+    "CitizenAddressDraft": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "street": {
+          "type": "string"
+        },
+        "number": {
+          "type": "string"
+        },
+        "complement": {
+          "type": "string"
+        },
+        "neighborhood": {
+          "type": "string"
+        },
+        "city": {
+          "type": "string"
+        },
+        "state": {
+          "type": "string"
+        },
+        "postalCode": {
+          "type": "string"
+        },
+        "reference": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "key",
+        "street",
+        "number",
+        "complement",
+        "neighborhood",
+        "city",
+        "state",
+        "postalCode",
+        "reference"
+      ],
+      "additionalProperties": false
+    },
+    "VoteEstimate": {
+      "type": "number",
+      "enum": [0, 25, 50, 75, 100]
+    },
+    "CitizenPhoto": {
+      "type": "object",
+      "properties": {
+        "fileReference": {
+          "type": "string"
+        },
+        "src": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        }
+      },
+      "required": ["src", "label"],
+      "additionalProperties": false
+    },
+    "CitizenUpdateCommand": {
+      "type": "object",
+      "properties": {
+        "requestId": {
+          "type": "string"
+        },
+        "changes": {
+          "$ref": "#/definitions/Partial%3CCitizenRegistrationDraft%3E"
+        },
+        "photos": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/CitizenPhoto"
+          }
+        },
+        "review": {
+          "type": "object",
+          "properties": {
+            "token": {
+              "type": "string"
+            },
+            "reason": {
+              "type": "string"
+            }
+          },
+          "required": ["token", "reason"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["requestId", "changes"],
+      "additionalProperties": false
+    },
+    "Partial<CitizenRegistrationDraft>": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "birthDate": {
+          "type": "string"
+        },
+        "gender": {
+          "type": "string"
+        },
+        "occupation": {
+          "type": "string"
+        },
+        "cra": {
+          "type": "string"
+        },
+        "observations": {
+          "type": "string"
+        },
+        "phones": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "type": "string"
+              },
+              "number": {
+                "type": "string"
+              },
+              "label": {
+                "type": "string"
+              },
+              "whatsapp": {
+                "type": "boolean"
+              }
+            },
+            "required": ["key", "number", "label", "whatsapp"],
+            "additionalProperties": false
+          }
+        },
+        "emails": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "type": "string"
+              },
+              "address": {
+                "type": "string"
+              },
+              "label": {
+                "type": "string"
+              }
+            },
+            "required": ["key", "address", "label"],
+            "additionalProperties": false
+          }
+        },
+        "addresses": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/CitizenAddressDraft"
+          }
+        },
+        "documents": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "key": {
+                "type": "string"
+              },
+              "type": {
+                "type": "string"
+              },
+              "value": {
+                "type": "string"
+              },
+              "issuer": {
+                "type": "string"
+              }
+            },
+            "required": ["key", "type", "value", "issuer"],
+            "additionalProperties": false
+          }
+        },
+        "categories": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "referrerId": {
+          "type": "string"
+        },
+        "voteEstimate": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/VoteEstimate"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "TaskLabelDraft": {
+      "$ref": "#/definitions/Omit%3CTaskLabel%2C%22id%22%3E"
+    },
+    "Omit<TaskLabel,\"id\">": {
+      "$ref": "#/definitions/Pick%3CTaskLabel%2CExclude%3C(%22id%22%7C%22name%22%7C%22color%22)%2C%22id%22%3E%3E"
+    },
+    "Pick<TaskLabel,Exclude<(\"id\"|\"name\"|\"color\"),\"id\">>": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "color": {
+          "type": "string"
+        }
+      },
+      "required": ["name", "color"],
+      "additionalProperties": false
+    },
+    "RequestListQuery": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["", "pending", "completed"]
+        },
+        "includedDepartmentIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "excludedDepartmentIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "order": {
+          "type": "string",
+          "enum": ["recent", "oldest"]
+        }
+      },
+      "required": ["text", "status", "includedDepartmentIds", "excludedDepartmentIds", "order"],
+      "additionalProperties": false
+    },
+    "TaskDraft": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "assigneeIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "labelIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "dueAt": {
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/definitions/TaskStatus"
+        },
+        "priority": {
+          "$ref": "#/definitions/TaskPriority"
+        },
+        "requestId": {
+          "type": "string"
+        },
+        "customColumnId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "title",
+        "description",
+        "assigneeIds",
+        "labelIds",
+        "dueAt",
+        "status",
+        "priority",
+        "requestId",
+        "customColumnId"
+      ],
+      "additionalProperties": false
+    },
+    "TaskStatus": {
+      "type": "string",
+      "enum": ["todo", "in-progress", "waiting", "completed"]
+    },
+    "TaskPriority": {
+      "type": "string",
+      "enum": ["low", "normal", "high"]
+    },
+    "RequestAttachment": {
+      "type": "object",
+      "properties": {
+        "fileReference": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string",
+          "enum": ["photo", "document", "audio"]
+        },
+        "mimeType": {
+          "type": "string"
+        },
+        "size": {
+          "type": ["number", "null"]
+        },
+        "url": {
+          "type": "string"
+        },
+        "createdAt": {
+          "type": "string"
+        },
+        "author": {
+          "type": "string"
+        },
+        "taskId": {
+          "type": ["string", "null"]
+        }
+      },
+      "required": ["id", "name", "kind", "mimeType", "size", "url", "createdAt", "author"],
+      "additionalProperties": false
+    },
+    "KanbanMoveTarget": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "status"
+            },
+            "status": {
+              "$ref": "#/definitions/TaskStatus"
+            }
+          },
+          "required": ["kind", "status"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "custom"
+            },
+            "columnId": {
+              "type": ["string", "null"]
+            }
+          },
+          "required": ["kind", "columnId"],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "CitizenListQuery": {
+      "type": "object",
+      "properties": {
+        "neighborhoods": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "voteEstimates": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "ageRanges": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "birthdayDays": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "birthdayMonths": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "requestStatuses": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "query": {
+          "type": "string"
+        },
+        "includedCategories": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "excludedCategories": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "categoryMatch": {
+          "type": "string",
+          "enum": ["all", "any"]
+        },
+        "includedDepartmentIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "excludedDepartmentIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "order": {
+          "type": "string",
+          "enum": ["name-asc", "name-desc", "recent"]
+        }
+      },
+      "required": [
+        "ageRanges",
+        "birthdayDays",
+        "birthdayMonths",
+        "categoryMatch",
+        "excludedCategories",
+        "excludedDepartmentIds",
+        "includedCategories",
+        "includedDepartmentIds",
+        "neighborhoods",
+        "order",
+        "query",
+        "requestStatuses",
+        "voteEstimates"
+      ],
+      "additionalProperties": false
+    },
+    "ActivityKind": {
+      "type": "string",
+      "enum": ["interaction", "request", "conversation", "appointment"]
+    },
+    "RequestEditorDraft": {
+      "type": "object",
+      "properties": {
+        "citizenId": {
+          "type": ["string", "null"]
+        },
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "departmentId": {
+          "type": "string"
+        },
+        "patternId": {
+          "type": ["string", "null"]
+        },
+        "dueAt": {
+          "type": "string"
+        },
+        "priority": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "completed"]
+        }
+      },
+      "required": [
+        "citizenId",
+        "title",
+        "description",
+        "departmentId",
+        "patternId",
+        "dueAt",
+        "priority",
+        "status"
+      ],
+      "additionalProperties": false
+    },
+    "NewCitizenRequest": {
+      "type": "object",
+      "properties": {
+        "patternId": {
+          "type": ["string", "null"]
+        },
+        "dueAt": {
+          "type": "string"
+        },
+        "priority": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": ["pending", "completed"]
+        },
+        "departmentId": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "department": {
+          "type": "string"
+        },
+        "occurredAt": {
+          "type": "string"
+        },
+        "direction": {
+          "type": "string",
+          "enum": ["active", "passive"]
+        }
+      },
+      "required": ["title", "description", "department", "occurredAt", "direction"],
+      "additionalProperties": false
+    },
+    "DepartmentDraft": {
+      "$ref": "#/definitions/Pick%3CDepartment%2C(%22name%22%7C%22parentId%22)%3E"
+    },
+    "Pick<Department,(\"name\"|\"parentId\")>": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "parentId": {
+          "type": ["string", "null"]
+        }
+      },
+      "required": ["name", "parentId"],
+      "additionalProperties": false
+    },
+    "RequestPatternDraft": {
+      "$ref": "#/definitions/Omit%3CRequestPattern%2C%22id%22%3E"
+    },
+    "Omit<RequestPattern,\"id\">": {
+      "$ref": "#/definitions/Pick%3CRequestPattern%2CExclude%3C(%22id%22%7C%22name%22%7C%22departmentId%22)%2C%22id%22%3E%3E"
+    },
+    "Pick<RequestPattern,Exclude<(\"id\"|\"name\"|\"departmentId\"),\"id\">>": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "departmentId": {
+          "type": "string"
+        }
+      },
+      "required": ["name", "departmentId"],
+      "additionalProperties": false
+    },
+    "NewRequestComment": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string"
+        },
+        "taskId": {
+          "type": ["string", "null"]
+        },
+        "parentId": {
+          "type": ["string", "null"]
+        }
+      },
+      "required": ["text", "taskId", "parentId"],
+      "additionalProperties": false
+    },
+    "NewRequestTask": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "assigneeIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "labelIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "dueAt": {
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/definitions/TaskStatus"
+        },
+        "priority": {
+          "$ref": "#/definitions/TaskPriority"
+        },
+        "customColumnId": {
+          "type": ["string", "null"]
+        }
+      },
+      "required": ["title", "description", "assigneeIds", "labelIds", "dueAt"],
+      "additionalProperties": false
+    },
+    "NewCitizenInteraction": {
+      "type": "object",
+      "properties": {
+        "departmentId": {
+          "type": "string"
+        },
+        "requestId": {
+          "type": "string"
+        },
+        "type": {
+          "$ref": "#/definitions/InteractionType"
+        },
+        "direction": {
+          "type": "string",
+          "enum": ["active", "passive"]
+        },
+        "occurredAt": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "department": {
+          "type": "string"
+        },
+        "channel": {
+          "$ref": "#/definitions/InteractionChannel"
+        }
+      },
+      "required": ["type", "direction", "occurredAt", "title", "description", "department"],
+      "additionalProperties": false
+    },
+    "InteractionType": {
+      "type": "string",
+      "enum": [
+        "request",
+        "conversation",
+        "attendance",
+        "office-visit",
+        "meeting",
+        "announcement",
+        "call"
+      ]
+    },
+    "InteractionChannel": {
+      "type": "string",
+      "enum": ["in-person", "whatsapp", "phone", "email", "instagram", "facebook", "other"]
+    },
+    "TaskTemplateDraft": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "assigneeIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "labelIds": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "priority": {
+          "$ref": "#/definitions/TaskPriority"
+        },
+        "dueInDays": {
+          "type": ["number", "null"]
+        }
+      },
+      "required": ["title", "description", "assigneeIds", "labelIds", "priority", "dueInDays"],
+      "additionalProperties": false
+    },
+    "TaskSetDraft": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "steps": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/TaskSetStep"
+          }
+        }
+      },
+      "required": ["name", "steps"],
+      "additionalProperties": false
+    },
+    "TaskSetStep": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "templateId": {
+          "type": "string"
+        },
+        "dependsOn": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": ["id", "templateId", "dependsOn"],
+      "additionalProperties": false
+    },
+    "AutomationRuleDraft": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "trigger": {
+          "$ref": "#/definitions/AutomationTrigger"
+        },
+        "setId": {
+          "type": "string"
+        },
+        "enabled": {
+          "type": "boolean"
+        }
+      },
+      "required": ["name", "trigger", "setId", "enabled"],
+      "additionalProperties": false
+    },
+    "AutomationTrigger": {
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "request-created"
+            }
+          },
+          "required": ["kind"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "request-with-pattern"
+            },
+            "patternId": {
+              "type": "string"
+            }
+          },
+          "required": ["kind", "patternId"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "interaction-created"
+            }
+          },
+          "required": ["kind"],
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "interaction-with-type"
+            },
+            "interactionType": {
+              "$ref": "#/definitions/AutomationInteractionType"
+            },
+            "channel": {
+              "anyOf": [
+                {
+                  "$ref": "#/definitions/InteractionChannel"
+                },
+                {
+                  "type": "null"
+                }
+              ]
+            }
+          },
+          "required": ["kind", "interactionType", "channel"],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "AutomationInteractionType": {
+      "$ref": "#/definitions/Exclude%3CInteractionType%2C%22request%22%3E"
+    },
+    "Exclude<InteractionType,\"request\">": {
+      "type": "string",
+      "enum": ["conversation", "attendance", "office-visit", "meeting", "announcement", "call"]
+    },
+    "LabelTemplate": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "version": {
+          "type": "number"
+        },
+        "name": {
+          "type": "string"
+        },
+        "font": {
+          "type": "string",
+          "enum": ["helvetica", "times", "courier"]
+        },
+        "fontSize": {
+          "type": "number"
+        },
+        "align": {
+          "type": "string",
+          "enum": ["left", "center", "right"]
+        },
+        "padding": {
+          "type": "number"
+        },
+        "blocks": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/LabelBlock"
+          }
+        }
+      },
+      "required": ["id", "version", "name", "font", "fontSize", "align", "padding", "blocks"],
+      "additionalProperties": false
+    },
+    "LabelBlock": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "field": {
+          "$ref": "#/definitions/LabelField"
+        },
+        "text": {
+          "type": "string"
+        },
+        "bold": {
+          "type": "boolean"
+        },
+        "joinPrevious": {
+          "type": "boolean"
+        }
+      },
+      "required": ["id", "field", "text", "bold", "joinPrevious"],
+      "additionalProperties": false
+    },
+    "LabelField": {
+      "type": "string",
+      "enum": [
+        "name",
+        "street",
+        "complement",
+        "neighborhood",
+        "cityState",
+        "postalCode",
+        "phone",
+        "cra",
+        "categories",
+        "observations",
+        "birthday",
+        "text"
+      ]
+    },
+    "LabelFormat": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "version": {
+          "type": "number"
+        },
+        "name": {
+          "type": "string"
+        },
+        "origin": {
+          "type": "string",
+          "enum": ["pimaco", "custom"]
+        },
+        "source": {
+          "type": "string"
+        },
+        "paperWidth": {
+          "type": "number"
+        },
+        "paperHeight": {
+          "type": "number"
+        },
+        "width": {
+          "type": "number"
+        },
+        "height": {
+          "type": "number"
+        },
+        "left": {
+          "type": "number"
+        },
+        "top": {
+          "type": "number"
+        },
+        "gapX": {
+          "type": "number"
+        },
+        "gapY": {
+          "type": "number"
+        },
+        "columns": {
+          "type": "number"
+        },
+        "rows": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "id",
+        "version",
+        "name",
+        "origin",
+        "source",
+        "paperWidth",
+        "paperHeight",
+        "width",
+        "height",
+        "left",
+        "top",
+        "gapX",
+        "gapY",
+        "columns",
+        "rows"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

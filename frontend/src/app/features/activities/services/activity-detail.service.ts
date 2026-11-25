@@ -1,4 +1,4 @@
-import { ReadStore } from '../../../core/stores/read-store';
+import { RemoteReadStore } from '../../../core/stores/read-store';
 import { computed, type Signal, inject, Service } from '@angular/core';
 import { CITIZEN_DETAIL_REPOSITORY } from '../../citizens/repositories/citizen-detail-repository';
 import {
@@ -83,11 +83,15 @@ export class ActivityDetailService {
   private readonly repository = inject(CITIZEN_DETAIL_REPOSITORY);
 
   observeActivity(kind: Signal<ActivityKind>, id: Signal<string>) {
-    return new ReadStore(computed(() => this.loadDetail(kind(), id())));
+    return new RemoteReadStore(
+      () => this.loadDetail(kind(), id()),
+      null,
+      () => [kind(), id()],
+    );
   }
 
-  loadDetail(kind: ActivityKind, id: string): ActivityDetailView | null {
-    const detail = this.repository.loadActivityDetail(kind, id);
+  async loadDetail(kind: ActivityKind, id: string): Promise<ActivityDetailView | null> {
+    const detail = await this.repository.loadActivityDetail(kind, id);
     if (!detail) return null;
     const common = {
       ...ACTIVITY_LABELS[kind],

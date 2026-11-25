@@ -1,32 +1,46 @@
-import { MOCK_REPOSITORY_PROVIDERS } from '../../mocks/providers';
 import { TestBed } from '@angular/core/testing';
+import { CITIZEN_SEARCH_REPOSITORY } from '../repositories/citizen-search-repository';
+import { SessionContext } from '../backend/session-context';
+import type { CitizenSearchResult } from '../models/citizen-summary';
 import { CitizenSearchService } from './citizen-search';
 
-describe('Busca compartilhada de munícipes', () => {
-  let search: CitizenSearchService;
-  beforeEach(() => {
-    TestBed.configureTestingModule({ providers: MOCK_REPOSITORY_PROVIDERS });
-    search = TestBed.inject(CitizenSearchService);
+it('descarta respostas anteriores e mantém seletores independentes', async () => {
+  const pending = new Map<string, (value: readonly CitizenSearchResult[]) => void>();
+  TestBed.configureTestingModule({
+    providers: [
+      {
+        provide: CITIZEN_SEARCH_REPOSITORY,
+        useValue: {
+          search: (query: string) =>
+            new Promise<readonly CitizenSearchResult[]>((resolve) => pending.set(query, resolve)),
+        },
+      },
+    ],
   });
-
-  it('normaliza acentos, letras e espaços na pesquisa por nome', () => {
-    search.model.set({ query: '  JOAO  PEREIRA ' });
-    expect(search.results().map((person) => person.name)).toEqual(['João Pereira']);
-  });
-
-  it('busca por telefone sem depender da máscara', () => {
-    search.model.set({ query: '11900000004' });
-    expect(search.results().map((person) => person.name)).toEqual(['Carlos Eduardo']);
-  });
-
-  it('não exibe a lista toda ao abrir ou limpar o campo e informa ausência de resultados', () => {
-    expect(search.results()).toEqual([]);
-    search.model.set({ query: 'Pessoa inexistente' });
-    expect(search.results()).toEqual([]);
-    search.model.set({ query: 'Mariana' });
-    expect(search.results()).toHaveLength(1);
-    search.clear();
-    expect(search.results()).toEqual([]);
-    expect(search.hasQuery()).toBe(false);
-  });
+  const actor = { id: 'test-user', name: 'Equipe de teste', handle: 'teste', initials: 'ET' };
+  TestBed.inject(SessionContext).set({ actor, users: [actor] });
+  const service = TestBed.inject(CitizenSearchService);
+  const picker = TestBed.runInInjectionContext(() => service.createStore());
+  service.model.set({ query: 'anterior' });
+  TestBed.tick();
+  service.model.set({ query: 'atual' });
+  TestBed.tick();
+  const person = {
+    id: 'test-citizen',
+    name: 'Pessoa atual',
+    initials: 'PA',
+    neighborhood: '',
+    phone: '',
+    whatsappUrl: '',
+    socialLinks: [],
+  };
+  pending.get('atual')!([person]);
+  await Promise.resolve();
+  TestBed.tick();
+  pending.get('anterior')!([]);
+  await Promise.resolve();
+  TestBed.tick();
+  expect(service.results()).toEqual([person]);
+  expect(picker.results()).toEqual([]);
+  expect(picker.model().query).toBe('');
 });

@@ -1,0 +1,27 @@
+{
+  "name": "gabinete-crm-backend",
+  "version": "0.1.0",
+  "private": true,
+  "main": "lib/index.js",
+  "engines": {
+    "node": "22"
+  },
+  "scripts": {
+    "build": "node scripts/generate-contract.mjs && node scripts/build.mjs",
+    "generate:contract": "node scripts/generate-contract.mjs",
+    "check": "tsc --noEmit",
+    "serve": "firebase emulators:start --only functions,firestore,auth,storage --project sergio-6ceff",
+    "backup": "node lib/backup.cjs"
+  },
+  "dependencies": {
+    "ajv": "^8.17.1",
+    "firebase-admin": "14.5.1",
+    "firebase-functions": "7.4.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "esbuild": "^0.25.0",
+    "ts-json-schema-generator": "^2.4.0",
+    "typescript": "~6.0.2"
+  }
+}

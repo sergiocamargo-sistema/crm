@@ -246,7 +246,7 @@
     <footer class="detail-footer">
       <span class="demo-dot"></span>Dados fictícios para demonstração
     </footer>
-  } @else {
+  } @else if (!citizenState.loading() && !citizenState.error()) {
     <section class="not-found">
       <span><app-icon name="users" /></span>
       <h1 #pageTitle tabindex="-1">Munícipe não encontrado</h1>

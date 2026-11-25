@@ -1,20 +1,8 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    function signedInWithGoogle() {
-      return request.auth != null
-        && request.auth.token.email_verified == true
-        && request.auth.token.firebase.sign_in_provider == 'google.com';
-    }
-
-    // Cada pessoa consulta somente a própria autorização. O provisionamento
-    // permanece administrativo, pelo console ou por um backend confiável.
-    match /teamAccess/{userId} {
-      allow get: if signedInWithGoogle() && request.auth.uid == userId;
-      allow list, create, update, delete: if false;
-    }
-
-    // Os dados de negócio continuam no mock; nenhum acesso é aberto por padrão.
+    // Toda autorização e toda operação de negócio passam pela API administrativa.
+    // O Admin SDK usa IAM; estas regras bloqueiam o acesso direto pelo navegador.
     match /{document=**} {
       allow read, write: if false;
     }

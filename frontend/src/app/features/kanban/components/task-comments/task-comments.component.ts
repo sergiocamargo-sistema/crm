@@ -99,7 +99,7 @@ export class TaskCommentsComponent {
     this.failure.set('');
     void submit(this.commentForm, async () => {
       try {
-        this.board.addComment(this.taskId(), this.model().text, this.parentId());
+        await this.board.addComment(this.taskId(), this.model().text, this.parentId());
         this.model.set({ text: '' });
         this.parentId.set(null);
         this.attempted.set(false);

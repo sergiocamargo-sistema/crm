@@ -1,15 +1,21 @@
+import { DataConnection } from '../../../core/backend/data-connection';
+import { SessionContext } from '../../../core/backend/session-context';
 import { effect, inject, Service, signal, untracked } from '@angular/core';
 import { CITIZEN_DETAIL_REPOSITORY } from '../repositories/citizen-detail-repository';
 import { CitizenCategoryStore } from '../stores/citizen-category.store';
 
 @Service()
 export class CitizenCategoryService {
+  private readonly connection = inject(DataConnection);
+  private readonly session = inject(SessionContext);
   private readonly repository = inject(CITIZEN_DETAIL_REPOSITORY);
   private readonly refresh = signal(0);
   readonly store = new CitizenCategoryStore();
 
   constructor() {
     effect((onCleanup) => {
+      this.connection.revision();
+      if (!this.session.profile()) return;
       this.refresh();
       let active = true;
       onCleanup(() => {
@@ -19,7 +25,6 @@ export class CitizenCategoryService {
         this.store.loading.set(true);
         this.store.loadError.set('');
       });
-      // O mock lê o catálogo antes de resolver, mantendo-o atualizado na sessão.
       void this.repository.loadCitizenCategories().then(
         (categories) => {
           if (!active) return;

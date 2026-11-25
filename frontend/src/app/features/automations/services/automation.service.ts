@@ -1,3 +1,5 @@
+import { DataConnection } from '../../../core/backend/data-connection';
+import { SessionContext } from '../../../core/backend/session-context';
 import { effect, inject, Service, signal, untracked } from '@angular/core';
 import { AUTOMATION_REPOSITORY } from '../repositories/automation-repository';
 import { AutomationStore } from '../stores/automation.store';
@@ -5,11 +7,15 @@ import type { AutomationRuleDraft, TaskSetDraft, TaskTemplateDraft } from '../mo
 
 @Service()
 export class AutomationService {
+  private readonly connection = inject(DataConnection);
+  private readonly session = inject(SessionContext);
   private readonly repository = inject(AUTOMATION_REPOSITORY);
   private readonly refresh = signal(0);
   readonly store = new AutomationStore();
   constructor() {
     effect((onCleanup) => {
+      this.connection.revision();
+      if (!this.session.profile()) return;
       const query = this.store.search().text;
       this.refresh();
       let active = true;

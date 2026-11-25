@@ -73,6 +73,7 @@ export interface RequestAwarenessView extends RequestAwareness {
   readonly citizen: CitizenSummary;
 }
 export interface RequestAttachment {
+  readonly fileReference?: string;
   readonly id: string;
   readonly name: string;
   readonly kind: 'photo' | 'document' | 'audio';

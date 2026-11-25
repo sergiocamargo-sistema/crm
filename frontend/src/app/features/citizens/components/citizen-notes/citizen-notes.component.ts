@@ -67,7 +67,7 @@ export class CitizenNotesComponent {
     this.failure.set('');
     void submit(this.observationForm, async () => {
       try {
-        this.service.saveObservations(this.citizenId(), this.model().text);
+        await this.service.saveObservations(this.citizenId(), this.model().text);
         this.status.set('Observação salva.');
         this.dialog().nativeElement.close();
       } catch (error: unknown) {

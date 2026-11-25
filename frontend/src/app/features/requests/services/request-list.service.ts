@@ -1,3 +1,4 @@
+import { RemoteReadStore } from '../../../core/stores/read-store';
 import { computed, inject, Service, signal } from '@angular/core';
 import { CITIZEN_DETAIL_REPOSITORY } from '../../citizens/repositories/citizen-detail-repository';
 import {
@@ -14,8 +15,13 @@ export class RequestListService {
   private readonly query = signal(initialRequestListQuery());
   readonly store = new RequestListStore(
     this.query,
-    computed(() => this.repository.loadRequestList(this.query())),
-    computed(() => departmentOptions(this.repository.listDepartments())),
+    new RemoteReadStore(
+      () => this.repository.loadRequestList(this.query()),
+      { items: [], total: 0 },
+      this.query,
+    ).state,
+    new RemoteReadStore(async () => departmentOptions(await this.repository.listDepartments()), [])
+      .state,
   );
 
   setDepartmentFilter(mode: DepartmentFilterMode, id: string, selected: boolean): void {

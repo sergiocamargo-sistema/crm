@@ -158,7 +158,7 @@ export class TaskEditorComponent {
     this.failure.set('');
     void submit(this.taskForm, async () => {
       try {
-        const id = this.board.saveTask(this.taskId(), this.model());
+        const id = await this.board.saveTask(this.taskId(), this.model());
         this.taskId.set(id);
         this.editingDescription.set(false);
         this.saveStatus.set('Alterações salvas.');

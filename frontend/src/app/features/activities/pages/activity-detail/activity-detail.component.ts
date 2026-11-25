@@ -32,12 +32,14 @@ export class ActivityDetailComponent {
   private readonly injector = inject(Injector);
   private readonly heading = viewChild<ElementRef<HTMLHeadingElement>>('pageTitle');
   private timer: ReturnType<typeof setTimeout> | undefined;
-  protected readonly detail = this.service.observeActivity(this.kind, this.id).state;
+  protected readonly activityState = this.service.observeActivity(this.kind, this.id);
+  protected readonly detail = this.activityState.state;
   protected readonly notFound = computed(() => ACTIVITY_LABELS[this.kind()].notFound);
   protected readonly shareStatus = signal('');
 
   constructor() {
     effect(() => {
+      this.activityState.loading();
       this.id();
       this.kind();
       this.shareStatus.set('');

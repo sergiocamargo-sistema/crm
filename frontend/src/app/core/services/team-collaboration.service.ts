@@ -1,22 +1,45 @@
 import { TEAM_REPOSITORY } from '../repositories/team.repository';
+import { NOTIFICATIONS_REPOSITORY } from '../repositories/notifications.repository';
 import { TeamStore } from '../stores/team.store';
-import { inject, Service, signal } from '@angular/core';
-import { userMentionPattern, type MentionNotification } from '../models/collaboration';
+import { DestroyRef, effect, inject, Service, signal } from '@angular/core';
+import { RemoteReadStore } from '../stores/read-store';
+import { SessionContext } from '../backend/session-context';
+import { DataConnection } from '../backend/data-connection';
 
 @Service()
 export class TeamCollaborationService {
   private readonly store = inject(TeamStore);
   private readonly repository = inject(TEAM_REPOSITORY);
-  private readonly profile = this.repository.load();
-  readonly users = this.profile.users;
-  readonly actor = this.profile.actor;
-  readonly notifications = this.store.notifications;
+  private readonly notificationsRepository = inject(NOTIFICATIONS_REPOSITORY);
+  private readonly session = inject(SessionContext);
+  private readonly connection = inject(DataConnection);
+  get users() {
+    return this.repository.load().users;
+  }
+  get actor() {
+    return this.repository.load().actor;
+  }
+  private readonly notificationTick = signal(0);
+  readonly notifications = new RemoteReadStore(() => {
+    this.notificationTick();
+    return this.notificationsRepository.load();
+  }, []).state;
   readonly recipient = signal({ userId: this.actor.id });
 
   constructor() {
-    this.store.setTeam(this.profile);
+    effect(() => {
+      const profile = this.session.profile();
+      if (profile) {
+        this.store.setTeam(profile);
+        this.recipient.set({ userId: profile.actor.id });
+      }
+    });
+    const timer = setInterval(() => {
+      if (this.session.profile() && document.visibilityState === 'visible')
+        this.notificationTick.update((value) => value + 1);
+    }, 60_000);
+    inject(DestroyRef).onDestroy(() => clearInterval(timer));
   }
-
   assigneeNames(ids: readonly string[]): string[] {
     return ids.flatMap((id) => {
       const user = this.users.find((item) => item.id === id);
@@ -29,62 +52,22 @@ export class TeamCollaborationService {
       throw new Error('Selecione pelo menos um responsável da equipe.');
     return unique;
   }
-
-  notifyMentions(
-    previousText: string,
-    text: string,
-    context: {
-      readonly taskId: string;
-      readonly taskTitle: string;
-      readonly commentId?: string;
-    },
-  ): void {
-    const handles = (value: string): Set<string> =>
-      new Set(
-        [
-          ...value
-            .replace(
-              /https?:\/\/\S+|\/(?:municipes|solicitacoes|interacoes|conversas|agendamentos)\/\S+|\/kanban\?\S+/giu,
-              ' ',
-            )
-            .matchAll(userMentionPattern()),
-        ].map((match) => match[1].toLocaleLowerCase('en-US')),
+  async markRead(id: string): Promise<void> {
+    try {
+      await this.notificationsRepository.markRead(id);
+    } catch (error) {
+      this.connection.error.set(
+        error instanceof Error ? error.message : 'Não foi possível marcar a notificação.',
       );
-    const previous = handles(previousText);
-    const current = handles(text);
-    const notifications = this.users
-      .filter((user) => current.has(user.handle) && !previous.has(user.handle))
-      .map((user): MentionNotification => ({
-        id: crypto.randomUUID(),
-        recipientId: user.id,
-        actor: this.actor.name,
-        taskId: context.taskId,
-        taskTitle: context.taskTitle,
-        commentId: context.commentId ?? null,
-        createdAt: new Date().toISOString(),
-        readAt: null,
-      }));
-    if (notifications.length)
-      this.store.notificationState.update((items) => [...notifications, ...items]);
+    }
   }
-  markRead(id: string): void {
-    const recipientId = this.recipient().userId;
-    this.store.notificationState.update((items) =>
-      items.map((item) =>
-        item.id === id && item.recipientId === recipientId && !item.readAt
-          ? { ...item, readAt: new Date().toISOString() }
-          : item,
-      ),
-    );
-  }
-  markAllRead(): void {
-    const recipientId = this.recipient().userId;
-    this.store.notificationState.update((items) =>
-      items.map((item) =>
-        item.recipientId === recipientId && !item.readAt
-          ? { ...item, readAt: new Date().toISOString() }
-          : item,
-      ),
-    );
+  async markAllRead(): Promise<void> {
+    try {
+      await this.notificationsRepository.markAllRead();
+    } catch (error) {
+      this.connection.error.set(
+        error instanceof Error ? error.message : 'Não foi possível marcar as notificações.',
+      );
+    }
   }
 }

@@ -146,12 +146,13 @@ export class RequestComposerComponent {
     this.dictation()?.stop();
     this.attempted.set(true);
     void submit(this.commentForm, async () =>
-      this.persist(() =>
-        this.service.addComment(this.workspace().request.id, {
-          text: this.commentModel().text,
-          taskId: this.taskId(),
-          parentId: this.parentId(),
-        }),
+      this.persist(
+        async () =>
+          await this.service.addComment(this.workspace().request.id, {
+            text: this.commentModel().text,
+            taskId: this.taskId(),
+            parentId: this.parentId(),
+          }),
       ),
     );
   }
@@ -159,13 +160,15 @@ export class RequestComposerComponent {
     event.preventDefault();
     this.attempted.set(true);
     void submit(this.taskForm, async () =>
-      this.persist(() => this.service.addTask(this.workspace().request.id, this.taskModel())),
+      this.persist(
+        async () => await this.service.addTask(this.workspace().request.id, this.taskModel()),
+      ),
     );
   }
-  private persist(action: () => void): void {
+  private async persist(action: () => Promise<unknown>): Promise<void> {
     this.failure.set('');
     try {
-      action();
+      await action();
       this.dialog().nativeElement.close();
       this.saved.emit();
     } catch (error: unknown) {

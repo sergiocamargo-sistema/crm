@@ -167,7 +167,7 @@
         }
       </aside>
     </div>
-  } @else {
+  } @else if (!activityState.loading() && !activityState.error()) {
     <section class="record-panel not-found">
       <app-icon name="search" />
       <h1 #pageTitle tabindex="-1">{{ notFound() }}</h1>

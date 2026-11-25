@@ -1,3 +1,18 @@
 {
-  "firestore": { "rules": "firebase/firestore.rules" }
+  "firestore": {
+    "rules": "firebase/firestore.rules",
+    "indexes": "firebase/firestore.indexes.json"
+  },
+  "storage": {
+    "rules": "firebase/storage.rules"
+  },
+  "functions": [
+    {
+      "source": "backend",
+      "codebase": "crm",
+      "runtime": "nodejs22",
+      "ignore": ["node_modules", ".git", "backups", "src", "scripts", "tsconfig.json"],
+      "predeploy": ["npm --prefix \"$RESOURCE_DIR\" run build"]
+    }
+  ]
 }

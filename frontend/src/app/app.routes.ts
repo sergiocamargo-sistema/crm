@@ -1,3 +1,5 @@
+import { inject } from '@angular/core';
+import { LabelPrintService } from './features/labels/services/label-print.service';
 import type { Routes } from '@angular/router';
 import { authGuard, signOutGuard } from './core/guards/auth.guard';
 
@@ -169,6 +171,7 @@ const workspaceRoutes: Routes = [
   },
   {
     path: 'etiquetas',
+    resolve: { configuration: () => inject(LabelPrintService).initialize() },
     title: 'Imprimir etiquetas · Gabinete Sérgio Camargo',
     loadComponent: () =>
       import('./features/labels/pages/label-print/label-print.component').then(

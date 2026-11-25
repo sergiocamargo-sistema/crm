@@ -1,1 +1,1 @@
-export const environment = { production: false, mockEnabled: true } as const;
+export const environment = { production: false, mockEnabled: false } as const;
