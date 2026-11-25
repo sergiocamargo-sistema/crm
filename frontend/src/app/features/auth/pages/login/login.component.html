@@ -1,0 +1,63 @@
+<main class="login-page" id="main-content" tabindex="-1">
+  <section class="login-card" aria-labelledby="login-title" [attr.aria-busy]="store.busy()">
+    <img
+      class="login-brand"
+      ngSrc="brand/sergio-camargo.svg"
+      width="312"
+      height="64"
+      alt="Vereador Sérgio Camargo"
+      priority
+    />
+    <div class="login-copy">
+      <h1 id="login-title" #heading tabindex="-1">Acesse o gabinete</h1>
+      <p>Entre com sua conta Google.</p>
+    </div>
+    @if (store.user(); as user) {
+      <p class="account-email">{{ user.email }}</p>
+    }
+    @if (store.session().status === 'denied') {
+      <p role="status">
+        Sua conta ainda não tem acesso ao gabinete. Solicite a liberação ao administrador.
+      </p>
+    }
+    @if (store.error(); as error) {
+      <p class="login-error" role="alert">{{ error }}</p>
+    }
+    <p class="login-status" role="status" aria-live="polite">
+      @if (store.action() === 'sign-in') {
+        Aguardando o Google…
+      } @else if (store.action() === 'sign-out') {
+        Saindo da conta…
+      } @else if (store.loading()) {
+        Verificando seu acesso…
+      }
+    </p>
+    <div class="login-actions">
+      @if (store.session().status === 'error' || store.session().status === 'denied') {
+        <button
+          class="button button--primary"
+          type="button"
+          [disabled]="store.busy()"
+          (click)="auth.refreshAccess()"
+        >
+          Verificar acesso
+        </button>
+      }
+      @if (store.user()) {
+        <button class="button" type="button" [disabled]="store.busy()" (click)="auth.signOut()">
+          Trocar conta
+        </button>
+      } @else {
+        <button
+          class="button google-sign-in"
+          type="button"
+          [disabled]="store.busy()"
+          (click)="auth.signInWithGoogle()"
+        >
+          <img ngSrc="brand/google-g.svg" width="20" height="20" alt="" />
+          Entrar com Google
+        </button>
+      }
+    </div>
+  </section>
+</main>

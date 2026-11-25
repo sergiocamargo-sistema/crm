@@ -1,4 +1,5 @@
 import type { Routes } from '@angular/router';
+import { authGuard, signOutGuard } from './core/guards/auth.guard';
 
 const loadReferralTree = () =>
   import('./features/referral-tree/pages/referral-tree/referral-tree.component').then(
@@ -12,7 +13,7 @@ const loadCitizenEditor = () =>
 const canLeaveCitizenEditor = (component: { canLeave: () => boolean | Promise<boolean> }) =>
   component.canLeave();
 
-export const routes: Routes = [
+const workspaceRoutes: Routes = [
   {
     path: 'arvore',
     title: 'Árvore · Gabinete Sérgio Camargo',
@@ -175,4 +176,29 @@ export const routes: Routes = [
       ),
   },
   { path: '**', redirectTo: '' },
+];
+
+export const routes: Routes = [
+  {
+    path: 'login',
+    title: 'Entrar · Gabinete Sérgio Camargo',
+    loadComponent: () =>
+      import('./features/auth/pages/login/login.component').then((module) => module.LoginComponent),
+  },
+  {
+    path: 'sair',
+    canActivate: [signOutGuard],
+    loadComponent: () =>
+      import('./features/auth/pages/login/login.component').then((module) => module.LoginComponent),
+  },
+  {
+    path: '',
+    canActivate: [authGuard],
+    canActivateChild: [authGuard],
+    loadComponent: () =>
+      import('./layout/authenticated-shell/authenticated-shell.component').then(
+        (module) => module.AuthenticatedShellComponent,
+      ),
+    children: workspaceRoutes,
+  },
 ];

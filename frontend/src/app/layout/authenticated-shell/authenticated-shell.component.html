@@ -1,0 +1,8 @@
+@if (auth.authorized()) {
+  <app-header />
+  <main class="app-main" id="main-content" tabindex="-1"><router-outlet /></main>
+} @else {
+  <main class="session-loading" id="main-content" tabindex="-1">
+    <p role="status">Verificando seu acesso…</p>
+  </main>
+}

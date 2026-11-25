@@ -1,0 +1,15 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+.app-main {
+  flex: 1;
+  min-width: 0;
+}
+.session-loading {
+  display: grid;
+  place-items: center;
+  min-height: 100dvh;
+  padding: var(--space-6);
+}

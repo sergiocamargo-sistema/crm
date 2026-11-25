@@ -13,9 +13,16 @@
     <app-citizen-search /><app-notifications /><span
       class="avatar profile-avatar"
       role="img"
-      [attr.aria-label]="'Perfil de ' + profile()?.actor?.name"
-      >{{ profile()?.actor?.initials }}</span
+      [attr.aria-label]="'Perfil de ' + profile()?.name"
+      [title]="profile()?.email ?? ''"
+      >{{ profile()?.initials }}</span
     >
+    <a routerLink="/sair" class="icon-button" aria-label="Sair da conta" title="Sair da conta">
+      <app-icon name="logout" />
+    </a>
   </div>
   <div class="brand-line" aria-hidden="true"><span></span></div>
+  @if (auth.error(); as error) {
+    <p class="session-error" role="alert">{{ error }}</p>
+  }
 </header>

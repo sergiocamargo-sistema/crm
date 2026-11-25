@@ -75,3 +75,4 @@ credentials.json
 service-account*.json
 serviceAccount*.json
 firebase-adminsdk*.json
+.firebase/

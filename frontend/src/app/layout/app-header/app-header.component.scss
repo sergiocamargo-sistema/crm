@@ -44,6 +44,10 @@ app-citizen-search {
   height: 4px;
   background: var(--color-primary);
 }
+.session-error {
+  padding: var(--space-2) var(--space-4);
+  color: var(--color-danger);
+}
 .brand-line > span {
   display: block;
   width: 64px;
