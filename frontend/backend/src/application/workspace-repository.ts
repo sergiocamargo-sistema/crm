@@ -40,23 +40,23 @@ export class WorkspaceRepository {
     for (let attempt = 0; attempt < 4; attempt++) {
       const head = await this.database.get<WorkspaceVersion>('crmMeta', 'head');
       const version = head ?? { epoch: 'uninitialized', revision: 0 };
-      if (this.cache?.epoch === version.epoch && this.cache.revision === version.revision)
-        return this.cache;
+      const base = this.cache;
+      if (base?.epoch === version.epoch && base.revision === version.revision) return base;
       let records: Map<string, StateRecord>;
-      if (this.cache?.epoch === version.epoch && version.revision - this.cache.revision <= 100) {
+      if (base?.epoch === version.epoch && version.revision - base.revision <= 100) {
         const journal = await this.database.find<Journal>('crmJournal', {
-          filters: [{ field: 'revision', operator: 'greater-than', value: this.cache.revision }],
+          filters: [{ field: 'revision', operator: 'greater-than', value: base.revision }],
           order: { field: 'revision', direction: 'ascending' },
           limit: 101,
         });
         if (
-          journal.length !== version.revision - this.cache.revision ||
+          journal.length !== version.revision - base.revision ||
           journal.at(-1)?.value.revision !== version.revision
         ) {
           this.cache = undefined;
           continue;
         }
-        records = new Map(this.cache.records);
+        records = new Map(base.records);
         const ids = [...new Set(journal.flatMap(({ value }) => value.changed))];
         // Limitar a concorrência para não abrir milhares de leituras simultâneas.
         for (let offset = 0; offset < ids.length; offset += 25) {

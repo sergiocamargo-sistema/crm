@@ -58,6 +58,12 @@ export function encodeState(
         ? `${key}:${item.version ?? index}`
         : key;
     });
+    if (new Set(keys).size !== keys.length)
+      throw new ApplicationError(
+        422,
+        'DUPLICATE_ENTITY',
+        'Há registros com identificação repetida.',
+      );
     // Ordinais estáveis: inserir no início não regrava todos os registros seguintes.
     const positions = keys.map((key) => previous.get(recordId(group, key))?.position);
     for (let index = 0; index < positions.length; index++) {
@@ -80,8 +86,9 @@ export function encodeState(
       for (const [name, items] of Object.entries(state.crm.automation))
         table(`crm.automation.${name}`, items);
     } else if (key === 'registration') {
-      for (const [name, items] of Object.entries(state.crm.registration))
-        items.forEach((entry, position) => put(`crm.registration.${name}`, entry[0], entry, 0));
+      for (const name of ['completed', 'reviews'] as const)
+        for (const entry of state.crm.registration[name])
+          put(`crm.registration.${name}`, entry[0], entry, 0);
     } else if (
       [
         'profileEdits',
@@ -96,7 +103,8 @@ export function encodeState(
         if (key === 'requestExtras') {
           const meta: Record<string, unknown> = {};
           for (const [field, nested] of Object.entries(data as Record<string, unknown>)) {
-            if (Array.isArray(nested)) table(`crm.${key}.${owner}.${field}`, nested);
+            if (Array.isArray(nested) && nested.length)
+              table(`crm.${key}.${owner}.${field}`, nested);
             else meta[field] = nested;
           }
           put(`crm.${key}`, owner, meta);
@@ -126,7 +134,8 @@ export function decodeState(records: ReadonlyMap<string, StateRecord>): Workspac
   )) {
     items.sort((a, b) => a.position - b.position);
     if (group === 'config') {
-      for (const item of items) (root['crm'] as Record<string, unknown>)[item.key] = item.value;
+      for (const item of items)
+        (root['crm'] as Record<string, unknown>)[item.key] = structuredClone(item.value);
       continue;
     }
     const parts = group.split('.');
@@ -137,10 +146,13 @@ export function decodeState(records: ReadonlyMap<string, StateRecord>): Workspac
       target = target[part] as Record<string, unknown>;
     }
     if (['crm.profileEdits', 'crm.requestExtras'].includes(group))
-      target[last] = Object.fromEntries(items.map((item) => [item.key, item.value]));
+      target[last] = Object.fromEntries(
+        items.map((item) => [item.key, structuredClone(item.value)]),
+      );
     else if (group.startsWith('crm.kanbanOrder.'))
-      target[last] = items.flatMap((item) => item.value as string[]);
-    else target[last] = items.filter((item) => !item.empty).map((item) => item.value);
+      target[last] = items.flatMap((item) => structuredClone(item.value) as string[]);
+    else
+      target[last] = items.filter((item) => !item.empty).map((item) => structuredClone(item.value));
   }
   return workspace;
 }

@@ -7,11 +7,13 @@
     "node": "22"
   },
   "scripts": {
-    "build": "node scripts/generate-contract.mjs && node scripts/build.mjs",
+    "build": "node scripts/generate-contract.mjs && npm run check && node scripts/build.mjs",
     "generate:contract": "node scripts/generate-contract.mjs",
     "check": "tsc --noEmit",
     "serve": "firebase emulators:start --only functions,firestore,auth,storage --project sergio-6ceff",
-    "backup": "node lib/backup.cjs"
+    "backup": "node lib/backup.cjs",
+    "test": "node scripts/test.mjs",
+    "dev:local": "node scripts/start-local.mjs"
   },
   "dependencies": {
     "ajv": "^8.17.1",

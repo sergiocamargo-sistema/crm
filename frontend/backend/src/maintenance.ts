@@ -11,6 +11,7 @@ export function maintenance(database: DocumentDatabase, files: FileStorage) {
       timeZone: 'America/Sao_Paulo',
       region: 'southamerica-east1',
       memory: '256MiB',
+      serviceAccount: 'crm-backend@sergio-6ceff.iam.gserviceaccount.com',
       maxInstances: 1,
       timeoutSeconds: 300,
       retryCount: 2,

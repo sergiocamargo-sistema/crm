@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import type { FileStorage } from '../ports/file-storage';
 import type { DocumentDatabase } from '../ports/document-database';
-import type { RequestContext } from './access';
+import { validateAccess, type RequestContext, type MemberAccess } from './access';
 import { ApplicationError } from './error';
 import {
   attachmentType,
@@ -53,6 +53,10 @@ export class FilesService {
     await this.storage.write(metadata.path, data, type.mime);
     try {
       await this.database.atomic(async (transaction) => {
+        validateAccess(
+          context.identity,
+          await transaction.get<MemberAccess>('teamAccess', context.identity.id),
+        );
         transaction.put('crmFiles', id, metadata);
       });
     } catch (error) {
@@ -65,19 +69,7 @@ export class FilesService {
     context: RequestContext,
     value: unknown,
   ): Promise<readonly { id: string; metadata: StoredFile }[]> {
-    const ids = new Set<string>();
-    const visit = (item: unknown): void => {
-      if (typeof item === 'string' && item.startsWith('crm-file://')) {
-        const id = item.slice(11);
-        if (!/^[a-f0-9-]{36}$/u.test(id))
-          throw new ApplicationError(400, 'INVALID_FILE', 'Referência de arquivo inválida.');
-        ids.add(id);
-      } else if (typeof item === 'string' && item.startsWith('blob:'))
-        throw new ApplicationError(400, 'LOCAL_FILE', 'Envie o arquivo antes de salvar.');
-      else if (Array.isArray(item)) item.forEach(visit);
-      else if (item && typeof item === 'object') Object.values(item).forEach(visit);
-    };
-    visit(value);
+    const ids = this.references(value);
     return Promise.all(
       [...ids].map(async (id) => {
         const metadata = await this.database.get<StoredFile>('crmFiles', id);
@@ -95,13 +87,37 @@ export class FilesService {
       }),
     );
   }
-  async hydrate(value: unknown): Promise<unknown> {
-    if (typeof value === 'string' && value.startsWith('crm-file://')) {
+  references(value: unknown): ReadonlySet<string> {
+    const ids = new Set<string>();
+    const visit = (item: unknown, key = ''): void => {
+      if (typeof item === 'string' && ['src', 'url'].includes(key)) {
+        if (item.startsWith('blob:'))
+          throw new ApplicationError(400, 'LOCAL_FILE', 'Envie o arquivo antes de salvar.');
+        if (item.startsWith('crm-file://')) {
+          const id = item.slice(11);
+          if (!/^[a-f0-9-]{36}$/u.test(id))
+            throw new ApplicationError(400, 'INVALID_FILE', 'Referência de arquivo inválida.');
+          ids.add(id);
+        }
+      } else if (Array.isArray(item)) item.forEach((nested) => visit(nested));
+      else if (item && typeof item === 'object')
+        Object.entries(item).forEach(([field, nested]) => visit(nested, field));
+    };
+    visit(value);
+    return ids;
+  }
+
+  async hydrate(value: unknown, field = ''): Promise<unknown> {
+    if (
+      typeof value === 'string' &&
+      ['src', 'url'].includes(field) &&
+      value.startsWith('crm-file://')
+    ) {
       const id = value.slice(11);
       const cached = this.urls.get(id);
       if (cached && cached.expires > Date.now() + 60_000) return cached.url;
       const file = await this.database.get<StoredFile>('crmFiles', id);
-      if (!file) return '';
+      if (!file || file.deleting) return '';
       const expires = Date.now() + 3_600_000;
       const url = await this.storage.signedReadUrl(file.path, new Date(expires));
       if (this.urls.size > 1000) this.urls.clear();
@@ -119,7 +135,7 @@ export class FilesService {
           await Promise.all(
             Object.entries(value).map(async ([key, item]) => [
               key,
-              key === 'fileReference' ? item : await this.hydrate(item),
+              key === 'fileReference' ? item : await this.hydrate(item, key),
             ]),
           ),
         ),

@@ -11,7 +11,18 @@
       "source": "backend",
       "codebase": "crm",
       "runtime": "nodejs22",
-      "ignore": ["node_modules", ".git", "backups", "src", "scripts", "tsconfig.json"],
+      "ignore": [
+        "node_modules",
+        ".git",
+        "backups",
+        "src",
+        "scripts",
+        "tsconfig.json",
+        "tests",
+        ".tests",
+        "lib/local.cjs",
+        "lib/backup.cjs"
+      ],
       "predeploy": ["npm --prefix \"$RESOURCE_DIR\" run build"]
     }
   ]

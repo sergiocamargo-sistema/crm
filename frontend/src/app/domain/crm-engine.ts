@@ -666,7 +666,11 @@ export class CrmEngine implements CitizenDetailOperations, AutomationOperations 
         );
       const original = citizen.photos[0];
       const thumbnail = original ? new URL(original.src) : null;
-      if (thumbnail && !original?.src.startsWith('blob:')) {
+      if (
+        thumbnail &&
+        !original?.src.startsWith('blob:') &&
+        !original?.src.startsWith('crm-file://')
+      ) {
         thumbnail.searchParams.set('w', '120');
         thumbnail.searchParams.set('h', '120');
         thumbnail.searchParams.set('q', '70');

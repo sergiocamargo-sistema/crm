@@ -3,6 +3,16 @@ import type { WorkspaceSnapshot } from './workspace-repository';
 import type { DocumentDatabase } from '../ports/document-database';
 import { ApplicationError } from './error';
 
+export const matchesSearch = (text: string, query: string): boolean => {
+  const value = normalizeSearch(query.trim());
+  if (value.length < 2) return false;
+  const digits = value.replace(/\D/gu, '');
+  return (
+    value.split(/\s+/u).every((term) => text.includes(term)) ||
+    (/^[\d\s()+.-]+$/u.test(value) && digits.length >= 2 && text.includes(digits))
+  );
+};
+
 export const normalizeSearch = (value: string): string =>
   value.normalize('NFD').replace(/\p{M}/gu, '').toLocaleLowerCase('pt-BR');
 interface Cursor {

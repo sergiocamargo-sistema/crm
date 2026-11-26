@@ -17,10 +17,10 @@ import {
   labelTemplateError,
 } from '../../../src/app/features/labels/models/label-layout';
 import type { DocumentDatabase } from '../ports/document-database';
-import type { RequestContext } from './access';
+import { validateAccess, type MemberAccess, type RequestContext } from './access';
 import { WorkspaceRepository } from './workspace-repository';
 import { ApplicationError, RevisionConflict } from './error';
-import { SearchCache } from './search-cache';
+import { SearchCache, matchesSearch } from './search-cache';
 import { attachmentType } from '../../../src/app/features/requests/models/attachment-files';
 import type { FilesService } from './files';
 
@@ -65,22 +65,37 @@ export class Dispatcher {
       };
     }
     if (operation === 'markNotificationRead' || operation === 'markAllNotificationsRead') {
-      await this.database.atomic(async (transaction) => {
-        const items =
-          operation === 'markNotificationRead'
-            ? [
-                {
-                  id: args[0],
-                  value: await transaction.get<MentionNotification>('crmNotifications', args[0]),
-                },
-              ]
-            : await transaction.find<MentionNotification>('crmNotifications', {
-                filters: [{ field: 'recipientId', operator: 'equals', value: context.actor.id }],
+      let remaining: boolean;
+      do {
+        remaining = await this.database.atomic(async (transaction) => {
+          validateAccess(
+            context.identity,
+            await transaction.get<MemberAccess>('teamAccess', context.identity.id),
+          );
+          const items =
+            operation === 'markNotificationRead'
+              ? [
+                  {
+                    id: args[0],
+                    value: await transaction.get<MentionNotification>('crmNotifications', args[0]),
+                  },
+                ]
+              : await transaction.find<MentionNotification>('crmNotifications', {
+                  filters: [
+                    { field: 'recipientId', operator: 'equals', value: context.actor.id },
+                    { field: 'readAt', operator: 'equals', value: null },
+                  ],
+                  limit: 200,
+                });
+          for (const { id, value } of items)
+            if (value?.recipientId === context.actor.id && !value.readAt)
+              transaction.put('crmNotifications', id, {
+                ...value,
+                readAt: new Date().toISOString(),
               });
-        for (const { id, value } of items)
-          if (value?.recipientId === context.actor.id && !value.readAt)
-            transaction.put('crmNotifications', id, { ...value, readAt: new Date().toISOString() });
-      });
+          return operation === 'markAllNotificationsRead' && items.length === 200;
+        });
+      } while (remaining);
       return { result: null, revision: 0 };
     }
     const fingerprint = createHash('sha256')
@@ -94,16 +109,11 @@ export class Dispatcher {
     for (let attempt = 0; attempt < 4; attempt++) {
       const snapshot = await this.workspaces.load();
       if (operation === 'searchCitizens') {
-        const terms = args[0]
-          .normalize('NFD')
-          .replace(/\p{M}/gu, '')
-          .toLowerCase()
-          .trim()
-          .split(/\s+/u);
         const index = await this.searchProjection(snapshot);
         return {
           result: index
-            .filter((person) => terms.every((term) => person.searchText.includes(term)))
+            .filter((person) => matchesSearch(person.searchText, args[0]))
+            .sort((a, b) => a.name.localeCompare(b.name, 'pt-BR'))
             .slice(0, Math.min(100, Math.max(1, args[1])))
             .map(({ searchText: _text, ...person }) => person),
           revision: snapshot.revision,
@@ -206,15 +216,17 @@ export class Dispatcher {
       if (isQuery(operation))
         return { result: await this.files.hydrate(result ?? null), revision: snapshot.revision };
       try {
+        const nextState = { crm: engine.snapshot(), labels: labels.snapshot() };
+        const linkedIds = fileLinks.length ? this.files.references(nextState) : new Set<string>();
         const committed = await this.workspaces.commit(
           context,
           snapshot,
-          { crm: engine.snapshot(), labels: labels.snapshot() },
+          nextState,
           requestId,
           fingerprint,
           result,
           notifications,
-          fileLinks,
+          fileLinks.filter(({ id }) => linkedIds.has(id)),
         );
         return { ...committed, result: await this.files.hydrate(committed.result) };
       } catch (error) {
@@ -240,11 +252,14 @@ function validateBusinessInput(value: unknown, key = '', depth = 0): void {
   if (depth > 30)
     throw new ApplicationError(400, 'INVALID_INPUT', 'O conteúdo informado é profundo demais.');
   if (typeof value === 'string') {
-    const limit = ['title', 'name'].includes(key)
-      ? 120
-      : ['text', 'description', 'observations'].includes(key)
-        ? 5000
-        : 20_000;
+    const limit =
+      key === 'name'
+        ? 200
+        : key === 'title'
+          ? 120
+          : ['text', 'description', 'observations'].includes(key)
+            ? 5000
+            : 20_000;
     if (value.length > limit)
       throw new ApplicationError(
         400,

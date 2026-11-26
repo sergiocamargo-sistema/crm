@@ -82,3 +82,5 @@ firebase-adminsdk*.json
 /backend/lib/
 /backend/backups/
 *.backup.enc
+
+/backend/.tests/

@@ -2,13 +2,15 @@
 
 Implementação iniciada em 25/11/2026 na branch `homologacao`, autorizada para todos os módulos ativos existentes. Firestore é o primeiro provedor de persistência; o navegador usa uma API por ações de negócio. A `main` e sua publicação no GitHub Pages permanecem na versão anterior.
 
-## Estado de entrega
+## Estado atual
 
 Código preparado para cadastro/ficha/busca/listagem de munícipes, categorias e indicação, interações e detalhes de conversas/agendamentos já existentes, solicitações, departamentos, padrões, ciências, comentários, anexos, tarefas/Kanban, etiquetas de tarefas, histórico/horas, automações, notificações internas e impressão de etiquetas. Os botões de módulos que ainda não tinham implementação não passam a existir por este trabalho. A antiga caixa de entrada continua arquivada: não há integração WhatsApp/156/e-mail, envio ao munícipe ou novos módulos legislativos.
 
-Na última consulta operacional desta implementação, o projeto `sergio-6ceff` estava sem faturamento (`billingEnabled:false`). Auth Google, conta inicial e Firestore foram configurados na etapa anterior. A API, Storage, limpeza programada, backups nativos e cópia externa ainda precisam ser publicados/configurados. Não houve build manual, testes ou navegador nesta tarefa, conforme a preferência explícita do usuário. Não chamar este estado de produção validada.
+Atualização de 26/11/2026: faturamento Blaze confirmado ativo. API `crmApi`, função programada `crmMaintenance`, regras/índices e bucket privado foram preparados/publicados no projeto existente, em São Paulo. A URL da API é `https://southamerica-east1-sergio-6ceff.cloudfunctions.net/crmApi`. O site e a `main` permanecem preservados. Backups nativos, cópia externa e PITR ainda não foram configurados.
 
-O aplicativo agora seleciona os repositórios HTTP, sem fallback para dados fictícios. Até a publicação da API, esta branch precisa do backend para entrar e carregar os módulos. Não publicar a branch na `main` antes da integração real e da validação.
+A compilação do backend e **15 testes locais** passaram, incluindo autorização, contrato HTTP fechado, CORS, persistência/rollback, concorrência, idempotência, estrelas, solicitações/tarefas, automações com dependências, fotos e sincronização incremental. Os testes usam adaptadores em memória, sem dados reais ou acesso à nuvem. A API publicada respondeu HTTP 401 sem login e 204 ao preflight permitido; isso não equivale a validar login real e CRUD autenticado em produção. Não foram executados build/testes do frontend ou navegador nesta etapa.
+
+O frontend seleciona repositórios HTTP, sem fallback para dados fictícios. O banco permanece sem importação de munícipes reais. A integração ainda precisa de validação do fluxo autenticado e do frontend antes de substituir a versão da `main`.
 
 ## Fluxo e desacoplamento
 
@@ -29,11 +31,11 @@ API → Dispatcher → motor de domínio → WorkspaceRepository → DocumentDat
 
 Trocar para PostgreSQL exige implementar seu adaptador, migrar os dados e então mudar a seleção nesse arquivo. O adaptador deve cumprir isolamento transacional, filtros e leitura das próprias escritas. Uma tabela de documentos com chave `(collection,id)` e corpo JSONB pode preservar o formato inicialmente; um modelo relacional exige migração explícita. Alterar uma linha de configuração não converte os dados nem cria o novo adaptador.
 
-Os contratos antigos de `docs/api` draft.3 no repositório são planejamento histórico, não uma lista de endpoints já publicados. A implementação atual é o contrato de ações acima.
+Os contratos antigos de `docs/api` draft.3 no repositório são planejamento histórico, não uma lista de endpoints já publicados. A implementação atual é o contrato de ações acima. O build agora executa o TypeScript estrito antes de empacotar; não basta o esbuild aceitar o código.
 
 ## API e acesso
 
-Funções previstas: `crmApi` e `crmMaintenance`, região `southamerica-east1`, Node 22. API com mínimo zero e máximo duas instâncias. Não há configuração de Hosting.
+Funções previstas: `crmApi` e `crmMaintenance`, região `southamerica-east1`, Node 22. API com mínimo zero e máximo duas instâncias, até quatro chamadas simultâneas por instância. Não há configuração de Hosting.
 
 - `GET /v1/session`: valida token Google e vínculo ativo, devolve perfil da equipe/autorização.
 - `POST /v1/actions`: `{operation,args,requestId}`. Operações são geradas dos contratos, sem execução de métodos arbitrários. JSON Schema valida argumentos e campos; domínio valida regras de negócio. Resposta `{result,revision}`; erros usam `application/problem+json`.
@@ -47,7 +49,7 @@ Firestore e Storage negam acesso direto do navegador. O backend usa IAM. CORS in
 
 ## Persistência e concorrência
 
-- `crmRecords`: entidades separadas por grupo e chave; comentários, anexos, tarefas, contatos e eventos não crescem em um único documento do pai. Arrays vazios têm marcador explícito. Configurações canônicas iniciais incluem Gabinete, tipos de documento/gênero e modelo de etiquetas; não incluem pessoas, tarefas ou automações fictícias.
+- `crmRecords`: entidades separadas por grupo e chave; comentários, anexos, tarefas, contatos e eventos não crescem em um único documento do pai. Catálogos vazios têm marcador explícito; coleções vazias de uma solicitação ficam na própria metadata, evitando cinco documentos extras por solicitação. A reconstrução clona os dados e não modifica os documentos usados na comparação de alterações. Configurações canônicas iniciais incluem Gabinete, tipos de documento/gênero e modelo de etiquetas; não incluem pessoas, tarefas ou automações fictícias.
 - `crmMeta/head`: época e revisão global. Cada gravação verifica a revisão e autorização, grava somente documentos alterados, journal, arquivos vinculados, notificações e recibo em uma transação. Conflito refaz a operação sobre a versão atual.
 - `crmJournal`: IDs dos documentos/munícipes alterados, com vencimento em 30 dias.
 - `crmReceipts`: resultado por usuário/requestId e impressão digital dos argumentos. Repetição com outros dados é rejeitada. Ações podem ser repetidas pela rede com a mesma chave.
@@ -77,17 +79,17 @@ O antigo `voteEstimate` não é lido como avaliação nem convertido para estrel
 
 ## Arquivos
 
-Primeiro adaptador: Cloud Storage, bucket esperado `sergio-6ceff.firebasestorage.app`. Criar/configurar o bucket no Blaze antes de usar anexos. O backend valida extensão, tipo aceito, tamanho, propriedade do upload pendente e existência; autoria, tamanho e MIME gravados vêm do servidor. Esta validação não inclui antivírus.
+Adaptador de produção: Cloud Storage, bucket `sergio-6ceff.firebasestorage.app`, criado em `southamerica-east1` com acesso uniforme, prevenção de acesso público e soft delete de sete dias. O backend valida extensão, tipo aceito, tamanho, propriedade do upload pendente e existência; autoria, tamanho e MIME gravados vêm do servidor. Esta validação não inclui antivírus.
 
 Persistência usa `crm-file://UUID`, nunca `blob:` ou URL assinada. Respostas recebem URL de leitura com uma hora de validade e referência durável para futuras edições. Reconsultar o registro renova a URL. URLs não são públicas permanentes; quem possuir uma URL assinada pode lê-la até vencer. A assinatura exige que a identidade de execução possa assinar blobs, além de ler os objetos.
 
-Uploads sem vínculo são limpos depois de sete dias pelo job diário; objetos vinculados não entram nessa limpeza. Um marcador impede disputar exclusão com uma gravação. Áudios mantêm os players compartilhados, sem transcodificação. Google Drive não é o adaptador de arquivos ativos implementado nesta etapa.
+A revisão de duplicidade mantém fotos ainda não usadas como pendentes. Somente referências efetivamente presentes nos registros salvos marcam o arquivo como vinculado; texto livre não é convertido em URL nem vincula arquivos. Uploads sem vínculo são limpos depois de sete dias pelo job diário; objetos vinculados não entram nessa limpeza. Um marcador impede disputar exclusão com uma gravação. Áudios mantêm os players compartilhados, sem transcodificação. Google Drive não é o adaptador de arquivos ativos implementado nesta etapa.
 
 ## Instalação e publicação
 
 Dependências do backend têm lockfile próprio. Usar Node 22 e `npm ci` neste diretório. `npm run generate:contract` regenera tipos concretos e JSON Schema; `npm run build` gera os bundles da função e do CLI de backup. São rotinas distintas: gerar contrato não substitui compilar ou testar.
 
-Depois de ativar Blaze, preparar APIs e IAM necessários ao Functions de segunda geração, Scheduler, Firestore e Storage. Criar o bucket, configurar soft delete e a assinatura de URLs pela identidade de execução. Configurar orçamento/alertas separadamente. Não escolher conta global de outro projeto nem baixar chave de serviço para o repositório.
+As APIs de Functions, Cloud Build, Artifact Registry, Cloud Run, Eventarc, Pub/Sub, Scheduler, Storage e IAM Credentials foram habilitadas. A identidade de execução é `crm-backend@sergio-6ceff.iam.gserviceaccount.com`, com `roles/datastore.user` e `roles/firebaseauth.viewer` no projeto, `roles/storage.objectAdmin` somente no bucket e `roles/iam.serviceAccountTokenCreator` sobre si mesma para assinar URLs. A API HTTP permite invocação pública na infraestrutura e exige token Firebase/vínculo ativo na aplicação; o job programado não compartilha essa abertura. O repositório de imagens de deploy tem limpeza automática após sete dias. Orçamento/alertas de cobrança continuam uma configuração separada. Não escolher conta global de outro projeto nem baixar chave de serviço para o repositório.
 
 O deploy, quando autorizado e validado, parte de `frontend/`:
 
@@ -96,6 +98,25 @@ firebase deploy --only functions:crm,firestore,storage --project sergio-6ceff --
 ```
 
 O predeploy executa o build do backend; não publica GitHub Pages. Confirmar a URL retornada e ajustar `../src/app/core/config/backend.config.ts` se necessário. Aplicar as regras que bloqueiam acesso direto somente junto da migração para a API; o login antigo publicado em outra branch ainda usa leitura da própria autorização. A `main` permanece no mock e não foi migrada por esta branch.
+
+## Desenvolvimento sem nuvem
+
+A entrada HTTP comum está em `src/http/api.ts`, com dependências por contrato. `src/index.ts` apenas liga essa aplicação ao Firebase. `src/local.ts` liga a mesma aplicação a banco/arquivos em memória e a uma identidade de desenvolvimento isolada:
+
+```sh
+cd backend
+npm ci
+npm run dev:local
+```
+
+A API local escuta somente em `127.0.0.1:4400` e mostra no terminal um token temporário, renovado a cada execução. Usá-lo como Bearer em chamadas HTTP a `/v1/session`, `/v1/actions` e `/v1/files`. `CRM_LOCAL_PORT` permite outra porta. Esse modo não usa login Google real nem se conecta ao Firebase; é desenvolvimento da API, não um modo de produção do frontend. Banco, uploads e usuário local somem ao encerrar. A entrada local é bloqueada em ambiente de produção/Functions e é excluída do pacote enviado ao Firebase.
+
+```sh
+npm run build
+npm test
+```
+
+`npm test` compila os arquivos de teste e executa casos com `node:test`; `.tests/` é artefato local ignorado. Não instalar outro runner nem publicar fixtures no projeto. Nesta sessão, o usuário autorizou continuar após a pergunta sobre compilação/testes do backend e informou o upgrade para Blaze; isso não autoriza novas execuções automáticas em tarefas futuras nem testes de navegador/frontend.
 
 ## Backups, cópia física e migração
 
@@ -108,7 +129,7 @@ firebase firestore:backups:schedules:create --database '(default)' --recurrence 
 firebase firestore:backups:schedules:create --database '(default)' --recurrence WEEKLY --day-of-week SUNDAY --retention 4w --project sergio-6ceff --account comunicacaosergiocamargo@gmail.com
 ```
 
-Conferir agendamentos existentes antes de criar, sem duplicar. PITR de sete dias é uma opção adicional, ainda não habilitada. A proteção contra exclusão do banco já existia da etapa anterior. Soft delete do Storage precisa ser conferido; backup do banco não inclui bytes dos anexos, usuários do Firebase Authentication, IAM, TTLs ou todas as configurações externas.
+Conferir agendamentos existentes antes de criar, sem duplicar. PITR de sete dias é uma opção adicional, ainda não habilitada. A proteção contra exclusão do banco já existia da etapa anterior. Soft delete do Storage foi configurado para sete dias; backup do banco não inclui bytes dos anexos, usuários do Firebase Authentication, IAM, TTLs ou todas as configurações externas.
 
 O CLI administrativo `src/backup-cli.ts` produz uma cópia independente em diretório local, usando ADC/credencial administrativa fora do projeto. Exige `GOOGLE_CLOUD_PROJECT`, `CRM_STORAGE_BUCKET` e `CRM_BACKUP_KEY` (32 bytes aleatórios em hexadecimal, fornecidos pelo gerenciador de segredos, nunca no Git ou em argumento de processo):
 
