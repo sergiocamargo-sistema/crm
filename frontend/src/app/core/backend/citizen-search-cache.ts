@@ -6,6 +6,7 @@ import { backendConfig } from '../config/backend.config';
 import { SessionContext } from './session-context';
 import { ApiClient } from './api-client';
 import { DataConnection } from './data-connection';
+import { SearchCacheCipher } from './search-cache-cipher';
 
 type SearchRecord = SearchCachePage['records'][number];
 interface CacheMeta {
@@ -27,6 +28,7 @@ export class CachedCitizenSearch implements CitizenSearchRepository {
   private readonly session = inject(SessionContext);
   private readonly connection = inject(DataConnection);
   private readonly index = signal<readonly SearchRecord[]>([]);
+  private readonly cipher = new SearchCacheCipher();
   private owner: string | null = null;
   private meta: CacheMeta | null = null;
   private ready: Promise<void> = Promise.resolve();
@@ -81,6 +83,20 @@ export class CachedCitizenSearch implements CitizenSearchRepository {
       .map(({ searchText: _text, ...person }) => person);
   }
   private async initialize(owner: string, generation: number): Promise<void> {
+    // A versão anterior armazenava texto livre em claro. Não reutilizar esse índice.
+    await this.deleteDatabase(`gabinete-search-v1-${owner}`);
+    if (typeof indexedDB !== 'undefined' && typeof indexedDB.databases === 'function') {
+      try {
+        const databases = await indexedDB.databases();
+        await Promise.all(
+          databases
+            .filter(({ name }) => name?.startsWith('gabinete-search-v1-'))
+            .map(({ name }) => this.deleteDatabase(name!)),
+        );
+      } catch {
+        /* Outros navegadores permitem somente a limpeza do usuário atual. */
+      }
+    }
     try {
       const entries = await this.read(owner);
       if (generation !== this.generation) return;
@@ -92,7 +108,7 @@ export class CachedCitizenSearch implements CitizenSearchRepository {
         );
       } else await this.erase(owner);
     } catch {
-      /* IndexedDB indisponível: usar somente memória. */
+      await this.erase(owner);
     }
     if (generation === this.generation) await this.synchronize();
   }
@@ -119,7 +135,7 @@ export class CachedCitizenSearch implements CitizenSearchRepository {
     let reset = false;
     let target: CacheMeta | null = null;
     for (let pages = 0; pages < 250; pages++) {
-      const result = await this.api.call(
+      const result: SearchCachePage = await this.api.call(
         'syncCitizenSearch',
         original?.epoch ?? null,
         original?.revision ?? 0,
@@ -187,7 +203,7 @@ export class CachedCitizenSearch implements CitizenSearchRepository {
   }
   private open(owner: string): Promise<IDBDatabase> {
     return new Promise((resolve, reject) => {
-      const request = indexedDB.open(`gabinete-search-v1-${owner}`, 1);
+      const request = indexedDB.open(`gabinete-search-v2-${owner}`, 1);
       request.onupgradeneeded = () =>
         request.result.createObjectStore('records', { keyPath: 'id' });
       request.onsuccess = () => resolve(request.result);
@@ -198,11 +214,24 @@ export class CachedCitizenSearch implements CitizenSearchRepository {
   private async read(owner: string): Promise<CacheEntry[]> {
     const db = await this.open(owner);
     try {
-      return await new Promise<CacheEntry[]>((resolve, reject) => {
-        const request = db.transaction('records').objectStore('records').getAll();
-        request.onsuccess = () => resolve(request.result as CacheEntry[]);
+      const encrypted = await new Promise<
+        { id: string; value: Awaited<ReturnType<SearchCacheCipher['encrypt']>> }[]
+      >((resolve, reject) => {
+        const request = db
+          .transaction('records')
+          .objectStore('records')
+          .getAll(undefined, backendConfig.searchCacheMaxRecords + 2);
+        request.onsuccess = () => resolve(request.result);
         request.onerror = () => reject(request.error);
       });
+      if (encrypted.length > backendConfig.searchCacheMaxRecords + 1)
+        throw new Error('Cache excedido.');
+      return await Promise.all(
+        encrypted.map(async ({ id, value }) => ({
+          id,
+          value: (await this.cipher.decrypt(owner, value)) as CacheEntry['value'],
+        })),
+      );
     } finally {
       db.close();
     }
@@ -214,15 +243,23 @@ export class CachedCitizenSearch implements CitizenSearchRepository {
     changed: ReadonlyMap<string, SearchRecord>,
     removed: ReadonlySet<string>,
   ): Promise<void> {
+    // Criptografar antes de abrir a transação: await de WebCrypto a encerraria prematuramente.
+    const encrypted = await Promise.all(
+      [...changed].map(async ([id, value]) => ({
+        id,
+        value: await this.cipher.encrypt(owner, value),
+      })),
+    );
+    const encryptedMeta = await this.cipher.encrypt(owner, meta);
     const db = await this.open(owner);
     try {
       await new Promise<void>((resolve, reject) => {
         const transaction = db.transaction('records', 'readwrite');
         const records = transaction.objectStore('records');
         if (reset) records.clear();
-        changed.forEach((value, id) => records.put({ id, value }));
+        encrypted.forEach((entry) => records.put(entry));
         removed.forEach((id) => records.delete(id));
-        records.put({ id: '@meta', value: meta });
+        records.put({ id: '@meta', value: encryptedMeta });
         transaction.oncomplete = () => resolve();
         transaction.onerror = () => reject(transaction.error);
         transaction.onabort = () => reject(transaction.error);
@@ -232,9 +269,25 @@ export class CachedCitizenSearch implements CitizenSearchRepository {
     }
   }
   private erase(owner: string): Promise<void> {
+    try {
+      this.cipher.clear(owner);
+    } catch {
+      /* Armazenamento pode estar bloqueado. */
+    }
+    return this.deleteDatabase(`gabinete-search-v2-${owner}`);
+  }
+  private deleteDatabase(name: string): Promise<void> {
     return new Promise((resolve) => {
-      const request = indexedDB.deleteDatabase(`gabinete-search-v1-${owner}`);
-      request.onsuccess = request.onerror = request.onblocked = () => resolve();
+      try {
+        if (typeof indexedDB === 'undefined') {
+          resolve();
+          return;
+        }
+        const request = indexedDB.deleteDatabase(name);
+        request.onsuccess = request.onerror = request.onblocked = () => resolve();
+      } catch {
+        resolve();
+      }
     });
   }
 }

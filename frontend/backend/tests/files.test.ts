@@ -102,3 +102,30 @@ test('arquivos rejeitam tamanho excessivo e URLs locais assinadas expiram', asyn
     null,
   );
 });
+
+test('links de imagem/documento são curtos e áudio preserva a janela de reprodução', async () => {
+  const api = await harness();
+  const id = '00000000-0000-4000-8000-000000000001';
+  const start = Date.now();
+  for (const mimeType of ['image/png', 'application/pdf', 'audio/ogg']) {
+    await api.database.atomic(async (tx) =>
+      tx.put('crmFiles', id, {
+        path: `crm/${id}`,
+        ownerId: 'test-member',
+        name: 'arquivo',
+        mimeType,
+        size: 8,
+        attached: true,
+        createdAt: new Date().toISOString(),
+      } satisfies StoredFile),
+    );
+    // Instância nova evita reutilizar a URL do formato anterior deste teste.
+    const hydrated = (await new FilesService(api.database, api.storage).hydrate({
+      url: `crm-file://${id}`,
+    })) as { url: string };
+    const expires = Number(new URL(hydrated.url).searchParams.get('expires'));
+    const duration = mimeType.startsWith('audio/') ? 3_600_000 : 600_000;
+    assert.ok(expires >= start + duration);
+    assert.ok(expires <= Date.now() + duration);
+  }
+});

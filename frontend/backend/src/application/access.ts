@@ -3,6 +3,7 @@ import type { TeamUser } from '../../../src/app/core/models/collaboration';
 import type { DatabaseReader } from '../ports/document-database';
 import type { IdentityProvider, VerifiedIdentity } from '../ports/identity-provider';
 import { ApplicationError } from './error';
+import { permissions, type Permission } from './security';
 
 export interface MemberAccess {
   readonly active: boolean;
@@ -10,11 +11,17 @@ export interface MemberAccess {
   readonly role: 'admin' | 'member';
   readonly name?: string;
   readonly handle?: string;
+  readonly permissions?: readonly Permission[];
 }
 
 export interface RequestContext extends TeamProfile {
   readonly identity: VerifiedIdentity;
   readonly role: MemberAccess['role'];
+  readonly member: MemberAccess;
+  readonly traceId?: string;
+  readonly operation?: import('../../../src/app/domain/contracts/backend-api').BackendOperation;
+  readonly additionalPermissions?: readonly Permission[];
+  readonly resourceIds?: readonly string[];
 }
 
 export function validateAccess(identity: VerifiedIdentity, member: MemberAccess | null): void {
@@ -23,10 +30,23 @@ export function validateAccess(identity: VerifiedIdentity, member: MemberAccess 
     identity.provider !== 'google.com' ||
     member?.active !== true ||
     !['admin', 'member'].includes(member.role) ||
+    (member.permissions !== undefined &&
+      (!Array.isArray(member.permissions) ||
+        member.permissions.some((item) => !permissions.includes(item)))) ||
     member.email.trim().toLowerCase() !== identity.email.toLowerCase()
   ) {
     throw new ApplicationError(403, 'ACCESS_DENIED', 'Esta conta não tem acesso ao gabinete.');
   }
+  if (
+    identity.authenticatedAt !== undefined &&
+    (!Number.isFinite(identity.authenticatedAt) ||
+      Date.now() / 1000 - identity.authenticatedAt > 8 * 60 * 60)
+  )
+    throw new ApplicationError(
+      401,
+      'SESSION_EXPIRED',
+      'Sua sessão expirou. Entre novamente com o Google.',
+    );
 }
 
 export class AccessService {
@@ -58,7 +78,7 @@ export class AccessService {
     const users = [...this.teamCache.users.filter((user) => user.id !== actor.id), actor].sort(
       (a, b) => a.name.localeCompare(b.name, 'pt-BR'),
     );
-    return { identity, role: member!.role, actor, users };
+    return { identity, role: member!.role, member: member!, actor, users };
   }
 
   private toUser(id: string, member: MemberAccess): TeamUser {

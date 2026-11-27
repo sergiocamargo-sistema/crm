@@ -18,7 +18,7 @@ export function maintenance(database: DocumentDatabase, files: FileStorage) {
     },
     async () => {
       const now = new Date().toISOString();
-      for (const collection of ['crmJournal', 'crmReceipts']) {
+      for (const collection of ['crmJournal', 'crmReceipts', 'crmRateLimits', 'crmSecurityAudit']) {
         for (let batch = 0; batch < 20; batch++) {
           const expired = await database.find(collection, {
             filters: [{ field: 'expiresAt', operator: 'at-most', value: now }],

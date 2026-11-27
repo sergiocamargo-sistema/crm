@@ -23,7 +23,8 @@ export async function exportBackup(database: DocumentDatabase): Promise<Portable
   for (let attempt = 0; attempt < 4; attempt++) {
     const before = await database.get('crmMeta', 'head');
     const content: Record<string, readonly DatabaseDocument[]> = {};
-    for (const name of collections) content[name] = await database.find(name);
+    for (const name of [...collections, 'crmSecurityAudit'])
+      content[name] = await database.find(name);
     const after = await database.get('crmMeta', 'head');
     if (JSON.stringify(before) !== JSON.stringify(after)) continue;
     const envelope = {

@@ -3,6 +3,8 @@ import type { FileStorage } from '../ports/file-storage';
 import type { DocumentDatabase } from '../ports/document-database';
 import { validateAccess, type RequestContext, type MemberAccess } from './access';
 import { ApplicationError } from './error';
+import { verifiedContentType } from './file-content';
+import { appendAudit, auditEntry, requirePermission } from './security';
 import {
   attachmentType,
   MAX_ATTACHMENT_SIZE,
@@ -41,29 +43,31 @@ export class FilesService {
     )
       throw new ApplicationError(400, 'INVALID_FILE', 'Escolha um arquivo válido de até 20 MB.');
     const id = randomUUID();
+    requirePermission(context.member, 'files.upload');
+    const verifiedMime = verifiedContentType(name, data);
     const metadata: StoredFile = {
       path: `crm/${id}`,
       ownerId: context.identity.id,
       name,
-      mimeType: type.mime,
+      mimeType: verifiedMime,
       size: data.length,
       createdAt: new Date().toISOString(),
       attached: false,
     };
-    await this.storage.write(metadata.path, data, type.mime);
+    await this.storage.write(metadata.path, data, verifiedMime);
     try {
       await this.database.atomic(async (transaction) => {
-        validateAccess(
-          context.identity,
-          await transaction.get<MemberAccess>('teamAccess', context.identity.id),
-        );
+        const member = await transaction.get<MemberAccess>('teamAccess', context.identity.id);
+        validateAccess(context.identity, member);
+        requirePermission(member!, 'files.upload');
         transaction.put('crmFiles', id, metadata);
+        appendAudit(transaction, auditEntry(context, 'files.upload', 'committed', { count: 1 }));
       });
     } catch (error) {
       await this.storage.remove(metadata.path);
       throw error;
     }
-    return { reference: `crm-file://${id}`, name, mimeType: type.mime, size: data.length };
+    return { reference: `crm-file://${id}`, name, mimeType: verifiedMime, size: data.length };
   }
   async authorizeReferences(
     context: RequestContext,
@@ -118,8 +122,9 @@ export class FilesService {
       if (cached && cached.expires > Date.now() + 60_000) return cached.url;
       const file = await this.database.get<StoredFile>('crmFiles', id);
       if (!file || file.deleting) return '';
-      const expires = Date.now() + 3_600_000;
-      const url = await this.storage.signedReadUrl(file.path, new Date(expires));
+      // Áudio usa requisições por trechos: preservar uma hora para reprodução e busca no player.
+      const expires = Date.now() + (file.mimeType.startsWith('audio/') ? 60 : 10) * 60_000;
+      const url = await this.storage.signedReadUrl(file.path, new Date(expires), file.mimeType);
       if (this.urls.size > 1000) this.urls.clear();
       this.urls.set(id, { url, expires });
       return url;

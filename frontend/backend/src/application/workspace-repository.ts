@@ -11,6 +11,7 @@ import {
   type WorkspaceState,
 } from './state-records';
 import type { MentionNotification } from '../../../src/app/core/models/collaboration';
+import { appendAudit, auditEntry, requirePermission, operationPermission } from './security';
 
 export interface WorkspaceVersion {
   readonly epoch: string;
@@ -135,6 +136,9 @@ export class WorkspaceRepository {
         transaction.get<Receipt>('crmReceipts', this.receiptId(context, requestId)),
       ]);
       validateAccess(context.identity, member);
+      if (context.operation) requirePermission(member!, operationPermission(context.operation));
+      for (const permission of context.additionalPermissions ?? [])
+        requirePermission(member!, permission);
       for (const file of fileLinks) {
         const stored = await transaction.get<import('./files').StoredFile>('crmFiles', file.id);
         if (
@@ -171,6 +175,13 @@ export class WorkspaceRepository {
       for (const notification of notifications)
         transaction.put('crmNotifications', notification.id, notification);
       transaction.put('crmMeta', 'head', { epoch, revision });
+      appendAudit(
+        transaction,
+        auditEntry(context, context.operation ?? 'workspace.commit', 'committed', {
+          revision,
+          count: changed.length,
+        }),
+      );
       transaction.put('crmJournal', String(revision).padStart(16, '0'), {
         revision,
         changed,

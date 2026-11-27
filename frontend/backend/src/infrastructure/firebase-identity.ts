@@ -10,6 +10,7 @@ export class FirebaseIdentity implements IdentityProvider {
       name: typeof identity['name'] === 'string' ? identity['name'] : (identity.email ?? ''),
       provider: identity.firebase.sign_in_provider,
       emailVerified: identity.email_verified === true,
+      authenticatedAt: identity.auth_time,
     };
   }
 }

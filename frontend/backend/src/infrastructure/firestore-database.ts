@@ -1,5 +1,6 @@
 import {
   getFirestore,
+  Timestamp,
   type Firestore,
   type Query,
   type Transaction,
@@ -12,6 +13,20 @@ import type {
 } from '../ports/document-database';
 
 const operators = { equals: '==', 'greater-than': '>', 'at-most': '<=' } as const;
+const ttlCollections = new Set(['crmRateLimits', 'crmSecurityAudit']);
+
+/** Datas de expiração nativas ficam restritas ao adaptador; o domínio usa ISO portátil. */
+export function encodeDocument(collection: string, value: unknown): Record<string, unknown> {
+  const data = JSON.parse(JSON.stringify(value)) as Record<string, unknown>;
+  if (ttlCollections.has(collection) && typeof data['expiresAt'] === 'string')
+    data['expiresAt'] = Timestamp.fromDate(new Date(data['expiresAt']));
+  return data;
+}
+export function decodeDocument<T>(collection: string, value: Record<string, unknown>): T {
+  if (ttlCollections.has(collection) && value['expiresAt'] instanceof Timestamp)
+    return { ...value, expiresAt: value['expiresAt'].toDate().toISOString() } as T;
+  return value as T;
+}
 
 /** A implementação do contrato de banco; nenhuma regra de negócio vive aqui. */
 export class FirestoreDatabase implements DocumentDatabase {
@@ -19,7 +34,7 @@ export class FirestoreDatabase implements DocumentDatabase {
 
   async get<T>(collection: string, id: string): Promise<T | null> {
     const snapshot = await this.database.collection(collection).doc(id).get();
-    return snapshot.exists ? (snapshot.data() as T) : null;
+    return snapshot.exists ? decodeDocument<T>(collection, snapshot.data()!) : null;
   }
 
   async find<T>(
@@ -27,7 +42,10 @@ export class FirestoreDatabase implements DocumentDatabase {
     options: DatabaseQuery = {},
   ): Promise<readonly DatabaseDocument<T>[]> {
     const snapshot = await this.query(collection, options).get();
-    return snapshot.docs.map((document) => ({ id: document.id, value: document.data() as T }));
+    return snapshot.docs.map((document) => ({
+      id: document.id,
+      value: decodeDocument<T>(collection, document.data()),
+    }));
   }
 
   async atomic<T>(action: (transaction: DatabaseTransaction) => Promise<T>): Promise<T> {
@@ -43,7 +61,7 @@ export class FirestoreDatabase implements DocumentDatabase {
           const staged = pending.get(key);
           if (staged) return staged.deleted ? null : (staged.value as V);
           const snapshot = await transaction.get(this.database.collection(collection).doc(id));
-          return snapshot.exists ? (snapshot.data() as V) : null;
+          return snapshot.exists ? decodeDocument<V>(collection, snapshot.data()!) : null;
         },
         find: async <V>(
           collection: string,
@@ -55,7 +73,7 @@ export class FirestoreDatabase implements DocumentDatabase {
           const snapshot = await transaction.get(this.query(collection, options));
           return snapshot.docs.map((document) => ({
             id: document.id,
-            value: document.data() as V,
+            value: decodeDocument<V>(collection, document.data()),
           }));
         },
         put: (collection, id, value): void => {
@@ -76,7 +94,15 @@ export class FirestoreDatabase implements DocumentDatabase {
   private query(collection: string, options: DatabaseQuery): Query {
     let query: Query = this.database.collection(collection);
     for (const filter of options.filters ?? [])
-      query = query.where(filter.field, operators[filter.operator], filter.value);
+      query = query.where(
+        filter.field,
+        operators[filter.operator],
+        ttlCollections.has(collection) &&
+          filter.field === 'expiresAt' &&
+          typeof filter.value === 'string'
+          ? Timestamp.fromDate(new Date(filter.value))
+          : filter.value,
+      );
     if (options.order)
       query = query.orderBy(
         options.order.field,
@@ -92,10 +118,6 @@ export class FirestoreDatabase implements DocumentDatabase {
   ): void {
     const reference = this.database.collection(entry.collection).doc(entry.id);
     if (entry.deleted) transaction.delete(reference);
-    else
-      transaction.set(
-        reference,
-        JSON.parse(JSON.stringify(entry.value)) as Record<string, unknown>,
-      );
+    else transaction.set(reference, encodeDocument(entry.collection, entry.value));
   }
 }

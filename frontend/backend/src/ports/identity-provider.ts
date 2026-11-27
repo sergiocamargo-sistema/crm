@@ -4,6 +4,7 @@ export interface VerifiedIdentity {
   readonly name: string;
   readonly provider: string;
   readonly emailVerified: boolean;
+  readonly authenticatedAt?: number;
 }
 
 export interface IdentityProvider {

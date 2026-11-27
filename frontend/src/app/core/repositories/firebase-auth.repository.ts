@@ -1,6 +1,7 @@
 import { inject, Service } from '@angular/core';
 import type { Auth, User } from 'firebase/auth';
-import { firebaseConfig } from '../config/firebase.config';
+import { firebaseApplication } from '../backend/firebase-app';
+import { AppCheckTokenProvider } from '../backend/app-check-token';
 import { backendConfig } from '../config/backend.config';
 import { SessionContext } from '../backend/session-context';
 import type { TeamProfile } from '../../domain/contracts/backend-api';
@@ -14,6 +15,7 @@ interface FirebaseRuntime {
 @Service()
 export class FirebaseAuthRepository implements AuthRepository {
   private readonly session = inject(SessionContext);
+  private readonly appCheck = inject(AppCheckTokenProvider);
   private runtime: Promise<FirebaseRuntime> | undefined;
   observe(listener: (session: AuthSession) => void): () => void {
     let disposed = false;
@@ -42,9 +44,12 @@ export class FirebaseAuthRepository implements AuthRepository {
               if (checking) return;
               checking = true;
               try {
-                const token = await firebaseUser.getIdToken();
+                const [token, appToken] = await Promise.all([
+                  firebaseUser.getIdToken(),
+                  this.appCheck.token(),
+                ]);
                 const response = await fetch(`${backendConfig.url}/v1/session`, {
-                  headers: { Authorization: `Bearer ${token}` },
+                  headers: { Authorization: `Bearer ${token}`, 'X-Firebase-AppCheck': appToken },
                   cache: 'no-store',
                   signal: AbortSignal.timeout(15_000),
                 });
@@ -116,10 +121,7 @@ export class FirebaseAuthRepository implements AuthRepository {
   }
   private load(): Promise<FirebaseRuntime> {
     this.runtime ??= (async () => {
-      const [apps, sdk] = await Promise.all([import('firebase/app'), import('firebase/auth')]);
-      const app =
-        apps.getApps().find((item) => item.name === 'gabinete-crm') ??
-        apps.initializeApp(firebaseConfig, 'gabinete-crm');
+      const [app, sdk] = await Promise.all([firebaseApplication(), import('firebase/auth')]);
       const auth = sdk.getAuth(app);
       auth.languageCode = 'pt-BR';
       await sdk.setPersistence(auth, sdk.browserSessionPersistence);

@@ -3,6 +3,7 @@ import { AUTH_REPOSITORY } from '../repositories/auth.repository';
 import { backendConfig } from '../config/backend.config';
 import type { ApiResult, BackendApi, BackendOperation } from '../../domain/contracts/backend-api';
 import { DataConnection } from './data-connection';
+import { AppCheckTokenProvider } from './app-check-token';
 
 export class ApiError extends Error {
   constructor(
@@ -17,6 +18,7 @@ export class ApiError extends Error {
 export class ApiClient {
   private readonly auth = inject(AUTH_REPOSITORY);
   private readonly connection = inject(DataConnection);
+  private readonly appCheck = inject(AppCheckTokenProvider);
   async call<K extends BackendOperation>(
     operation: K,
     ...args: Parameters<BackendApi[K]>
@@ -54,12 +56,16 @@ export class ApiClient {
     return ((await response.json()) as { reference: string }).reference;
   }
   private async request(path: string, init: RequestInit, forceRefresh = false): Promise<Response> {
-    const token = await this.auth.getToken(forceRefresh);
+    const [token, appToken] = await Promise.all([
+      this.auth.getToken(forceRefresh),
+      this.appCheck.token(),
+    ]);
     const response = await fetch(`${backendConfig.url}${path}`, {
       ...init,
       headers: {
         ...(init.headers as Record<string, string> | undefined),
         Authorization: `Bearer ${token}`,
+        'X-Firebase-AppCheck': appToken,
       },
       signal: AbortSignal.timeout(60_000),
     });

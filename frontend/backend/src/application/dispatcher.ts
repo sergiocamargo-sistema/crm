@@ -23,6 +23,7 @@ import { ApplicationError, RevisionConflict } from './error';
 import { SearchCache, matchesSearch } from './search-cache';
 import { attachmentType } from '../../../src/app/features/requests/models/attachment-files';
 import type { FilesService } from './files';
+import { appendAudit, auditEntry, requirePermission, operationPermission } from './security';
 
 export const isQuery = (operation: BackendOperation): boolean =>
   /^(load|list|prepare|search|sync)/u.test(operation);
@@ -39,6 +40,13 @@ export class Dispatcher {
 
   async execute(context: RequestContext, invocation: ApiInvocation): Promise<ApiResult<unknown>> {
     const { operation, args, requestId } = invocation;
+    requirePermission(context.member, operationPermission(operation));
+    if (operation === 'prepareLabelRecipients' && args[0].length > 200)
+      throw new ApplicationError(
+        413,
+        'BATCH_TOO_LARGE',
+        'Prepare no máximo 200 etiquetas por lote.',
+      );
     if (!/^[a-zA-Z0-9_-]{8,160}$/u.test(requestId))
       throw new ApplicationError(400, 'INVALID_REQUEST_ID', 'Identificação de operação inválida.');
     validateBusinessInput(args);
@@ -68,10 +76,9 @@ export class Dispatcher {
       let remaining: boolean;
       do {
         remaining = await this.database.atomic(async (transaction) => {
-          validateAccess(
-            context.identity,
-            await transaction.get<MemberAccess>('teamAccess', context.identity.id),
-          );
+          const member = await transaction.get<MemberAccess>('teamAccess', context.identity.id);
+          validateAccess(context.identity, member);
+          requirePermission(member!, operationPermission(operation));
           const items =
             operation === 'markNotificationRead'
               ? [
@@ -87,12 +94,20 @@ export class Dispatcher {
                   ],
                   limit: 200,
                 });
+          let changed = 0;
           for (const { id, value } of items)
-            if (value?.recipientId === context.actor.id && !value.readAt)
+            if (value?.recipientId === context.actor.id && !value.readAt) {
+              changed++;
               transaction.put('crmNotifications', id, {
                 ...value,
                 readAt: new Date().toISOString(),
               });
+            }
+          if (changed)
+            appendAudit(
+              transaction,
+              auditEntry(context, operation, 'committed', { count: changed }),
+            );
           return operation === 'markAllNotificationsRead' && items.length === 200;
         });
       } while (remaining);
@@ -163,6 +178,13 @@ export class Dispatcher {
         },
       };
       const engine = createCrmEngine(state.crm, team);
+      if (
+        operation === 'addCategory' &&
+        !(await engine.loadCitizenCategories()).includes(args[1])
+      ) {
+        requirePermission(context.member, 'catalogs.manage');
+        context = { ...context, additionalPermissions: ['catalogs.manage'] };
+      }
       const labels = new LabelPrintEngine(state.labels);
       let result: unknown;
       try {
@@ -213,8 +235,9 @@ export class Dispatcher {
           error instanceof Error ? error.message : 'Não foi possível concluir a operação.',
         );
       }
-      if (isQuery(operation))
+      if (isQuery(operation)) {
         return { result: await this.files.hydrate(result ?? null), revision: snapshot.revision };
+      }
       try {
         const nextState = { crm: engine.snapshot(), labels: labels.snapshot() };
         const linkedIds = fileLinks.length ? this.files.references(nextState) : new Set<string>();

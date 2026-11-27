@@ -31,12 +31,13 @@ export class SearchCache {
     revision: number,
     page: string | null,
   ): Promise<SearchCachePage> {
+    const searchEpoch = `search-v2:${snapshot.epoch}`;
     let cursor: Cursor = {
-      epoch: snapshot.epoch,
+      epoch: searchEpoch,
       revision: snapshot.revision,
       since: revision,
       reset:
-        epoch !== snapshot.epoch ||
+        epoch !== searchEpoch ||
         revision < 0 ||
         revision > snapshot.revision ||
         snapshot.revision - revision > 100,
@@ -56,7 +57,7 @@ export class SearchCache {
         )
           throw new Error();
         if (
-          data.epoch === snapshot.epoch &&
+          data.epoch === searchEpoch &&
           data.revision === snapshot.revision &&
           data.since === revision
         )
@@ -100,7 +101,6 @@ export class SearchCache {
         removedIds.push(id);
         continue;
       }
-      const edits = snapshot.state.crm.profileEdits[id];
       records.push({
         id,
         name: person.name,
@@ -113,18 +113,14 @@ export class SearchCache {
           [
             person.name,
             person.neighborhood,
-            person.cra ?? '',
-            edits?.observations ?? person.observations,
-            ...(edits?.categories ?? person.categories),
             ...person.phones.flatMap(({ number }) => [number, number.replace(/\D/gu, '')]),
-            ...person.emails.map(({ address }) => address),
           ].join(' '),
         ),
       });
     }
     const offset = cursor.offset + selected.length;
     return {
-      epoch: snapshot.epoch,
+      epoch: searchEpoch,
       revision: snapshot.revision,
       reset: cursor.reset,
       records,

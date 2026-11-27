@@ -9,15 +9,24 @@ export class FirebaseFiles implements FileStorage {
       .save(Buffer.from(content), {
         resumable: false,
         contentType,
-        metadata: { cacheControl: 'private, max-age=300' },
+        metadata: {
+          cacheControl: 'private, no-store',
+          contentDisposition: /^(image|audio)\//u.test(contentType) ? 'inline' : 'attachment',
+        },
       });
   }
 
-  async signedReadUrl(path: string, expiresAt: Date): Promise<string> {
+  async signedReadUrl(path: string, expiresAt: Date, contentType?: string): Promise<string> {
     const [url] = await getStorage()
       .bucket()
       .file(path)
-      .getSignedUrl({ action: 'read', expires: expiresAt });
+      .getSignedUrl({
+        action: 'read',
+        expires: expiresAt,
+        responseDisposition:
+          contentType && /^(image|audio)\//u.test(contentType) ? 'inline' : 'attachment',
+        ...(contentType ? { responseType: contentType } : {}),
+      });
     return url;
   }
 

@@ -96,7 +96,8 @@ test('busca incremental entrega só o munícipe alterado e a busca remota aceita
   );
   assert.equal(delta.reset, false);
   assert.equal(delta.records.length, 1);
-  assert.ok(delta.records[0].searchText.includes('texto atualizado'));
+  assert.equal(delta.records[0].searchText.includes('texto atualizado'), false);
+  assert.deepEqual(result(await api.action('searchCitizens', ['texto atualizado', 100])), []);
   const remote = result<readonly { id: string }[]>(
     await api.action('searchCitizens', ['11912345678', 100]),
   );
