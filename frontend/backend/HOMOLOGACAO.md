@@ -49,3 +49,9 @@ firebase deploy --only hosting:homologacao --project sergio-6ceff --account comu
 O predeploy compila o frontend. Não reutilizar sem recompilar um artefato feito para Pages, que tem outra base. Alterações de API, banco e regras seguem o procedimento próprio do backend e não são publicadas por esse workflow.
 
 O usuário dispensou verificações do site e assumiu a validação nesta tarefa. Executar somente a compilação necessária ao deploy; não executar testes, probes HTTP de páginas/rotas/login ou navegador por iniciativa própria. O sucesso do deploy confirma publicação do artefato, não valida login real, pontuação reCAPTCHA, telas ou CRUD. Registrar resultado operacional em `README.md`.
+
+## Publicação confirmada — 27/11/2026
+
+[Execução 46061629599](https://github.com/sergiocamargo-sistema/crm/actions/runs/46061629599) concluída com sucesso, commit `c0f86e1`. Compilação de produção e deploy somente de Hosting concluídos pelo GitHub, com autenticação federada. A API recebeu antes a atualização dos dois origins de homologação; Auth e reCAPTCHA receberam os dois domínios. Não houve testes da aplicação, requisições HTTP a páginas/rotas/login ou navegador; a validação foi deixada com o usuário. Publicações seguintes da branch usam o mesmo workflow. O commit posterior somente de registro operacional usa `[skip ci]` para não repetir o mesmo build por mudança de documentação.
+
+A condição OIDC usa o subject imutável observado no job, conforme a [referência do GitHub](https://docs.github.com/en/actions/reference/security/oidc). Não reintroduzir a comparação com o subject legado sem IDs.

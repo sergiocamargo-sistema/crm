@@ -6,7 +6,7 @@ Implementação iniciada em 25/11/2026 na branch `homologacao`, autorizada para 
 
 Publicação autorizada pelo usuário em endereço próprio: **https://sergio-6ceff-homologacao.web.app**. A branch `homologacao` é publicada automaticamente pelo GitHub Actions no Firebase Hosting; a main segue no GitHub Pages. Configuração e identidade de deploy em [HOMOLOGACAO.md](HOMOLOGACAO.md). O frontend usa o banco/API já existentes do projeto, sem criar outro banco.
 
-O usuário assumiu a validação do site: executar apenas compilação necessária à publicação, sem testes, probes HTTP de telas/rotas/login ou navegador nesta tarefa. Resultado de publicação será registrado após concluir o workflow.
+Publicação concluída em 27/11/2026 pelo [GitHub Actions, execução 46061629599](https://github.com/sergiocamargo-sistema/crm/actions/runs/46061629599), commit publicado `c0f86e1`. A compilação e o deploy de Hosting terminaram com sucesso usando identidade federada. Os domínios foram autorizados em Auth/App Check e a API foi atualizada para CORS. O usuário assumiu a validação: não foram executados testes, probes HTTP de telas/rotas/login ou navegador nesta tarefa. Compilação/publicação não equivalem à validação de login real ou CRUD.
 
 ## Estado atual
 
