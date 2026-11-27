@@ -2,6 +2,12 @@
 
 Implementação iniciada em 25/11/2026 na branch `homologacao`, autorizada para todos os módulos ativos existentes. Firestore é o primeiro provedor de persistência; o navegador usa uma API por ações de negócio. A `main` e sua publicação no GitHub Pages permanecem na versão anterior.
 
+## Homologação do frontend — 27/11/2026
+
+Publicação autorizada pelo usuário em endereço próprio: **https://sergio-6ceff-homologacao.web.app**. A branch `homologacao` é publicada automaticamente pelo GitHub Actions no Firebase Hosting; a main segue no GitHub Pages. Configuração e identidade de deploy em [HOMOLOGACAO.md](HOMOLOGACAO.md). O frontend usa o banco/API já existentes do projeto, sem criar outro banco.
+
+O usuário assumiu a validação do site: executar apenas compilação necessária à publicação, sem testes, probes HTTP de telas/rotas/login ou navegador nesta tarefa. Resultado de publicação será registrado após concluir o workflow.
+
 ## Estado atual
 
 Código preparado para cadastro/ficha/busca/listagem de munícipes, categorias e indicação, interações e detalhes de conversas/agendamentos já existentes, solicitações, departamentos, padrões, ciências, comentários, anexos, tarefas/Kanban, etiquetas de tarefas, histórico/horas, automações, notificações internas e impressão de etiquetas. Os botões de módulos que ainda não tinham implementação não passam a existir por este trabalho. A antiga caixa de entrada continua arquivada: não há integração WhatsApp/156/e-mail, envio ao munícipe ou novos módulos legislativos.

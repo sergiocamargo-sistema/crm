@@ -33,6 +33,7 @@ id_ed25519*
 id_ecdsa*
 id_dsa*
 credentials.json
+gha-creds-*.json
 service-account*.json
 serviceAccount*.json
 firebase-adminsdk*.json

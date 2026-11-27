@@ -1,3 +1,10 @@
 {
-  "projects": { "default": "sergio-6ceff" }
+  "projects": { "default": "sergio-6ceff" },
+  "targets": {
+    "sergio-6ceff": {
+      "hosting": {
+        "homologacao": ["sergio-6ceff-homologacao"]
+      }
+    }
+  }
 }

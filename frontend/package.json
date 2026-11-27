@@ -5,6 +5,7 @@
     "ng": "ng",
     "start": "ng serve --host 127.0.0.1 --port 4300",
     "build": "ng build",
+    "build:homologacao": "node scripts/prepare-homologacao.mjs --guard && ng build --configuration production --base-href / && node scripts/prepare-homologacao.mjs",
     "build:pages": "ng build --configuration production --base-href /crm/ && node scripts/prepare-github-pages.mjs",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",

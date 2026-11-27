@@ -18,6 +18,8 @@ const handle = createApi({
   requireAppCheck: true,
   allowedOrigins: [
     'https://sergiocamargo-sistema.github.io',
+    'https://sergio-6ceff-homologacao.web.app',
+    'https://sergio-6ceff-homologacao.firebaseapp.com',
     /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/u,
   ],
   logError: (traceId) => console.error('crm_request_failed', { traceId }),

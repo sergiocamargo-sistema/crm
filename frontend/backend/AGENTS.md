@@ -2,7 +2,7 @@
 
 Leia `README.md` deste diretório e `../AGENTS.md` antes de alterar os fluxos. A autorização atual, de 25/11/2026, abrange os módulos ativos existentes; as restrições antigas de adiar backend estão superadas nesse escopo.
 
-- Trabalhar na branch `homologacao`. Não alterar/publicar `main`, GitHub Pages ou criar outro site.
+- Trabalhar na branch `homologacao`. Preservar `main` e seu GitHub Pages. Novo pedido explícito de 27/11/2026 autoriza publicar o frontend dessa branch no site Firebase Hosting já existente `sergio-6ceff-homologacao` e configurar o GitHub Actions; ver `HOMOLOGACAO.md`. Essa autorização supera a restrição anterior de não reativar outro site somente neste escopo.
 - `src/config/persistence.ts` seleciona o banco. Os repositórios dependem de `DocumentDatabase`, nunca de tipos do Firebase. Identidade e arquivos têm portas separadas.
 - Regras de negócio compartilhadas vivem em `../src/app/domain/`; não recriar cópias no frontend/backend. Mocks antigos estão arquivados localmente, sem participação na aplicação.
 - A entrada HTTP comum é `src/http/api.ts`; `src/index.ts` é o adaptador Firebase e `src/local.ts` é só desenvolvimento em loopback/memória. Nunca ligar a identidade local ao Functions. Testes ficam em `tests/`, sem acessar a nuvem.
@@ -30,3 +30,5 @@ Atualização de 26/11/2026: Blaze ativo confirmado; API/job, regras/índices e 
 - Dependências de produção auditadas nesta tarefa; override gRPC 1.14.7 no frontend corrige aviso transitivo do Firebase. Não fazer downgrade automático do SDK nem remover o override sem revisar advisory, lockfile e validação.
 
 - Decisão explícita do usuário em 27/11/2026, após a entrega de segurança: manter somente login Google e adiar verificação em duas etapas. Não implementar/exigir MFA nem pedir confirmação de sua ativação como requisito desta etapa; retomar apenas com novo pedido. Preservar App Check, permissões e demais controles. Não desativar configurações de segurança já existentes nas contas Google.
+
+- Deploy da homologação, 27/11/2026: o usuário dispensou verificações e assumiu a validação. Somente compilação necessária à publicação está incluída; não executar testes, HTTP de site/rotas/login ou navegador nesta tarefa. CORS/Auth/App Check devem incluir os dois domínios de homologação sem afrouxar os controles. Workflow publica apenas Hosting; API/regras continuam separadas.
