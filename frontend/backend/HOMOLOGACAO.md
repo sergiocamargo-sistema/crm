@@ -26,6 +26,7 @@ O Hosting usa rewrite para `index.html` em rotas Angular. Os headers exigem reva
 - Provedor OIDC: `github`, issuer `https://token.actions.githubusercontent.com`.
 - Repositório GitHub ID `1469435054`, proprietário ID `360410584`.
 - Trust restrito a `refs/heads/homologacao`, evento `push`, arquivo `.github/workflows/deploy-homologacao.yml` dessa mesma branch e environment `homologacao`.
+- Subject OIDC observado: `repo:sergiocamargo-sistema@360410584/crm@1469435054:environment:homologacao`. Esse repositório usa o formato com IDs imutáveis do GitHub; não substituir pelo formato legado sem os IDs. O workflow registra apenas esses identificadores públicos para diagnóstico, nunca o token.
 - A conta recebe `roles/firebasehosting.admin` e `roles/serviceusage.serviceUsageConsumer` no projeto; não recebe permissões de dados/Functions ou a identidade de execução do backend. O papel de Hosting é no projeto, não uma garantia de escopo por site; o workflow fixa o target permitido.
 - A identidade federada do repositório recebe `roles/iam.workloadIdentityUser` somente sobre essa conta de serviço. Não criar chave JSON, token pessoal, secret Firebase ou alterar a conta global desta máquina.
 
