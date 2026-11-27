@@ -41,6 +41,19 @@ jobs:
         run: npm ci
       - name: Preparar Firebase CLI
         run: npm install --global firebase-tools@15.31.0
+      - name: Registrar identificacao publica do deploy
+        shell: bash
+        run: |
+          node --input-type=module <<'JS'
+          const request = new URL(process.env.ACTIONS_ID_TOKEN_REQUEST_URL);
+          request.searchParams.set('audience', 'projects/364283541545/locations/global/workloadIdentityPools/crm-homologacao-20261127/providers/github');
+          const response = await fetch(request, { headers: { Authorization: `Bearer ${process.env.ACTIONS_ID_TOKEN_REQUEST_TOKEN}` } });
+          if (!response.ok) throw new Error(`Falha ao obter identidade do job: HTTP ${response.status}`);
+          const { value } = await response.json();
+          const claims = JSON.parse(Buffer.from(value.split('.')[1], 'base64url').toString());
+          const names = ['repository_id', 'repository_owner_id', 'ref', 'workflow_ref', 'sub', 'event_name', 'environment'];
+          console.log(JSON.stringify(Object.fromEntries(names.map(name => [name, claims[name]]))));
+          JS
       - name: Autenticar com identidade temporaria do GitHub
         uses: google-github-actions/auth@7c6bc770dae815cd3e89ee6cdf493a5fab2cc093 # v3
         with:
