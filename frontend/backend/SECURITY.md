@@ -27,7 +27,7 @@ Perfil `admin`: todas essas permissões. Perfil `member`: `records.read`, `recor
 
 Essa separação protege ações, mas ainda não separa pessoas por departamento nem campos da ficha por função. Leitura autorizada continua abrangendo os registros dos módulos. Não prometer proteção contra extração por uma conta que possui essa leitura. As telas mantêm os controles atuais e apresentam erro se o servidor negar a operação; não há tela nova de administração de acessos.
 
-**Verificação em duas etapas:** cada funcionário deve ativá-la na sua conta Google, preferindo passkey/aplicativo autenticador. O CRM não configura nem confirma o segundo fator de uma conta Gmail pessoal. Login Google não equivale a MFA obrigatório no CRM; impor um fator próprio exige um fluxo de cadastro/recuperação e configuração adicional de identidade. Nunca habilitar uma exigência nova antes de preparar o administrador para ela.
+**Decisão do usuário — 27/11/2026:** manter somente o login Google no CRM, com acesso às contas autorizadas. A verificação em duas etapas, tanto a exigência de confirmação nas contas Google quanto um segundo fator próprio no CRM, fica adiada para uma etapa futura e não bloqueia esta entrega. Não implementar, ativar ou voltar a exigir essa etapa sem novo pedido. Configurações de segurança já existentes nas contas Google continuam sob controle dos titulares; esta decisão não solicita desativá-las. App Check e os demais controles da API permanecem ativos; App Check não adiciona um segundo fator ao login.
 
 ## Abuso e custos
 
@@ -86,4 +86,4 @@ Antes de recuperar: identificar o instante/cópia, restaurar em banco novo isola
 - [Alertas de orçamento](https://firebase.google.com/docs/projects/billing/budget-alerts), [TTL](https://firebase.google.com/docs/firestore/ttl).
 - [Ativar verificação em duas etapas da conta Google](https://support.google.com/accounts/answer/185839).
 
-Resultados finais de compilação/testes, publicação e ensaio estão no estado operacional do `README.md`. Login Google real no navegador e pontuação real de reCAPTCHA ainda precisam ser validados antes de migrar a `main`. Não remover App Check para contornar esse teste. Ainda pendentes: MFA obrigatório próprio, separação por departamento/campo, serviço antimalware, WAF, cópia externa agendada e exercício de recuperação dos anexos/identidade.
+Resultados finais de compilação/testes, publicação e ensaio estão no estado operacional do `README.md`. Login Google real no navegador e pontuação real de reCAPTCHA ainda precisam ser validados antes de migrar a `main`. Não remover App Check para contornar esse teste. A verificação em duas etapas foi adiada por decisão do usuário, conforme registrado acima. Ainda pendentes: separação por departamento/campo, serviço antimalware, WAF, cópia externa agendada e exercício de recuperação dos anexos/identidade.

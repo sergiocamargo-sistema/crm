@@ -28,3 +28,5 @@ Atualização de 26/11/2026: Blaze ativo confirmado; API/job, regras/índices e 
 - O usuário autorizou compilação e testes locais de backend/frontend nesta tarefa; isso não altera a preferência permanente para tarefas futuras. Estado de deploy/ensaios/resultados e pendências no README.
 
 - Dependências de produção auditadas nesta tarefa; override gRPC 1.14.7 no frontend corrige aviso transitivo do Firebase. Não fazer downgrade automático do SDK nem remover o override sem revisar advisory, lockfile e validação.
+
+- Decisão explícita do usuário em 27/11/2026, após a entrega de segurança: manter somente login Google e adiar verificação em duas etapas. Não implementar/exigir MFA nem pedir confirmação de sua ativação como requisito desta etapa; retomar apenas com novo pedido. Preservar App Check, permissões e demais controles. Não desativar configurações de segurança já existentes nas contas Google.
